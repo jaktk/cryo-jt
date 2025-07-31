@@ -55,23 +55,23 @@
     "mean_TT101_K": 80.43454704300001
   },
   {
-    "filename": "Helium-Nitrogen_140K_5MPa.csv",
-    "fluid": "Helium-Nitrogen",
+    "filename": "Nitrogen-Helium_140K_5MPa.csv",
+    "fluid": "Nitrogen-Helium",
     "mean_TT101_K": 140.002343735
   },
   {
-    "filename": "Helium-Nitrogen_140K_8MPa.csv",
-    "fluid": "Helium-Nitrogen",
+    "filename": "Nitrogen-Helium_140K_8MPa.csv",
+    "fluid": "Nitrogen-Helium",
     "mean_TT101_K": 140.00500794
   },
   {
-    "filename": "Helium-Nitrogen_160K_5MPa.csv",
-    "fluid": "Helium-Nitrogen",
+    "filename": "Nitrogen-Helium_160K_5MPa.csv",
+    "fluid": "Nitrogen-Helium",
     "mean_TT101_K": 160.0024465
   },
   {
-    "filename": "Helium-Nitrogen_160K_8MPa.csv",
-    "fluid": "Helium-Nitrogen",
+    "filename": "Nitrogen-Helium_160K_8MPa.csv",
+    "fluid": "Nitrogen-Helium",
     "mean_TT101_K": 160.002196044
   },
   {
