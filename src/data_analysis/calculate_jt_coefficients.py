@@ -75,8 +75,8 @@ class JTCoefficientCalculator:
         if fluid_name == 'Helium-Neon':
             fluid_type = ('Helium', 'Neon')
             mixture = True
-        elif fluid_name == 'Helium-Nitrogen':
-            fluid_type = ('Helium', 'Nitrogen')
+        elif fluid_name == 'Nitrogen-Helium':
+            fluid_type = ('Nitrogen', 'Helium')
             mixture = True
         elif fluid_name == 'Nitrogen':
             fluid_type = 'Nitrogen'

@@ -7,7 +7,7 @@ from get_git_root import get_git_root
 
 git_root = get_git_root(os.getcwd())
 
-with open(os.path.join(git_root, "data", "time_stamps.json")) as f:
+with open(os.path.join(git_root, "data", "metadata", "time_stamps.json")) as f:
     data = json.load(f)
 
 for isenthalp_stamps in data["isenthalps"]:
@@ -52,6 +52,7 @@ for isenthalp_stamps in data["isenthalps"]:
     measurement_isenthalp.to_csv(os.path.join(git_root,
                                               "data",
                                               "derived_data",
+                                              "p_T_pairs",
                                               fname),
                                  index=False)
     print("Done.")
