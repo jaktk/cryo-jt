@@ -8,7 +8,7 @@ The measurements from this repository validate the earlier-developped equations 
 
 All the nomenclature in this repository, the raw and processed data files in particular, follow the naming convention from the P&ID digaram below.
 
-![pfd](images/PID.png "Piping and Instrumentation Diagram of the experimental setup for the Joule-Thomson coefficient")
+![pfd](img/PID.png "Piping and Instrumentation Diagram of the experimental setup for the Joule-Thomson coefficient")
 
 The most imporant values for analysing the Joule-Thomson coefficient are:
 - temperature from TT101 (upstream) and TT102 (downstream) thermometers;
