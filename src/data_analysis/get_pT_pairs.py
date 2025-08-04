@@ -34,7 +34,7 @@ for isenthalp_stamps in data["isenthalps"]:
                 # for all columns but date and time
                 mean_mp[col] = [mp[col].mean()]
                 mean_mp[f"{col}_STD"] = [mp[col].std(skipna=True)]
-                mean_mp[f"{col}_EXP_UNC"] = [2 * mean_mp[f"{col}_STD"][0] / len(mp[col])]
+                mean_mp[f"{col}_EXP_UNC"] = [1.96 * mean_mp[f"{col}_STD"][0] / len(mp[col])]
         measurement_isenthalp = pd.concat([measurement_isenthalp,
                                            pd.DataFrame.from_dict(mean_mp)])
     measurement_isenthalp.reset_index(drop=True, inplace=True)
