@@ -352,8 +352,8 @@ class JTCoefficientCalculator:
             
             # Calculate relative errors
             relative_abs_error = np.where(jt_theoretical != 0, 
-                                    np.abs((jt_measured - jt_theoretical) / jt_theoretical * 100),
-                                    np.nan)
+                                          np.abs((jt_measured - jt_theoretical) / jt_theoretical * 100),
+                                          np.nan)
             
             # Create results dictionary
             results = {
@@ -464,13 +464,14 @@ class JTCoefficientCalculator:
         for result in results:
             csv_data = {
                 'p/MPa': result['p/MPa'],
-                'T/K': result['T/K'],
                 'p_UNC/MPa': result['p_UNC/MPa'],
+                'T/K': result['T/K'],
                 'T_UNC/K': result['T_UNC/K'],
                 'JT_meas/(K/MPa)': result['JT_meas/(K/MPa)'],
-                'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
-                'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc']
+                'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
+                'mean_unc_perc': result['mean_unc_perc'],
+                'rel_abs_err_perc': result['rel_abs_err_perc']
             }
             
             csv_df = pd.DataFrame(csv_data)
