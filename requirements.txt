@@ -1,0 +1,18 @@
+# Python dependencies for the cryo-jt data analysis and figure regeneration.
+# Install with:  python -m pip install -r requirements.txt
+#
+# External (non-pip) dependencies:
+#   - REFPROP (NIST, https://www.nist.gov/srd/refprop) for accurate reference
+#     thermodynamic properties. The custom mixture equations of state in
+#     REFPROP/ must be copied into REFPROP's HMX.BNC file.
+#   - LaTeX toolchain (latex + dvipng) for matplotlib's text.usetex in the
+#     publication style sheet src/data_analysis/jced.mplstyle. To regenerate
+#     the figures without LaTeX, set text.usetex to False in that style sheet.
+
+numpy>=1.20
+pandas>=1.3
+scipy>=1.7
+matplotlib>=3.5
+scikit-learn>=1.0
+GitPython>=3.1
+CoolProp>=6.4
