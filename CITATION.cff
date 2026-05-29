@@ -19,7 +19,7 @@ version: "1.0.0"
 date-released: "2026-05-27"
 license: CC-BY-4.0
 repository-code: "https://github.com/jaktk/cryo-jt"
-# doi: "XXX"
+doi: "10.5281/zenodo.20444865"
 keywords:
   - Joule-Thomson coefficient
   - cryogenics
