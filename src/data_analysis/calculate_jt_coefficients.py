@@ -8,7 +8,6 @@ from sklearn.metrics import r2_score
 from FluidProps import FluidProps
 from get_git_root import get_git_root
 
-
 class CernoxCal(object):
     serNum = ''
 
@@ -106,8 +105,6 @@ class CernoxCal(object):
                   {'Tmin': 80.0, 'Tmax': 325.0, 'N': 32, 'n': 8, 'DTrms': 5.84}],
         'X115143': [{'Tmin': 20.0, 'Tmax': 95.0, 'N': 28, 'n': 7, 'DTrms': 0.91},
                    {'Tmin': 95.0, 'Tmax': 325.0, 'N': 29, 'n': 9, 'DTrms': 3.45}],
-        'X115888': [{'Tmin': 20.0, 'Tmax': 95.3, 'N': 28, 'n': 7, 'DTrms': 1.17},
-                   {'Tmin': 95.3, 'Tmax': 325.0, 'N': 29, 'n': 8, 'DTrms': 4.06}]
         }
         for _ in d[self.serNum]:
             if T >= _['Tmin'] and T < _['Tmax']:
@@ -118,10 +115,10 @@ class CernoxCal(object):
         return 2 * sigm2**0.5
 
 
-class TempUncertainty:
+class TempUncertainty(object):
     sensor = ''
     def __init__(self, sensor):
-        assert sensor in ['X93303','X115143','X115888']
+        assert sensor in ['X93303','X115143']
         self.sensor = sensor
         self.cernox = CernoxCal(sensor)
 
@@ -150,8 +147,6 @@ class TempUncertainty:
                   {'Tmin': 80.0, 'Tmax': 325.0, 'N': 32, 'n': 8, 'DTrms': 5.84}],
         'X115143': [{'Tmin': 20.0, 'Tmax': 95.0, 'N': 28, 'n': 7, 'DTrms': 0.91},
                    {'Tmin': 95.0, 'Tmax': 325.0, 'N': 29, 'n': 9, 'DTrms': 3.45}],
-        'X115888': [{'Tmin': 20.0, 'Tmax': 95.3, 'N': 28, 'n': 7, 'DTrms': 1.17},
-                   {'Tmin': 95.3, 'Tmax': 325.0, 'N': 29, 'n': 8, 'DTrms': 4.06}]
         }
 
         for i in d[self.sensor]:
@@ -170,12 +165,22 @@ class TempUncertainty:
         return (cabtr + cernox + poly) * 1e-3
 
 
-class JTCoefficientCalculator:
+class JTCoefficientCalculator(object):
     def __init__(self):
         self.git_root = get_git_root(os.getcwd())
-        self.data_dir = os.path.join(self.git_root, 'data', 'derived_data', 'p_T_pairs')
-        self.metadata_file = os.path.join(self.git_root, 'data', 'metadata', 'p_T_pairs.json')
-        self.output_dir = os.path.join(self.git_root, 'data', 'derived_data', 'JT_coeffs')
+        self.data_dir = os.path.join(self.git_root,
+                                     'data',
+                                     'derived_data',
+                                     'p_T_pairs')
+        self.metadata_file = os.path.join(self.git_root,
+                                          'data',
+                                          'derived_data',
+                                          'p_T_pairs',
+                                          'index.json')
+        self.output_dir = os.path.join(self.git_root,
+                                       'data',
+                                       'derived_data',
+                                       'jt_coeffs')
         os.makedirs(self.output_dir, exist_ok=True)
         self.metadata = self._load_metadata()
         
@@ -199,7 +204,12 @@ class JTCoefficientCalculator:
             mixture = False
         return fluid_type, mixture
     
-    def _fit_polynomial_weighted(self, pressures, temperatures, p_uncertainties, t_uncertainties, max_degree=6):
+    def _fit_polynomial_weighted(self,
+                                 pressures,
+                                 temperatures,
+                                 p_uncertainties,
+                                 t_uncertainties,
+                                 max_degree=6):
         """
         Fit optimal Chebyshev polynomial to p-T data with weighted least squares.
         Uses measurement uncertainties to weight the fitting process.
@@ -247,7 +257,11 @@ class JTCoefficientCalculator:
         poly_deriv = polynomial.deriv(m=1) # Get derivative of polynomial (this gives dT/dp)
         return poly_deriv(pressures)
     
-    def _calculate_theoretical_jt(self, pressures, temperatures, fluid_props, composition=None):
+    def _calculate_theoretical_jt(self,
+                                  pressures,
+                                  temperatures,
+                                  fluid_props,
+                                  composition=None):
         """ Calculate theoretical JT coefficients with EOS and REFPROP """
         jt_theoretical = np.zeros_like(pressures)
         
@@ -263,7 +277,13 @@ class JTCoefficientCalculator:
         
         return jt_theoretical
     
-    def _monte_carlo_uncertainty(self, pressures, temperatures, p_uncertainties, t_uncertainties, polynomial, n_samples=1000):
+    def _monte_carlo_uncertainty(self,
+                                 pressures,
+                                 temperatures,
+                                 p_uncertainties,
+                                 t_uncertainties,
+                                 polynomial,
+                                 n_samples=1000):
         """ Monte Carlo uncertainty estimation for JT coefficients """
         try:
             jt_samples = []
@@ -350,11 +370,28 @@ class JTCoefficientCalculator:
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
             
-            # Calculate relative errors
-            relative_abs_error = np.where(jt_theoretical != 0, 
-                                          np.abs((jt_measured - jt_theoretical) / jt_theoretical * 100),
+            # Calculate relative errors of EOS, assuming the ground truth is:
+            #    EOS for pure fluids
+            #    measurements for mixtures
+            denominator = jt_measured if is_mixture else jt_theoretical
+            relative_abs_error = np.where(jt_theoretical != 0,
+                                          np.abs((jt_measured - jt_theoretical) / denominator * 100),
                                           np.nan)
-            
+
+            # Exclude the isenthalp extremities (the minimum- and maximum-
+            # pressure points) from the reported mu_JT statistics: the
+            # polynomial derivative is poorly constrained at the ends of the
+            # fitted interval. The extremity points are retained in the
+            # per-point output but flagged (used=False) and excluded from the
+            # summary statistics, consistent with the documented method.
+            interior_mask = np.ones(len(pressures), dtype=bool)
+            if len(pressures) > 2:
+                order = np.argsort(pressures)
+                interior_mask[order[0]] = False
+                interior_mask[order[-1]] = False
+            rel_err_interior = relative_abs_error[interior_mask]
+            unc_interior = (jt_uncertainty / np.abs(jt_measured) * 100)[interior_mask]
+
             # Create results dictionary
             results = {
                 'filename': filename,
@@ -373,16 +410,17 @@ class JTCoefficientCalculator:
                 'JT_meas/(K/MPa)': jt_measured,
                 'JT_eos/(K/MPa)': jt_theoretical,
                 'JT_UNC/(K/MPa)': jt_uncertainty,
+                'used': interior_mask,
                 'rel_abs_err_perc': relative_abs_error,
-                'mean_rel_abs_err_perc': np.nanmean(relative_abs_error),
-                'std_rel_abs_err_perc': np.nanstd(relative_abs_error),
-                'rms_rel_abs_err_perc': np.sqrt(np.nanmean(relative_abs_error**2)),
-                'mean_unc_perc': np.nanmean(jt_uncertainty / np.abs(jt_measured) * 100)
+                'mean_rel_abs_err_perc': np.nanmean(rel_err_interior),
+                'std_rel_abs_err_perc': np.nanstd(rel_err_interior),
+                'rms_rel_abs_err_perc': np.sqrt(np.nanmean(rel_err_interior**2)),
+                'mean_unc_perc': np.nanmean(unc_interior)
             }
             
             print(f"  Success: {len(pressures)} points, degree={degree}, R²={r2:.6f}")
-            print(f"  Mean relative error: {np.nanmean(relative_abs_error):.2f}%")
-            print(f"  Mean uncertainty: {np.nanmean(jt_uncertainty / np.abs(jt_measured) * 100):.2f}%")
+            print(f"  Mean relative error (interior): {np.nanmean(rel_err_interior):.2f}%")
+            print(f"  Mean uncertainty (interior): {np.nanmean(unc_interior):.2f}%")
             
             return results
             
@@ -471,7 +509,8 @@ class JTCoefficientCalculator:
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
                 'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
                 'mean_unc_perc': result['mean_unc_perc'],
-                'rel_abs_err_perc': result['rel_abs_err_perc']
+                'rel_abs_err_perc': result['rel_abs_err_perc'],
+                'used': result['used']
             }
             
             csv_df = pd.DataFrame(csv_data)

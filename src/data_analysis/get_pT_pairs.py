@@ -7,7 +7,7 @@ from get_git_root import get_git_root
 
 git_root = get_git_root(os.getcwd())
 
-with open(os.path.join(git_root, "data", "metadata", "time_stamps.json")) as f:
+with open(os.path.join(git_root, "data", "raw_data", "extraction_windows.json")) as f:
     data = json.load(f)
 
 for isenthalp_stamps in data["isenthalps"]:
