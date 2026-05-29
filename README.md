@@ -1,11 +1,11 @@
 [![](img/license-badge-ccby.svg)](data/LICENSE.md)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20444865.svg)](https://doi.org/10.5281/zenodo.20444865)
+[![DOI](img/doi-badge-zenodo.svg)](https://doi.org/10.5281/zenodo.20444865)
 
 <h1> Measurements of the Joule-Thomson coefficient in cryogenic fluids </h1>
 
 **Contributors**
 
-- **Jakub Tkaczuk** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423) &mdash; *design, construction, testing, writing*
+- **Jakub Tkaczuk** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423) &mdash; *design, testing, writing*
 - **Nicolas Luchier** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-5852-4726](https://orcid.org/0000-0002-5852-4726) &mdash; *supervision*
 - **François Millet** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-1240-0138](https://orcid.org/0000-0002-1240-0138) &mdash; *supervision*
 
