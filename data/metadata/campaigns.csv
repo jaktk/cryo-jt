@@ -1,0 +1,19 @@
+date,fluid,is_mixture,x1,x2,mean_purity,raw_data_file,notes
+2020-11-27,N2,FALSE,,,0.9987,raw_data/2020-11-27.csv,Q008 not recorded
+2020-12-09,N2-He,TRUE,0.8497,0.1503,,raw_data/2020-12-09.csv,
+2020-12-10,N2-He,TRUE,0.8909,0.1091,,raw_data/2020-12-10.csv,
+2020-12-11,N2-He,TRUE,0.5641,0.4359,,raw_data/2020-12-11.csv,
+2020-12-14,N2,FALSE,,,0.9904,raw_data/2020-12-14.csv,Q008 not recorded
+2020-12-15,Ar,FALSE,,,0.9990,raw_data/2020-12-15.csv,
+2020-12-16,N2,FALSE,,,0.9977,raw_data/2020-12-16.csv,
+2020-12-17,N2,FALSE,,,0.9986,raw_data/2020-12-17.csv,
+2021-01-12,He,FALSE,,,0.9967,raw_data/2021-01-12.csv,
+2021-01-13,He,FALSE,,,0.9904,raw_data/2021-01-13.csv,
+2021-01-14,He-Ne,TRUE,0.7148,0.2852,,raw_data/2021-01-14.csv,
+2021-01-15,He-Ne,TRUE,0.7385,0.2615,,raw_data/2021-01-15.csv,
+2021-01-25,N2,FALSE,,,0.9977,raw_data/2021-01-25.csv,
+2021-01-26,He,FALSE,,,0.9993,raw_data/2021-01-26.csv,
+2021-01-27,He-Ne,TRUE,0.3464,0.6536,,raw_data/2021-01-27.csv,
+2021-01-28,He-Ne,TRUE,0.4084,0.5916,,raw_data/2021-01-28.csv,
+2021-03-03,He-Ne,TRUE,0.2219,0.7781,,raw_data/2021-03-03.csv,
+2021-03-04,N2,FALSE,,,0.9987,raw_data/2021-03-04.csv,used for thermal-hysteresis check (isenthalp measured in both directions)

@@ -1,0 +1,17 @@
+directory,filename,description,license
+data,all_measurements.csv,combined time series of every raw measurement campaign concatenated into a single CSV,CC-BY-4.0
+data/raw_data,YYYY-MM-DD.csv,raw acquisition time series for one campaign day (sample interval 1 s),CC-BY-4.0
+data/raw_data,extraction_windows.json,start/end time stamps used by get_pT_pairs.py to slice each steady-state measurement window out of the raw time series,CC-BY-4.0
+data/derived_data/p_T_pairs,Fluid_TK_PMPa.csv,one isenthalp: the steady-state averages of every raw variable over its measurement window,CC-BY-4.0
+data/derived_data/p_T_pairs,index.json,manifest of the per-isenthalp CSVs (filename to fluid to mean inlet temperature) read by calculate_jt_coefficients.py,CC-BY-4.0
+data/derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,one isenthalp: derived Joule-Thomson coefficient with conventional uncertainty plus the EOS reference at each point,CC-BY-4.0
+data/derived_data/jt_coeffs,Fluid_TK_PMPa_MC_uncertainty.csv,one isenthalp: Monte Carlo bound on the achievable JT-coefficient uncertainty given the sensor floor (and composition for mixtures),CC-BY-4.0
+data/derived_data/jt_coeffs,jt_coefficients_summary.csv,one row per isenthalp: fluid composition fit metadata mean conventional uncertainty and mean deviation from the EOS,CC-BY-4.0
+data/derived_data/jt_coeffs,jt_coefficients_detailed.json,programmatic-friendly nested JSON with the per-point arrays from all isenthalps,CC-BY-4.0
+data/derived_data/jt_coeffs,mc_uncertainty_summary.csv,one row per isenthalp: mean and maximum Monte Carlo relative expanded uncertainty (and composition contribution for mixtures),CC-BY-4.0
+data/derived_data/calculated_mass_flow_rate,Fluid_DX_LY_xX_pP_TT.csv,design calculation of the downstream pressure as a function of mass flow rate for the chosen capillary geometry and inlet condition (used to size the capillary and plan the campaigns),CC-BY-4.0
+data/capillary_design,D0.4_L10_x0.501_p13_T80.csv,supplementary design calculation for the longer 10 m capillary that was abandoned because of a flow singularity in one section,CC-BY-4.0
+data/literature,literature_measurements.csv,historical Joule-Thomson coefficient measurements from the literature used in the comparison figure of the paper,CC-BY-4.0
+data/cernox_calibration_data/SERIAL,SERIAL.cof,calibration polynomial coefficients (Chebyshev) supplied by Lake Shore for the Cernox sensor with the given serial number,CC-BY-4.0
+data/cernox_calibration_data/SERIAL,SERIAL.dat,calibration point list (resistance and temperature pairs) for the Cernox sensor with the given serial number,CC-BY-4.0
+data/cernox_calibration_data/SERIAL,SERIAL.tbl,calibration look-up table for the Cernox sensor with the given serial number,CC-BY-4.0

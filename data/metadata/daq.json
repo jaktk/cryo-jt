@@ -1,0 +1,42 @@
+{
+  "description": "Data acquisition stack used to record the time series in data/raw_data/. Every raw CSV row is one sample emitted by the SCADA at the listed cadence.",
+  "scada": {
+    "name": "Panorama E2",
+    "vendor": "Codra",
+    "role": "real-time data acquisition, PID control of the cold-head heater (TT008), and safety supervision",
+    "control_loops": [
+      "TT008 inlet temperature regulation via PID acting on Q008 with a safety thermal switch"
+    ]
+  },
+  "temperature_acquisition": {
+    "tag": "CABTR",
+    "expansion": "Centrale d'Acquisition Basses Temperatures Rapide",
+    "vendor": "CEA/DSBT (built in-house)",
+    "role": "reads the Cernox resistances and converts them to TT101 and TT102 via the calibration polynomials in data/cernox_calibration_data/",
+    "transport_to_scada": "Modbus over a serial gateway",
+    "expanded_uncertainty_k2_mK_range": "1.3 mK at 20 K to 13.1 mK at 180 K (polynomial fit; see calculate_jt_coefficients.TempUncertainty.get_cabtr_uncertainty)"
+  },
+  "pressure_acquisition": {
+    "sensors": ["PT101", "PT102"],
+    "vendor": "Mensor",
+    "model": "CPT 6100",
+    "transport_to_scada": "RS-232 forwarded through a Modbus gateway"
+  },
+  "composition_acquisition": {
+    "sensor": "GA016",
+    "vendor": "Stanford Research Systems",
+    "model": "BGA244HP",
+    "transport_to_scada": "RS-232 forwarded through a Modbus gateway",
+    "operating_pressure_MPa": "atmospheric (sensor placed at the system outlet)"
+  },
+  "sampling": {
+    "interval_s": 1,
+    "format": "CSV, one file per campaign day, header in the first row",
+    "averaging_for_steady_state": "five consecutive 1 s samples averaged at each steady-state measurement window; window timestamps are listed in data/raw_data/extraction_windows.json"
+  },
+  "see_also": [
+    "data/metadata/sensors.json",
+    "data/metadata/codebook.csv",
+    "data/raw_data/extraction_windows.json"
+  ]
+}

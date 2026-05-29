@@ -1,0 +1,79 @@
+{
+  "description": "Principal measurement chain for the Joule-Thomson experiment. The PandID tag, sensor model, and calibration provenance for each sensor. Cernox calibration files are in data/cernox_calibration_data/SERIAL/. Polynomial-fit residuals quoted as DTrms come from the Lake Shore calibration certificates and are reproduced in calculate_jt_coefficients.CernoxCal.get_polynomial_fit_uncert.",
+  "sensors": [
+    {
+      "tag": "TT101",
+      "role": "inlet temperature (capillary upstream, on the T-piece)",
+      "manufacturer": "Lake Shore Cryotronics",
+      "model": "CX-1080-CU-HT-20L",
+      "type": "Cernox resistive temperature sensor",
+      "calibration_range_K": [20, 325],
+      "sensor_only_expanded_uncertainty_k2_mK": "approx 13 mK at 50 K rising to 28 mK at 180 K (Cernox sensor alone)",
+      "serial_number": "X115143",
+      "calibration_files_dir": "data/cernox_calibration_data/X115143/",
+      "calibration_polynomial_fit_uncertainty_mK_k2": {
+        "20.0_to_95.0_K": {"N": 28, "n": 7, "DTrms_mK": 0.91, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.10"},
+        "95.0_to_325.0_K": {"N": 29, "n": 9, "DTrms_mK": 3.45, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 7.80"}
+      }
+    },
+    {
+      "tag": "TT102",
+      "role": "outlet temperature (capillary downstream, in a copper block in direct contact with the fluid)",
+      "manufacturer": "Lake Shore Cryotronics",
+      "model": "CX-1050-SD-HT-1.4L",
+      "type": "Cernox resistive temperature sensor",
+      "calibration_range_K": [1.4, 325],
+      "sensor_only_expanded_uncertainty_k2_mK": "approx 13 mK at 50 K rising to 28 mK at 180 K (Cernox sensor alone)",
+      "serial_number": "X93303",
+      "serial_number_note": "Inferred from the calibration fit ranges: X93303 is the only sensor whose lowest-temperature fit covers 1.4 to 14.1 K, matching the CX-1050-SD-HT-1.4L spec.",
+      "calibration_files_dir": "data/cernox_calibration_data/X93303/",
+      "calibration_polynomial_fit_uncertainty_mK_k2": {
+        "1.4_to_14.1_K": {"N": 31, "n": 9, "DTrms_mK": 0.93, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.36"},
+        "14.1_to_80.0_K": {"N": 31, "n": 7, "DTrms_mK": 1.60, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 4.00"},
+        "80.0_to_325.0_K": {"N": 32, "n": 8, "DTrms_mK": 5.84, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 13.69"}
+      }
+    },
+    {
+      "tag": "PT101",
+      "role": "inlet pressure (capillary upstream)",
+      "manufacturer": "Mensor",
+      "model": "CPT 6100",
+      "type": "absolute pressure transducer",
+      "full_scale_MPa": 13.7,
+      "accuracy_pct_FS": 0.01,
+      "expanded_uncertainty_k2_MPa": 0.00137,
+      "calibration_note": "Manufacturer factory calibration; not recalibrated in-house."
+    },
+    {
+      "tag": "PT102",
+      "role": "outlet pressure (capillary downstream)",
+      "manufacturer": "Mensor",
+      "model": "CPT 6100",
+      "type": "gauge pressure transducer",
+      "full_scale_MPa": 13.7,
+      "accuracy_pct_FS": 0.01,
+      "expanded_uncertainty_k2_MPa": 0.00137,
+      "calibration_note": "Manufacturer factory calibration; not recalibrated in-house."
+    },
+    {
+      "tag": "GA016",
+      "role": "binary mixture composition (system outlet, at atmospheric pressure)",
+      "manufacturer": "Stanford Research Systems",
+      "model": "BGA244HP",
+      "type": "binary gas analyser using speed-of-sound thermometry",
+      "expanded_uncertainty_k2_mol_pct": 0.1,
+      "calibration_note": "Manufacturer factory calibration; constituent gases declared via the user manual."
+    }
+  ],
+  "context": {
+    "acquisition_module": "CABTR (Centrale d'Acquisition Basses Temperatures Rapide), built in-house at CEA/DSBT, interfaces TT101 and TT102 to the SCADA over Modbus.",
+    "transducer_transport": "PT101, PT102, and GA016 expose RS-232 ports forwarded to the SCADA through Modbus gateways.",
+    "sample_rate_s": 1,
+    "see_also": [
+      "data/metadata/daq.json",
+      "data/cernox_calibration_data/",
+      "src/data_analysis/theoretical_jt_uncertainty.py",
+      "src/data_analysis/calculate_jt_coefficients.py"
+    ]
+  }
+}
