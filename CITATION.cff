@@ -5,21 +5,21 @@ type: dataset
 authors:
   - family-names: Tkaczuk
     given-names: Jakub
-    orcid: "https://orcid.org/0000-0001-7997-9423"
-    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France; Global Health Engineering, Department of Mechanical and Process Engineering, ETH Zurich, 8092 Zurich, Switzerland"
+    orcid: https://orcid.org/0000-0001-7997-9423
+    affiliation: Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France
   - family-names: Luchier
     given-names: Nicolas
-    orcid: "https://orcid.org/0000-0002-5852-4726"
-    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+    orcid: https://orcid.org/0000-0002-5852-4726
+    affiliation: Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France
   - family-names: Millet
     given-names: François
-    orcid: "https://orcid.org/0000-0002-1240-0138"
-    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+    orcid: https://orcid.org/0000-0002-1240-0138
+    affiliation: Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France
 version: "1.0.0"
 date-released: "2026-05-27"
 license: CC-BY-4.0
-repository-code: "https://github.com/jaktk/cryo-jt"
-doi: "10.5281/zenodo.20444865"
+repository-code: https://github.com/jaktk/cryo-jt
+doi: 10.5281/zenodo.20444865
 keywords:
   - Joule-Thomson coefficient
   - cryogenics
