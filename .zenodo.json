@@ -1,0 +1,37 @@
+{
+  "title": "Measurements of the Joule-Thomson coefficient for cryogenic pure fluids and mixtures: experimental data and analysis code",
+  "description": "Raw and processed experimental data and the analysis code for measurements of the isenthalpic Joule-Thomson coefficient of pure nitrogen, argon, and helium-4, and of the binary mixtures helium-4-neon and helium-4-nitrogen, at temperatures between 65 and 180 K and pressures up to 10 MPa. Includes raw pressure-temperature(-composition) time series, the extracted isenthalpic p-T pairs, the derived Joule-Thomson coefficients with conventional and Monte Carlo uncertainties, Cernox sensor calibration data, and the Python analysis pipeline. Supporting data for the associated article submitted to the Journal of Chemical & Engineering Data.",
+  "upload_type": "dataset",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "version": "1.0.0",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Tkaczuk, Jakub",
+      "orcid": "0000-0001-7997-9423",
+      "affiliation": "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France; Global Health Engineering, ETH Zurich, Switzerland"
+    },
+    {
+      "name": "Luchier, Nicolas",
+      "orcid": "0000-0002-5852-4726",
+      "affiliation": "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+    },
+    {
+      "name": "Millet, François",
+      "orcid": "0000-0002-1240-0138",
+      "affiliation": "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+    }
+  ],
+  "keywords": [
+    "Joule-Thomson coefficient",
+    "cryogenics",
+    "helium-4",
+    "neon",
+    "nitrogen",
+    "argon",
+    "equation of state",
+    "thermodynamic properties",
+    "Monte Carlo uncertainty"
+  ]
+}
