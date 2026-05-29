@@ -26,12 +26,12 @@ python src/data_analysis/calculate_jt_coefficients.py
 
 **Input Data:**
 - `data/derived_data/p_T_pairs/*.csv` - Processed pressure-temperature pairs with uncertainties
-- `data/metadata/p_T_pairs.json` - Metadata with fluid types and reference temperatures
+- `data/derived_data/p_T_pairs/index.json` - Manifest of per-isenthalp CSVs (filename, fluid, mean inlet temperature)
 
 **Output:**
-- `data/derived_data/JT_coeffs/jt_coefficients_summary.csv` - Summary results table
-- `data/derived_data/JT_coeffs/jt_coefficients_detailed.json` - Complete results with arrays
-- `data/derived_data/JT_coeffs/*_JT.csv` - Individual measurement files
+- `data/derived_data/jt_coeffs/jt_coefficients_summary.csv` - Summary results table
+- `data/derived_data/jt_coeffs/jt_coefficients_detailed.json` - Complete results with arrays
+- `data/derived_data/jt_coeffs/*_JT.csv` - Individual measurement files
 
 **Methodology:**
 
@@ -56,34 +56,30 @@ python src/data_analysis/calculate_jt_coefficients.py
    - Calculates relative errors and goodness-of-fit metrics
    - Provides detailed quality assessment
 
-### `analyze_and_plot_JT.py`
+### `theoretical_jt_uncertainty.py`
 
-Original analysis script from thesis work containing plotting and validation functions.
+Closed-form (GUM) and Monte Carlo propagation of the sensor-limited uncertainty of $\mu_{\rm JT}$, parametrised by isenthalp slope, curvature, and number of points. Writes `img/theoretical_uncertainty_combined.{pdf,svg}` and is used in the paper as the lower bound on achievable uncertainty.
 
-**Key Classes:**
-- `CernoxCal` - Cernox temperature sensor calibration
-- `StdTempUncertainty` - Temperature measurement uncertainty calculations
-- `Isenthalpic` - Isenthalpic transformation calculations
+### `compare_theory_vs_experiment.py`
 
-**Functions:**
-- `plot_isenthalps_and_JT_coefs()` - Comprehensive plotting of results
-- `validate_nitrogen()`, `validate_argon()`, `validate_helium()` - Pure fluid validation
-- `JT_helium_nitrogen()`, `JT_helium_neon()` - Mixture measurements
+Overlays the measured $\mu_{\rm JT}$ deviations from the EOS on the sensor-floor band from `theoretical_jt_uncertainty.py`. Writes `img/theory_vs_experiment_uncertainty.pdf`.
 
-### `monte_carlo_uncertainty_analysis.py`
+### `monte_carlo_uncertainty.py`
 
-Monte Carlo uncertainty analysis for JT coefficient measurements.
+Monte Carlo bound on the achievable $\mu_{\rm JT}$ uncertainty *for each actually-measured isenthalp*. Reads `data/derived_data/p_T_pairs/*.csv` and `data/derived_data/jt_coeffs/jt_coefficients_summary.csv` (for the polynomial degree), places the measured pressures on the EOS-derived isenthalp through the mean inlet condition, perturbs each point within its sensor-floor (and, for mixtures, composition) uncertainty, refits Chebyshev, and reports the per-point spread of the derived $\mu_{\rm JT}$. No hard-coded $p$, $T$, $x$ values.
 
-**Key Functions:**
-- `monte_carlo_pures()` - Pure fluid uncertainty analysis
-- `monte_carlo_mixtures()` - Mixture uncertainty with composition effects
-- `monte_carlo_*_general()` - General uncertainty estimation routines
+```bash
+python src/data_analysis/monte_carlo_uncertainty.py             # all isenthalps
+python src/data_analysis/monte_carlo_uncertainty.py \           # one isenthalp
+    --isenthalp Helium-Neon_65K_5MPa --n-samples 5000 -v
+```
+
+Writes `data/derived_data/jt_coeffs/<stem>_MC_uncertainty.csv` per isenthalp and a combined `mc_uncertainty_summary.csv`. Requires REFPROP for the EOS lookups.
 
 ### Supporting Files
 
 - `FluidProps.py` - REFPROP wrapper for thermodynamic property calculations
-- `get_git_root.py` - Utility for finding repository root directory
-- `extract_file_info.py` - Utility for extracting metadata from data files
+- `get_git_root.py` - Utility for finding the repository root directory
 
 ## Data Structure
 
@@ -143,8 +139,9 @@ err(x),err(x)_STD,err(x)_EXP_UNC
 **Temperature range:** 65K to 180K
 **Pressure range:** 0.1 MPa to 12 MPa
 
-**Measurement uncertainty:**
-- **Temperature:** ±12-17 mK (Cernox sensors)
+**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`):
+- **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
+- **Temperature (full chain, sensor + CABTR + calibration polynomial):** ±18 mK at 50 K to ±43 mK at 180 K
 - **Pressure:** ±0.01% of full scale (13.7 MPa)
 - **Composition:** ±0.1 mol% (binary mixtures)
 
@@ -186,6 +183,44 @@ Where:
 **External dependencies:**
 - **REFPROP** - Thermodynamic property calculations
 - Custom equations of state for He-Ne, He-Ar, Ne-Ar mixtures (see `REFPROP/` directory)
+- **LaTeX** (`latex` + `dvipng`) is required by the figure scripts for
+  `matplotlib`'s `text.usetex` (the Computer Modern rendering used by the
+  shared style sheet). Set `text.usetex: False` in `jced.mplstyle` to skip.
+
+A pinned dependency list is provided at the repository root in
+[`requirements.txt`](../../requirements.txt).
+
+## Figure Regeneration
+
+All paper figures are generated by the scripts below and written to the
+repository [`img/`](../../img) directory. The scripts share a single
+declarative matplotlib style sheet, [`jced.mplstyle`](../jced.mplstyle), which is
+loaded explicitly with `plt.style.use(...)`; each script then sets its own
+figure-specific layout. There is no shared style function.
+
+| Script | Output(s) in `img/` |
+| --- | --- |
+| [`plot_paper_results.py`](plot_paper_results.py) | `measurements_{N2,Ar,He}_errorbars.pdf`, `measurements_HeNe_errorbars.pdf`, `measurements_HeN2_0_{1450,5028}_errorbars.pdf` |
+| [`theoretical_jt_uncertainty.py`](theoretical_jt_uncertainty.py) | `theoretical_uncertainty_combined.pdf`, `.svg` |
+| [`compare_theory_vs_experiment.py`](compare_theory_vs_experiment.py) | `theory_vs_experiment_uncertainty.pdf` |
+| [`plot_toc_graphic.py`](plot_toc_graphic.py) | `toc.pdf` |
+
+`plot_paper_results.py`, `compare_theory_vs_experiment.py`, and
+`plot_toc_graphic.py` read the derived JT CSVs in
+[`data/derived_data/jt_coeffs/`](../../data/derived_data/jt_coeffs) and do not
+require REFPROP. `theoretical_jt_uncertainty.py` propagates the equipment
+uncertainties analytically and by Monte Carlo and also does not require
+REFPROP. The full data-reduction pipeline (`calculate_jt_coefficients.py`)
+does require REFPROP.
+
+Regenerate the full figure set with:
+
+```bash
+python src/data_analysis/plot_paper_results.py
+python src/data_analysis/compare_theory_vs_experiment.py
+python src/data_analysis/theoretical_jt_uncertainty.py
+python src/data_analysis/plot_toc_graphic.py
+```
 
 ## Error Handling
 
