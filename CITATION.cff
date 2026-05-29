@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "To cite this repository, use:"
+title: "Measurements of the Joule-Thomson coefficient for cryogenic pure fluids and mixtures: experimental data and analysis code"
+type: dataset
+authors:
+  - family-names: Tkaczuk
+    given-names: Jakub
+    orcid: "https://orcid.org/0000-0001-7997-9423"
+    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France; Global Health Engineering, Department of Mechanical and Process Engineering, ETH Zurich, 8092 Zurich, Switzerland"
+  - family-names: Luchier
+    given-names: Nicolas
+    orcid: "https://orcid.org/0000-0002-5852-4726"
+    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+  - family-names: Millet
+    given-names: François
+    orcid: "https://orcid.org/0000-0002-1240-0138"
+    affiliation: "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
+version: "1.0.0"
+date-released: "2026-05-27"
+license: CC-BY-4.0
+repository-code: "https://github.com/jaktk/cryo-jt"
+# doi: "XXX"
+keywords:
+  - Joule-Thomson coefficient
+  - cryogenics
+  - helium-4
+  - neon
+  - nitrogen
+  - argon
+  - equation of state
+  - thermodynamic properties
+  - Monte Carlo uncertainty
