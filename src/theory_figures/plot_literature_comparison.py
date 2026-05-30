@@ -36,13 +36,13 @@ FLUID_MARKERS = {
 
 FLUID_LABELS = {
     'propylene':       'propylene',
-    'nitrogen':        r'N$_2$',
-    'helium':          r'$^4$He',
-    'argon':           'Ar',
+    'nitrogen':        'nitrogen',
+    'helium':          'helium',
+    'argon':           'argon',
     'n-butane':        r'$n$-butane',
     'air':             'air',
-    'helium-nitrogen': r'$^4$He--N$_2$',
-    'helium-neon':     r'$^4$He--Ne',
+    'helium-nitrogen': r'helium-nitrogen',
+    'helium-neon':     r'helium-neon',
 }
 
 
@@ -68,7 +68,7 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     df = pd.read_csv(DATA)
 
-    fig, ax = plt.subplots(figsize=(6.5, 3.2))
+    fig, ax = plt.subplots(figsize=(6, 3))
 
     ax.add_patch(mpatches.Rectangle((0, -5), 600, 10, facecolor='0.88', edgecolor='none', zorder=-2))
     ax.axhline(0, color='k', lw=0.6, zorder=-1)
@@ -86,7 +86,7 @@ def main():
         marker = FLUID_MARKERS.get(fluid, 'x')
         ax.scatter(group['T/K'], err,
                    c=color, edgecolor='k', linewidths=0.7,
-                   s=42, alpha=0.85, marker=marker,
+                   s=60, alpha=0.85, marker=marker,
                    zorder=0 if author == 'Roebuck' else 1)
         if fluid not in seen_fluids:
             seen_fluids.add(fluid)
@@ -103,11 +103,11 @@ def main():
                                                  r'$10^0$', r'$10^1$', r'$10^2$', r'$10^3$']))
     ax.set_xlabel(r'$T$ / K')
     ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$')
-
-    ax.legend(handles=legend_handles, loc='upper right', ncol=2,
+    ax.legend(handles=legend_handles,
+              loc='lower center', bbox_to_anchor=(0.455, 1.02), ncol=4,
               frameon=True, edgecolor='black', facecolor='white',
-              framealpha=1.0, fontsize=7.5, handletextpad=0.3,
-              labelspacing=0.3, columnspacing=0.7)
+              framealpha=1.0, handletextpad=0.1,
+              labelspacing=0.1, columnspacing=0.7)
 
     out = os.path.join(OUT_DIR, 'literature_review_plus_this_work.pdf')
     fig.savefig(out)

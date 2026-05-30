@@ -92,9 +92,6 @@ def make_figure(groups, outname, reference='eos', limits=None):
     else:
         figsize = (6.5, 4.3)
 
-    # sharey='row' so the top row (mu_JT) and the bottom row (deviation) each
-    # have their own independent y-axis. sharey=True would force top and
-    # bottom to share a single y range, silently overriding `limits['mu']`.
     fig, axes = plt.subplots(2, n_cols, figsize=figsize, sharex='col', sharey='row',
                              gridspec_kw={'height_ratios': [2, 1]})
     if n_cols == 1:
@@ -116,13 +113,13 @@ def make_figure(groups, outname, reference='eos', limits=None):
                        lw=1.0, zorder=2)
             ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
                            yerr=K * g['JT_UNC/(K/MPa)'],
-                           fmt=mk, color=c, ms=5, lw=0, elinewidth=0.7,
+                           fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                            capsize=1.8, mec='black', mew=0.5,
                            label=iso, zorder=3)
             denom = g['JT_eos/(K/MPa)'] if reference == 'eos' \
                 else g['JT_meas/(K/MPa)']
             dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) / denom
-            ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5,
+            ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
                         mec='black', mew=0.5, zorder=3)
 
         ax_dev.axhline(0, color='0.2', lw=0.6, zorder=1)
@@ -130,7 +127,7 @@ def make_figure(groups, outname, reference='eos', limits=None):
             ax_mu.set_title(col_label, fontsize=9)
         ax_mu.legend(ncol=2 if n_cols == 1 else 1,
                      loc='best',
-                     fontsize=8 if n_cols == 1 else 7.5,
+                     fontsize=9,
                      frameon=True, edgecolor='black',
                      facecolor='white', framealpha=1.0)
         ax_dev.set_xlabel(r'$p$ / MPa')
@@ -150,7 +147,6 @@ def make_figure(groups, outname, reference='eos', limits=None):
             for ax in axes[1, :]:
                 ax.set_ylim(*limits['dev'])
         if 'x' in limits:
-            # sharex='col' keeps the top row aligned with the bottom
             for ax in axes[1, :]:
                 ax.set_xlim(*limits['x'])
 
@@ -190,14 +186,14 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
                            lw=1.0, zorder=2)
                 ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
                                yerr=K * g['JT_UNC/(K/MPa)'],
-                               fmt=mk, color=c, ms=5, lw=0, elinewidth=0.7,
+                               fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                                capsize=1.8, mec='black', mew=0.5,
                                label=iso, zorder=3)
                 dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) \
                       / g['JT_eos/(K/MPa)']
-                ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5,
+                ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
                             mec='black', mew=0.5, zorder=3)
-            ax_mu.legend(loc='best', fontsize=7.5, frameon=True,
+            ax_mu.legend(loc='best', fontsize=9, frameon=True,
                          edgecolor='black', facecolor='white', framealpha=1.0)
 
         if fluid_key in ylims:
