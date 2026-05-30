@@ -17,51 +17,29 @@ The measurements from this repository validate the earlier-developed equations o
 
 ## System description
 
-The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid
-or the pre-mixed binary mixture. The cylinder is connected through the
-pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.6 L) buffer volume
-that smooths out the manual adjustments of the reducer and absorbs the slow
-pressure decay of the supply cylinder, reducing the frequency of inlet
-corrections from seconds to minutes.
+The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid or the pre-mixed binary mixture. The cylinder is connected through the pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.6 L) buffer volume that smooths out the manual adjustments of the reducer and absorbs the slow pressure decay of the supply cylinder, reducing the frequency of inlet corrections from seconds to minutes.
 
-Inside the cryostat (dashed envelope in the P&ID below), a copper block with
-a brazed heat exchanger is mounted on the cold head of a Cryomech AL300
-Gifford-McMahon cryocooler, capable of cooling the inlet flow from 300 K
-down to about 40 K. A 6 m helical capillary (304L stainless steel,
-0.4 mm × 1 mm ID × OD, 0.365 mm equivalent ID) imposes the isenthalpic
-expansion. Two calibrated Lake Shore Cernox temperature sensors are placed
-upstream (`TT101`, T_in) and downstream (`TT102`, T_out) of the capillary,
-with their lead wires thermalised at the cold head. Pressure is measured at
-the same two stations with Mensor CPT 6100 absolute-pressure transducers
-(`PT101`, `PT102`; 0.01% FS, p_max = 13.7 MPa).
+Inside the cryostat (dashed envelope in the P&ID below), a copper block with a brazed heat exchanger is mounted on the cold head of a Cryomech AL300 Gifford-McMahon cryocooler, capable of cooling the inlet flow from 300 K down to about 40 K. A 6 m helical capillary (304L stainless steel, 0.4 mm × 1 mm ID × OD, 0.365 mm equivalent ID) imposes the isenthalpic expansion. Two calibrated Lake Shore Cernox temperature sensors are placed upstream (`TT101`, T_in) and downstream (`TT102`, T_out) of the capillary, with their lead wires thermalised at the cold head. Pressure is measured at the same two stations with Mensor CPT 6100 absolute-pressure transducers (`PT101`, `PT102`; 0.01% FS, p_max = 13.7 MPa).
 
 ![capillary](img/photo_capillary.png "Joule-Thomson expansion capillary and the surrounding hardware inside the cryostat.")
 
-Two fine-control needle valves (`HV013`, `HV015`) are installed in parallel
-downstream of `PT102` to give a broad range of flow regulation. The gas
-analyser `GA016` (Stanford Research Systems BGA244HP) sits at the system
-outlet so that the speed-of-sound-based composition measurement always
-runs at atmospheric pressure (±0.1 mol-%).
+Two fine-control needle valves (`HV013`, `HV015`) are installed in parallel downstream of `PT102` to give a broad range of flow regulation. The gas analyser `GA016` (Stanford Research Systems BGA244HP) sits at the system outlet so that the speed-of-sound-based composition measurement always runs at atmospheric pressure (±0.1 mol-%).
 
-The capillary is mounted in vacuum on a glass-fibre support inside a
-multi-layer-insulated radiation shield thermalised at the cold head, so
-that the residual heat exchange with the environment is dominated by axial
-conduction along the tube wall.
+The capillary is mounted in vacuum on a glass-fibre support inside a multi-layer-insulated radiation shield thermalised at the cold head, so that the residual heat exchange with the environment is dominated by axial conduction along the tube wall.
 
-All raw and processed data files use the P&ID tag names below for sensor
-identification.
+All raw and processed data files use the P&ID tag names below for sensor identification.
 
 ![P&ID](img/PID.png "Piping and Instrumentation Diagram of the experimental setup for the Joule-Thomson coefficient")
 
 The principal sensors used for the Joule-Thomson analysis are:
+
 - temperature: `TT101` (upstream) and `TT102` (downstream) Cernox sensors;
 - pressure: `PT101` (upstream) and `PT102` (downstream) Mensor transducers;
 - composition (mixtures only): `GA016` binary gas analyser.
 
 ### Equipment list
 
-The components installed on the test bench, with their P&ID tag, function,
-and manufacturer/model, are listed below.
+The components installed on the test bench, with their P&ID tag, function, and manufacturer/model, are listed below.
 
 #### Control
 
@@ -122,6 +100,7 @@ and manufacturer/model, are listed below.
 ## Raw data
 
 `raw-data` contains raw measurement data stored in CSV files. It contains:
+
 - the pressure-temperature pairs used for indirect measurements of the Joule-Thomson coefficent in pure fluids (nitrogen, argon, helium-4);
 - the pressure-temperature-composition values used for indirect measurements of the Joule-Thomson coefficient in fluid mixtures (helium-neon, helium-nitrogen).
 
@@ -171,28 +150,24 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 
 ## Derived data
 
-`data/derived_data` contains the products computed from the raw data, documented
-in [`data/derived_data/README.md`](data/derived_data/README.md):
+`data/derived_data` contains the products computed from the raw data, documented in [`data/derived_data/README.md`](data/derived_data/README.md):
+
 - `p_T_pairs/` — steady-state pressure–temperature(–composition) points extracted from the raw time series, one file per isenthalp;
 - `jt_coeffs/` — the derived Joule-Thomson coefficients with conventional and Monte Carlo uncertainties, a `jt_coefficients_summary.csv`, and a `jt_coefficients_detailed.json`;
 - `calculated_mass_flow_rate/` — capillary-sizing design calculations.
 
-Cernox temperature-sensor calibration data are in `data/cernox_calibration_data`,
-and experiment metadata (timestamps, p–T pairs) in `data/metadata`.
+Cernox temperature-sensor calibration data are in `data/cernox_calibration_data`, and experiment metadata (timestamps, p–T pairs) in `data/metadata`.
 
 ## Code
 
 The `src` directory consists of the following sub-directories:
+
 - `data_acquisition` — code running data acquisition and real-time visualization of collected data;
 - `data_analysis` — code for data wrangling and analysis of results (see [`src/data_analysis/README.md`](src/data_analysis/README.md)).
 
 ## Reproducing the analysis
 
-The analysis requires Python with `numpy`, `pandas`, `scipy`, and `matplotlib`;
-the reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop)
-and/or [CoolProp](http://www.coolprop.org/). The custom equations of state for
-the mixtures are provided in `REFPROP/` and must be copied into REFPROP's
-`HMX.BNC` file. Typical entry points:
+The analysis requires Python with `numpy`, `pandas`, `scipy`, and `matplotlib`; the reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) and/or [CoolProp](http://www.coolprop.org/). The custom equations of state for the mixtures are provided in `REFPROP/` and must be copied into REFPROP's `HMX.BNC` file. Typical entry points:
 
 ```bash
 python src/data_analysis/get_pT_pairs.py                 # extract p-T pairs from raw data
@@ -202,13 +177,10 @@ python src/data_analysis/plot_paper_results.py           # per-fluid result figu
 
 ## Citation
 
-If you use this dataset or code, please cite it via the metadata in
-[`CITATION.cff`](CITATION.cff) (a DOI is minted on
-[Zenodo](https://zenodo.org/) with each release) and the associated article.
+If you use this dataset or code, please cite it via the metadata in [`CITATION.cff`](CITATION.cff).
 
 ## License
 
-This work is released under the [Creative Commons Attribution 4.0 International
-(CC-BY-4.0)](LICENSE) license.
+This work is released under the [Creative Commons Attribution 4.0 International(CC-BY-4.0)](LICENSE.md) license.
 
 	
