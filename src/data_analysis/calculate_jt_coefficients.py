@@ -331,10 +331,15 @@ class JTCoefficientCalculator(object):
             pressures = df['PT102/MPa'].values # Downstream pressure
             temperatures = df['TT102/K'].values # Downstream temperature
             
-            # Get measurement uncertainties (max value of sensor uncertainty and standard expanded uncertainty from a set of measurements)
+            # Per-point measurement uncertainty: max of the steady-state statistical
+            # uncertainty (from the averaging window) and the sensor-chain expanded
+            # uncertainty (k=2) at the point's pressure / temperature.
             p_uncertainties = np.array([max(p, 1.96 * 0.01/100 * 13.7) for p in df['PT102/MPa_EXP_UNC'].values])
             comb_T_unc = TempUncertainty("X93303")
-            t_uncertainties = np.array([max(t, comb_T_unc(t)) for t in df['TT102/K_EXP_UNC'].values])
+            t_uncertainties = np.array([
+                max(t_stat, comb_T_unc(T))
+                for t_stat, T in zip(df['TT102/K_EXP_UNC'].values, temperatures)
+            ])
             
             # Skip if insufficient data
             if len(pressures) < 3:

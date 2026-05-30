@@ -21,7 +21,7 @@ PURE_FLUID_COLS = [
 PURE_YLIMS = {
     'Nitrogen': {'mu': (0.0, 20.0),  'dev': (-5.0, 5.0)},
     'Argon':    {'mu': (3.0, 12.0),  'dev': (-5.0, 5.0)},
-    'Helium':   {'mu': (-0.6, 0),  'dev': (-35.0, 35.0)},
+    'Helium':   {'mu': (-0.6, 0),  'dev': (-40.0, 40.0)},
 }
 
 MIXTURE_LIMS = {
