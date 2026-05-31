@@ -4,7 +4,9 @@
 # External (non-pip) dependencies:
 #   - REFPROP (NIST, https://www.nist.gov/srd/refprop) for accurate reference
 #     thermodynamic properties. The custom mixture equations of state in
-#     REFPROP/ must be copied into REFPROP's HMX.BNC file.
+#     REFPROP/ must be copied into REFPROP's HMX.BNC file. The ctREFPROP
+#     package below provides the Python bindings but NOT the REFPROP library
+#     itself, which is licensed separately.
 #   - LaTeX toolchain (latex + dvipng) for matplotlib's text.usetex in the
 #     publication style sheet src/data_analysis/jced.mplstyle. To regenerate
 #     the figures without LaTeX, set text.usetex to False in that style sheet.
@@ -15,4 +17,9 @@ scipy>=1.7
 matplotlib>=3.5
 scikit-learn>=1.0
 GitPython>=3.1
-CoolProp>=6.4
+ctREFPROP>=1.0       # Python ctypes bindings to the (separately licensed) REFPROP library
+
+# Data-acquisition scripts only (src/data_acquisition/, hardware interface;
+# not required to reproduce the analysis, tables, or figures):
+# pyserial>=3.5
+# pyModbusTCP>=0.2
