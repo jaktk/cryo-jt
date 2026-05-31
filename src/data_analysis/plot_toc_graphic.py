@@ -46,7 +46,7 @@ def main():
     ax.text(0.97, 0.30,
             r'$\mu_{\rm JT}=\left(\dfrac{\partial T}{\partial p}\right)_{h}$',
             transform=ax.transAxes, ha='right', va='bottom', fontsize=9)
-    ax.text(0.03, 0.92, r'$^{4}$He-Ne, 65 K', transform=ax.transAxes,
+    ax.text(0.03, 0.92, r'$^4$He-Ne, 65 K', transform=ax.transAxes,
             fontsize=8, color='0.25', va='top')
 
     ax.set_xlabel(r'$p$ / MPa', fontsize=8.5, labelpad=1)

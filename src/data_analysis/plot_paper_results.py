@@ -115,12 +115,12 @@ def make_figure(groups, outname, reference='eos', limits=None):
                            yerr=K * g['JT_UNC/(K/MPa)'],
                            fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                            capsize=1.8, mec='black', mew=0.5,
-                           label=iso, zorder=3)
+                           label=iso, alpha=0.8, zorder=3)
             denom = g['JT_eos/(K/MPa)'] if reference == 'eos' \
                 else g['JT_meas/(K/MPa)']
             dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) / denom
             ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
-                        mec='black', mew=0.5, zorder=3)
+                        mec='black', mew=0.5, alpha=0.8, zorder=3)
 
         ax_dev.axhline(0, color='0.2', lw=0.6, zorder=1)
         if col_label is not None and n_cols > 1:
@@ -188,11 +188,11 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
                                yerr=K * g['JT_UNC/(K/MPa)'],
                                fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                                capsize=1.8, mec='black', mew=0.5,
-                               label=iso, zorder=3)
+                               label=iso, alpha=0.8, zorder=3)
                 dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) \
                       / g['JT_eos/(K/MPa)']
                 ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
-                            mec='black', mew=0.5, zorder=3)
+                            mec='black', mew=0.5, alpha=0.8, zorder=3)
             ax_mu.legend(loc='best', fontsize=9, frameon=True,
                          edgecolor='black', facecolor='white', framealpha=1.0)
 

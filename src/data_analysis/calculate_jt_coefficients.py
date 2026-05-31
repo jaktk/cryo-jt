@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from scipy import optimize
+from scipy import optimize, interpolate
 from numpy.polynomial.chebyshev import Chebyshev
 from sklearn.metrics import r2_score
 from FluidProps import FluidProps
@@ -217,9 +217,12 @@ class JTCoefficientCalculator(object):
         n_points = len(pressures)
         max_degree = min(max_degree, n_points - 1)
         
-        # Calculate weights from uncertainties
-        # Weight = 1/σ^2 for each measurement
-        weights = 1.0 / (t_uncertainties**2 + (p_uncertainties * np.gradient(temperatures, pressures))**2)
+        # Calculate weights from uncertainties: Weight = 1/σ^2 for each measurement.
+        # The local slope dT/dp is needed to fold the pressure uncertainty into an equivalent temperature uncertainty.
+        order = np.argsort(pressures)
+        slope = np.empty_like(temperatures, dtype=float)
+        slope[order] = np.gradient(temperatures[order], pressures[order])
+        weights = 1.0 / (t_uncertainties**2 + (p_uncertainties * slope)**2)
         weights = weights / np.sum(weights)  # Normalize weights
         
         best_degree = 1
@@ -283,15 +286,17 @@ class JTCoefficientCalculator(object):
                                  p_uncertainties,
                                  t_uncertainties,
                                  polynomial,
-                                 n_samples=1000):
+                                 n_samples=1000,
+                                 seed=20210101):
         """ Monte Carlo uncertainty estimation for JT coefficients """
         try:
             jt_samples = []
-            
+            rng = np.random.default_rng(seed)
+
             for _ in range(n_samples):
                 # Generate random samples within measurement uncertainties
-                p_sample = np.random.normal(pressures, p_uncertainties)
-                t_sample = np.random.normal(temperatures, t_uncertainties)
+                p_sample = rng.normal(pressures, p_uncertainties)
+                t_sample = rng.normal(temperatures, t_uncertainties)
                 
                 # Fit polynomial to perturbed data
                 try:
@@ -350,9 +355,23 @@ class JTCoefficientCalculator(object):
             
             # Get composition, if mixture
             composition = None
+            x1_per_point = None
             if is_mixture:
                 if 'x1' in df.columns and not df['x1'].isna().all():
-                    composition = df['x1'].mean()
+                    x1 = df['x1'].values.astype(float)
+                    x2 = (df['x2'].values.astype(float)
+                          if 'x2' in df.columns else 1.0 - x1)
+                    # Reject out-of-range gas-analyzer (GA244) readings
+                    valid = np.abs(x1 + x2 - 1.0) < 0.02
+                    if not valid.any():
+                        valid = np.ones_like(x1, dtype=bool)
+                    composition = x1[valid].mean()
+                    n_rejected = int((~valid).sum())
+                    if n_rejected:
+                        print(f"  Rejected {n_rejected} out-of-range GA reading(s); "
+                              f"x1 = {composition:.4f} (was {x1.mean():.4f} with outliers)")
+                    # keep valid readings, assign the isenthalp mean to rejected points
+                    x1_per_point = np.where(valid, x1, composition)
                     fluid_props.set_composition_from_1st_fraction(composition)
                 else:
                     print(f"  Warning: No composition data found for mixture {filename}")
@@ -375,20 +394,13 @@ class JTCoefficientCalculator(object):
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
             
-            # Calculate relative errors of EOS, assuming the ground truth is:
-            #    EOS for pure fluids
-            #    measurements for mixtures
+            # Calculate relative errors of EOS, assuming the ground truth is: EOS for pure fluids & measurements for mixtures
             denominator = jt_measured if is_mixture else jt_theoretical
             relative_abs_error = np.where(jt_theoretical != 0,
                                           np.abs((jt_measured - jt_theoretical) / denominator * 100),
                                           np.nan)
 
-            # Exclude the isenthalp extremities (the minimum- and maximum-
-            # pressure points) from the reported mu_JT statistics: the
-            # polynomial derivative is poorly constrained at the ends of the
-            # fitted interval. The extremity points are retained in the
-            # per-point output but flagged (used=False) and excluded from the
-            # summary statistics, consistent with the documented method.
+            # Exclude the isenthalp extremities
             interior_mask = np.ones(len(pressures), dtype=bool)
             if len(pressures) > 2:
                 order = np.argsort(pressures)
@@ -410,6 +422,7 @@ class JTCoefficientCalculator(object):
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
                 'p/MPa': pressures,
                 'T/K': temperatures,
+                'x1_per_point': x1_per_point,
                 'p_UNC/MPa': p_uncertainties,
                 'T_UNC/K': t_uncertainties,
                 'JT_meas/(K/MPa)': jt_measured,
@@ -510,6 +523,7 @@ class JTCoefficientCalculator(object):
                 'p_UNC/MPa': result['p_UNC/MPa'],
                 'T/K': result['T/K'],
                 'T_UNC/K': result['T_UNC/K'],
+                'x1': result['x1_per_point'] if result['x1_per_point'] is not None else [np.nan] * result['n_points'],
                 'JT_meas/(K/MPa)': result['JT_meas/(K/MPa)'],
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
                 'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
