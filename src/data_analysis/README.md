@@ -139,9 +139,9 @@ err(x),err(x)_STD,err(x)_EXP_UNC
 **Temperature range:** 65K to 180K
 **Pressure range:** 0.1 MPa to 12 MPa
 
-**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`):
+**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
 - **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
-- **Temperature (full chain, sensor + CABTR + calibration polynomial):** ±18 mK at 50 K to ±43 mK at 180 K
+- **Temperature (full chain, sensor + CABTR + calibration polynomial):** ±23 mK at 65 K to ±54 mK at 180 K
 - **Pressure:** ±0.01% of full scale (13.7 MPa)
 - **Composition:** ±0.1 mol% (binary mixtures)
 
@@ -200,10 +200,11 @@ figure-specific layout. There is no shared style function.
 
 | Script | Output(s) in `img/` |
 | --- | --- |
-| [`plot_paper_results.py`](plot_paper_results.py) | `measurements_{N2,Ar,He}_errorbars.pdf`, `measurements_HeNe_errorbars.pdf`, `measurements_HeN2_0_{1450,5028}_errorbars.pdf` |
-| [`theoretical_jt_uncertainty.py`](theoretical_jt_uncertainty.py) | `theoretical_uncertainty_combined.pdf`, `.svg` |
+| [`plot_paper_results.py`](plot_paper_results.py) | `measurements_pures_errorbars.pdf`, `measurements_HeNe_errorbars.pdf`, `measurements_HeN2_errorbars.pdf` |
+| [`theoretical_jt_uncertainty.py`](theoretical_jt_uncertainty.py) | `theoretical_uncertainty_combined.pdf` |
 | [`compare_theory_vs_experiment.py`](compare_theory_vs_experiment.py) | `theory_vs_experiment_uncertainty.pdf` |
 | [`plot_toc_graphic.py`](plot_toc_graphic.py) | `toc.pdf` |
+| [`generate_paper_tables.py`](generate_paper_tables.py) | `data/derived_data/jt_coeffs/paper_tables.tex` (LaTeX bodies of the result tables) |
 
 `plot_paper_results.py`, `compare_theory_vs_experiment.py`, and
 `plot_toc_graphic.py` read the derived JT CSVs in

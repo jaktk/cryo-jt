@@ -12,8 +12,9 @@ U_P = 0.0001 * 13.7  # MPa => 1.37e-3 MPa # Pressure sensor uncertainty: Mensor 
 def combined_temperature_uncertainty(T):
     """
     Combined temperature measurement uncertainty in K.
-    Sum of Cernox sensor, CABTR acquisition module, and polynomial fit.
-    Uses polynomial fit values representative of X115143 sensor.
+    Sum of Cernox sensor, CABTR acquisition module, and calibration-polynomial
+    fit, using the calibration of the outlet thermometer TT102 (sensor X93303),
+    which sets the fitted p-T pairs and so matches the data-reduction pipeline.
     Returns uncertainty for coverage factor k=2 (95.45%).
 
     Temperature in K (valid 20-325 K)
@@ -22,11 +23,13 @@ def combined_temperature_uncertainty(T):
     u_cernox = np.maximum(-5e-05 * T**2 + 0.1281 * T + 6.4603, 0.5) # Cernox sensor uncertainty [mK]
     u_cabtr = np.maximum(2e-05 * T**2 + 0.0695 * T - 0.1001, 0.5) # CABTR acquisition module uncertainty [mK]
 
-    # Polynomial fit uncertainty [mK] - representative value for 20-95 K
-    # Using X115143 sensor: DTrms = 0.91 mK, N=28, n=7
-    N, n, DTrms = 28, 7, 0.91
-    sigm2 = N / (N - n) * DTrms**2
-    u_poly = 2 * sigm2**0.5  # expanded to k=2
+    # Calibration-polynomial fit uncertainty [mK], sensor X93303, piecewise over
+    # the two calibration bands: 14.1-80 K (N=31, n=7, DTrms=1.60 mK) and
+    # 80-325 K (N=32, n=8, DTrms=5.84 mK); expanded to k=2.
+    def _poly(t):
+        N, n, DTrms = (31, 7, 1.60) if t < 80.0 else (32, 8, 5.84)
+        return 2 * (N / (N - n) * DTrms ** 2) ** 0.5
+    u_poly = np.vectorize(_poly)(T)
     return (u_cernox + u_cabtr + u_poly) * 1e-3  # combined [K]
 
 
