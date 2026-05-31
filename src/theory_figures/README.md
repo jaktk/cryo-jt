@@ -1,7 +1,7 @@
 # Theory Figures
 
 Scripts that generate the *theoretical* (data-independent) figures of the
-paper directly from REFPROP / CoolProp through the shared
+paper directly from REFPROP through the shared
 [`FluidProps`](../data_analysis/FluidProps.py) wrapper, in the
 same matplotlib style sheet ([`jced.mplstyle`](../jced.mplstyle))
 as the result figures.
