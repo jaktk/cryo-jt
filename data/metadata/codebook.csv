@@ -43,11 +43,13 @@ derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p/MPa,"numeric, continuous",NA,press
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p_UNC/MPa,"numeric, continuous",NA,expanded standard uncertainty in pressure (k=2),MPa
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T/K,"numeric, continuous",NA,temperature of the measured point (copy of TT102 from the p_T_pairs CSV),K
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T_UNC/K,"numeric, continuous",NA,expanded standard uncertainty in temperature (k=2),K
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,x1,"numeric, continuous","[0, 1]",first-component mole fraction at the point (He for Helium-Neon; N2 for Nitrogen-Helium); out-of-range GA016 frames are replaced by the isenthalp mean; NA for pure fluids,mole fraction
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_meas/(K/MPa),"numeric, continuous",NA,measured Joule-Thomson coefficient (derivative of the fitted Chebyshev polynomial evaluated at p),K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC/(K/MPa),"numeric, continuous",NA,expanded uncertainty of JT_meas (k=2),K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_eos/(K/MPa),"numeric, continuous",NA,reference Joule-Thomson coefficient from the EOS at the same point,K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,mean_unc_perc,"numeric, continuous",NA,relative expanded uncertainty 100 * JT_UNC / |JT_meas|,%
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,rel_abs_err_perc,"numeric, continuous",NA,relative absolute deviation of the measurement from the EOS at the same point,%
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,used,"boolean",{True; False},whether the point is an interior point used in the summary statistics (False for the min/max-pressure extremities excluded from the AAD),NA
 derived_data/jt_coeffs,jt_coefficients_summary.csv,filename,categorical,p_T_pairs filename,name of the source p_T_pairs CSV from which the isenthalp was extracted,NA
 derived_data/jt_coeffs,jt_coefficients_summary.csv,fluid,categorical,"Nitrogen, Argon, Helium, Helium-Neon, Nitrogen-Helium",fluid or mixture label; mixture name lists the components in the order they appear as x1 and x2,NA
 derived_data/jt_coeffs,jt_coefficients_summary.csv,is_mixture,categorical,"True, False",true if the fluid is a binary mixture,NA
