@@ -5,8 +5,8 @@
 
 **Contributors**
 
-- **Jakub Tkaczuk** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423) &mdash; *design, testing, writing*
-- **Nicolas Luchier** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-5852-4726](https://orcid.org/0000-0002-5852-4726) &mdash; *supervision*
+- **Jakub Tkaczuk** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423) &mdash; *design, data collection & analysis, writing*
+- **Nicolas Luchier** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-5852-4726](https://orcid.org/0000-0002-5852-4726) &mdash; *supervision, review*
 - **François Millet** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-1240-0138](https://orcid.org/0000-0002-1240-0138) &mdash; *supervision*
 
 ## Introduction
