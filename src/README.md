@@ -12,6 +12,6 @@ Source code for the cryo-jt project, organised by purpose:
   [`jced.mplstyle`](jced.mplstyle) used by every figure script.
 - [`theory_figures`](theory_figures) — scripts that regenerate the
   theoretical paper figures (μ_JT–Z, inversion curves, literature
-  comparison) from REFPROP / CoolProp, in the same style.
+  comparison) from REFPROP, in the same style.
 
 Figure scripts write into the repository [`img/`](../img) directory.

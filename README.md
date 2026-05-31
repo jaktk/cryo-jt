@@ -1,5 +1,5 @@
-[![](img/license-badge-ccby.svg)](data/LICENSE.md)
-[![DOI](img/doi-badge-zenodo.svg)](https://doi.org/10.5281/zenodo.20444865)
+[![](img/license-badge-ccby.svg)](LICENSE.md)
+[![DOI](img/doi-badge-zenodo.svg)](https://doi.org/10.5281/zenodo.20469565)
 
 <h1> Measurements of the Joule-Thomson coefficient in cryogenic fluids </h1>
 
@@ -167,13 +167,17 @@ The `src` directory consists of the following sub-directories:
 
 ## Reproducing the analysis
 
-The analysis requires Python with `numpy`, `pandas`, `scipy`, and `matplotlib`; the reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) and/or [CoolProp](http://www.coolprop.org/). The custom equations of state for the mixtures are provided in `REFPROP/` and must be copied into REFPROP's `HMX.BNC` file. Typical entry points:
+Install the Python dependencies with `pip install -r requirements.txt`. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom equations of state for the mixtures are provided in `REFPROP/` and must be copied into REFPROP's `HMX.BNC` file. REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, and the `theory_figures/` scripts) cannot be run without it; the remaining scripts (`plot_paper_results.py`, `compare_theory_vs_experiment.py`, `theoretical_jt_uncertainty.py`, `plot_toc_graphic.py`, `generate_paper_tables.py`) run from the committed derived data alone. Typical entry points:
 
 ```bash
-python src/data_analysis/get_pT_pairs.py                 # extract p-T pairs from raw data
-python src/data_analysis/calculate_jt_coefficients.py    # derive mu_JT with uncertainties
-python src/data_analysis/plot_paper_results.py           # per-fluid result figures
+python src/data_analysis/get_pT_pairs.py                 # extract p-T pairs from raw data        (REFPROP-free)
+python src/data_analysis/calculate_jt_coefficients.py    # derive mu_JT with uncertainties         (REFPROP)
+python src/data_analysis/monte_carlo_uncertainty.py      # Monte Carlo uncertainty bound           (REFPROP)
+python src/data_analysis/generate_paper_tables.py        # LaTeX bodies of the result tables        (REFPROP-free)
+python src/data_analysis/plot_paper_results.py           # per-fluid result figures                 (REFPROP-free)
 ```
+
+The heat-loss and kinetic-energy corrections quoted in the manuscript (Table of mean corrections) are auxiliary bounding estimates and are not produced by the released scripts.
 
 ## Citation
 

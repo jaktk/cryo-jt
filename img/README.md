@@ -17,7 +17,11 @@ python src/data_analysis/theoretical_jt_uncertainty.py
 python src/data_analysis/plot_toc_graphic.py
 python src/theory_figures/plot_inversion_curves.py
 python src/theory_figures/plot_literature_comparison.py
-python src/theory_figures/plot_mu_Z.py
 python src/theory_figures/plot_mu_Z_combined.py
-python src/theory_figures/plot_nonisenthalpic_margin.py
 ```
+
+The schematic method figures (`JT_theory_small_dp.pdf`,
+`JT_theory_large_dp.pdf`), the simplified flow diagram (`PFD.pdf`), the P&ID
+(`PID.png`), and the setup photographs are hand-prepared and committed
+directly; they have no generating script. `nonhTransform.pdf` is an auxiliary
+sketch not used in the paper.
