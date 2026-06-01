@@ -130,9 +130,9 @@ def make_figure(groups, outname, reference='eos', limits=None):
                      fontsize=9,
                      frameon=True, edgecolor='black',
                      facecolor='white', framealpha=1.0)
-        ax_dev.set_xlabel(r'$p$ / MPa')
+        ax_dev.set_xlabel(r'$p$/MPa')
 
-    axes[0, 0].set_ylabel(r'$\mu_{\mathrm{JT}}$ / K MPa$^{-1}$')
+    axes[0, 0].set_ylabel(r'$\mu_{\mathrm{JT}}$/(K$\cdot$MPa$^{-1}$)')
     _ref = (r'\mu_{\mathrm{JT}}^{\mathrm{EOS}}' if reference == 'eos'
             else r'\mu_{\mathrm{JT}}^{\mathrm{meas}}')
     axes[1, 0].set_ylabel(
@@ -167,7 +167,7 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
     for j, (fluid_key, title) in enumerate(PURE_FLUID_COLS):
         ax_mu, ax_dev = axes[0, j], axes[1, j]
         ax_mu.set_title(title, fontsize=10)
-        ax_dev.set_xlabel(r'$p$ / MPa')
+        ax_dev.set_xlabel(r'$p$/MPa')
         ax_dev.axhline(0, color='0.2', lw=0.6, zorder=1)
 
         df = load_isenthalps(fluid_key, summary)
@@ -201,7 +201,7 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
             ax_dev.set_ylim(*ylims[fluid_key]['dev'])
             ax_mu.set_xlim(0, 10)
 
-    axes[0, 0].set_ylabel(r'$\mu_{\mathrm{JT}}$ / K MPa$^{-1}$')
+    axes[0, 0].set_ylabel(r'$\mu_{\mathrm{JT}}$/(K$\cdot$MPa$^{-1}$)')
     axes[1, 0].set_ylabel(
         r'$(\mu_{\mathrm{JT}}^{\mathrm{meas}}-\mu_{\mathrm{JT}}^{\mathrm{EOS}})'
         r'/\mu_{\mathrm{JT}}^{\mathrm{EOS}} \times 100$'

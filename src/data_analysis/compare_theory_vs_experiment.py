@@ -143,7 +143,7 @@ def make_figure(data):
             ax.text(x_pt + 0.3, np.sqrt(y_meas * y_theo), 'systematic\nerror gap', color='0.3', va='center')
 
     # Formatting
-    ax.set_xlabel(r'$|\mu_{\rm JT}^{\rm EOS}|$ / K MPa$^{-1}$')
+    ax.set_xlabel(r'$|\mu_{\rm JT}^{\rm EOS}|$/(K$\cdot$MPa$^{-1}$)')
     ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$ at $k=2$')
     ax.set_yscale('log')
     ax.set_xlim(0, 20)

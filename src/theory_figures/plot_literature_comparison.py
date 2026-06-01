@@ -101,7 +101,7 @@ def main():
     ax.yaxis.set_major_locator(FixedLocator([-1000, -100, -10, -1, 0, 1, 10, 100, 1000]))
     ax.yaxis.set_major_formatter(FixedFormatter([r'$-10^3$', r'$-10^2$', r'$-10^1$', r'$-10^0$', '0',
                                                  r'$10^0$', r'$10^1$', r'$10^2$', r'$10^3$']))
-    ax.set_xlabel(r'$T$ / K')
+    ax.set_xlabel(r'$T$/K')
     ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$')
     ax.legend(handles=legend_handles,
               loc='lower center', bbox_to_anchor=(0.455, 1.02), ncol=4,

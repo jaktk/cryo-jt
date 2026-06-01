@@ -197,8 +197,8 @@ def run_analysis():
     ax_a.text(0.55, 0.052, 'He', fontsize=8.5, color='C0', ha='center', weight='bold')
     ax_a.text(6.0, 0.052, r'N$_2$, Ar', fontsize=8.5, color='C3', ha='center', weight='bold')
 
-    ax_a.set_xlabel(r'$|\mu_{\rm JT}|$ / K MPa$^{-1}$')
-    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$ / \%  ($k = 2$)')
+    ax_a.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
+    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 2$)')
     ax_a.set_title('(a) conventional')
     ax_a.set_yscale('log')
     ax_a.set_ylim(0.04, 100)
@@ -242,7 +242,7 @@ def run_analysis():
                        title_fontsize=9, frameon=True, edgecolor='black',
                        facecolor='white', framealpha=1.0)
 
-    ax_b.set_xlabel(r'$|\mu_{\rm JT}|$ / K MPa$^{-1}$')
+    ax_b.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
     ax_b.set_title('(b) Monte Carlo')
     ax_b.set_yscale('log')
     ax_b.set_xlim(0, 15)

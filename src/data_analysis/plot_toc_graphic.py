@@ -49,8 +49,8 @@ def main():
     ax.text(0.03, 0.92, r'$^4$He-Ne, 65 K', transform=ax.transAxes,
             fontsize=8, color='0.25', va='top')
 
-    ax.set_xlabel(r'$p$ / MPa', fontsize=8.5, labelpad=1)
-    ax.set_ylabel(r'$T$ / K', fontsize=8.5, labelpad=1)
+    ax.set_xlabel(r'$p$/MPa', fontsize=8.5, labelpad=1)
+    ax.set_ylabel(r'$T$/K', fontsize=8.5, labelpad=1)
     ax.tick_params(labelsize=7.5, pad=2)
     ax.margins(0.08)
 

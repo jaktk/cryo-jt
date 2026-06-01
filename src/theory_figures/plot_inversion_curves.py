@@ -71,10 +71,10 @@ def plot_inversion_mix():
         ax.plot(p_inv[m], T_grid[m], color=sm.to_rgba(x), lw=1.0)
 
     cb = fig.colorbar(sm, ax=ax, pad=0.02, ticks=np.arange(0, 1.05, 0.2))
-    cb.set_label(r'$x_{\mathrm{He}}$ / molar')
+    cb.set_label(r'$x_{\mathrm{He}}$/molar')
 
-    ax.set_xlabel(r'$p$ / MPa')
-    ax.set_ylabel(r'$T$ / K')
+    ax.set_xlabel(r'$p$/MPa')
+    ax.set_ylabel(r'$T$/K')
     ax.set_xlim(0, 35)
     ax.set_ylim(0, 250)
     out = os.path.join(OUT_DIR, 'Tinv_mix.pdf')

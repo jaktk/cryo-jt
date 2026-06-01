@@ -71,8 +71,8 @@ def plot_mu_Z():
     ax_Z.set_ylim(*YLIM_Z)
 
     ax_mu.tick_params(labelbottom=False)
-    ax_Z.set_xlabel(r'$T$ / K')
-    ax_mu.set_ylabel(r'$\mu_{\mathrm{JT}}$ / K MPa$^{-1}$')
+    ax_Z.set_xlabel(r'$T$/K')
+    ax_mu.set_ylabel(r'$\mu_{\mathrm{JT}}$/(K$\cdot$MPa$^{-1}$)')
     ax_Z.set_ylabel(r'$Z$')
 
     legend_handles = [
@@ -84,7 +84,7 @@ def plot_mu_Z():
                  fontsize=9)
 
     cb = fig.colorbar(sm, cax=cax, ticks=PRESSURES_MPa)
-    cb.set_label(r'$p$ / MPa')
+    cb.set_label(r'$p$/MPa')
 
     fig.savefig(os.path.join(os.path.dirname(__file__), '..', '..', 'img', 'mu_Z_He_Ne.pdf'))
 
