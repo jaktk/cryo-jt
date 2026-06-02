@@ -8,6 +8,26 @@ from sklearn.metrics import r2_score
 from FluidProps import FluidProps
 from get_git_root import get_git_root
 
+# Coverage factors. The sensor, acquisition, and calibration specifications are
+# expanded at K_SOURCE; the analysis reports everything at K_TARGET (95 %).
+K_TARGET = 1.96   # coverage factor used throughout the analysis (95 % level of confidence)
+K_SOURCE = 2.0    # coverage factor of the sensor / calibration source specifications
+N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
+
+
+def chebyshev_fit_weights(pressures, temperatures, p_uncertainties, t_uncertainties):
+    """
+    Weights for the Chebyshev least-squares fit. The pressure uncertainty is
+    folded into an equivalent temperature uncertainty through the local slope
+    dT/dp, so that weight = 1 / (u_T^2 + (u_p * dT/dp)^2). Returns normalised
+    weights (sum to one)."""
+    order = np.argsort(pressures)
+    slope = np.empty_like(temperatures, dtype=float)
+    slope[order] = np.gradient(temperatures[order], pressures[order])
+    weights = 1.0 / (t_uncertainties**2 + (p_uncertainties * slope)**2)
+    return weights / np.sum(weights)
+
+
 class CernoxCal(object):
     serNum = ''
 
@@ -97,23 +117,6 @@ class CernoxCal(object):
             DT.append(Tdat - self.get_T_from_coefs(row[1][('Resistance','(Ohms)')]))
         return T, DT
 
-    def get_polynomial_fit_uncert(self, T):
-        """ Uncertainty in mK from fitting Chebyshev polynomial """
-        d = {
-        'X93303': [{'Tmin': 1.4 , 'Tmax': 14.1 , 'N': 31, 'n': 9, 'DTrms': 0.93},
-                  {'Tmin': 14.1, 'Tmax': 80.0 , 'N': 31, 'n': 7, 'DTrms': 1.60},
-                  {'Tmin': 80.0, 'Tmax': 325.0, 'N': 32, 'n': 8, 'DTrms': 5.84}],
-        'X115143': [{'Tmin': 20.0, 'Tmax': 95.0, 'N': 28, 'n': 7, 'DTrms': 0.91},
-                   {'Tmin': 95.0, 'Tmax': 325.0, 'N': 29, 'n': 9, 'DTrms': 3.45}],
-        }
-        for _ in d[self.serNum]:
-            if T >= _['Tmin'] and T < _['Tmax']:
-                sigm2 = _['N'] / (_['N'] - _['n']) * _['DTrms']**2
-                break
-            else:
-                sigm2 = 0
-        return 2 * sigm2**0.5
-
 
 class TempUncertainty(object):
     sensor = ''
@@ -155,17 +158,17 @@ class TempUncertainty(object):
                 break
             else:
                 sigm2 = 0
-        return 2 * sigm2**0.5
+        return K_SOURCE * sigm2**0.5
 
     def __call__(self, T):
-        """ return combined temperature uncertainty in K (expanded, k = 1.96, 95 %) """
+        """ return combined temperature uncertainty in K (expanded, k = K_TARGET, 95 %) """
         cabtr = self.get_cabtr_uncertainty(T)
         cernox = self.get_cernox_uncertainty(T)
         poly = self.get_polynomial_fit_uncert(T)
         # The sensor, acquisition, and calibration-polynomial contributions above
-        # are expanded at k = 2; rescale the combined chain to the coverage factor
-        # k = 1.96 (95 % level of confidence) used consistently across the analysis.
-        return (cabtr + cernox + poly) * 1e-3 * (1.96 / 2.0)
+        # are expanded at k = K_SOURCE; sum them linearly and rescale the combined
+        # chain to k = K_TARGET (95 % level of confidence) used across the analysis.
+        return (cabtr + cernox + poly) * 1e-3 * (K_TARGET / K_SOURCE)
 
 
 class JTCoefficientCalculator(object):
@@ -219,15 +222,12 @@ class JTCoefficientCalculator(object):
         """
         n_points = len(pressures)
         max_degree = min(max_degree, n_points - 1)
-        
-        # Calculate weights from uncertainties: Weight = 1/σ^2 for each measurement.
-        # The local slope dT/dp is needed to fold the pressure uncertainty into an equivalent temperature uncertainty.
-        order = np.argsort(pressures)
-        slope = np.empty_like(temperatures, dtype=float)
-        slope[order] = np.gradient(temperatures[order], pressures[order])
-        weights = 1.0 / (t_uncertainties**2 + (p_uncertainties * slope)**2)
-        weights = weights / np.sum(weights)  # Normalize weights
-        
+
+        # Weights from the measurement uncertainties (pressure folded into an
+        # equivalent temperature uncertainty through the local slope dT/dp).
+        weights = chebyshev_fit_weights(pressures, temperatures,
+                                        p_uncertainties, t_uncertainties)
+
         best_degree = 1
         best_r2 = -np.inf
         best_fit = None
@@ -289,39 +289,66 @@ class JTCoefficientCalculator(object):
                                  p_uncertainties,
                                  t_uncertainties,
                                  polynomial,
-                                 n_samples=1000,
+                                 n_samples=N_MC_SAMPLES,
                                  seed=20210101):
-        """ Monte Carlo uncertainty estimation for JT coefficients """
+        """
+        Monte Carlo expanded uncertainty (k = K_TARGET, 95 %) of the derived
+        Joule-Thomson coefficient.
+
+        Each measured point is perturbed by a normal (Gaussian) error whose
+        standard deviation is the *standard* (k = 1) measurement uncertainty,
+        i.e. the expanded uncertainty divided by K_TARGET. The perturbed data
+        are refitted with the same weighted Chebyshev fit used for the central
+        value, and the coefficient is re-evaluated by differentiation. The
+        expanded uncertainty is K_TARGET times the standard deviation of the
+        resulting distribution. A Gaussian (rather than uniform) error reflects
+        the calibration-derived nature of the measurement uncertainties.
+        """
         try:
+            # Convert the expanded (k = K_TARGET) uncertainties to standard
+            # (k = 1) deviations for sampling.
+            p_sigma = p_uncertainties / K_TARGET
+            t_sigma = t_uncertainties / K_TARGET
+            degree = polynomial.degree()
+            # Weight the refit as the central fit does, but only when the fit is
+            # over-determined: for an exact interpolation (degree == n - 1) the
+            # weights cannot change the interpolant and only destabilise the
+            # weighted Vandermonde, so an unweighted refit is used there.
+            weights = (chebyshev_fit_weights(pressures, temperatures,
+                                             p_uncertainties, t_uncertainties)
+                       if degree < len(pressures) - 1 else None)
+
             jt_samples = []
             rng = np.random.default_rng(seed)
 
             for _ in range(n_samples):
-                # Generate random samples within measurement uncertainties
-                p_sample = rng.normal(pressures, p_uncertainties)
-                t_sample = rng.normal(temperatures, t_uncertainties)
-                
-                # Fit polynomial to perturbed data
+                # Gaussian perturbation within the standard measurement uncertainty
+                p_sample = rng.normal(pressures, p_sigma)
+                t_sample = rng.normal(temperatures, t_sigma)
+
+                # Refit with the same weighted Chebyshev fit as the central value
                 try:
-                    poly_fit = Chebyshev.fit(p_sample, t_sample, polynomial.degree())
+                    poly_fit = Chebyshev.fit(p_sample, t_sample,
+                                             degree, w=weights)
                     poly_sample = Chebyshev(poly_fit.convert().coef)
-                    
+
                     # Calculate JT coefficients
                     poly_deriv = poly_sample.deriv(m=1)
                     jt_sample = poly_deriv(pressures)
-                    
+
                     jt_samples.append(jt_sample)
-                    
-                except:
+
+                except Exception:
                     continue
-            
+
             if jt_samples:
                 jt_samples = np.array(jt_samples)
-                jt_mc_uncertainty = np.std(jt_samples, axis=0)
+                # Expanded uncertainty: k = K_TARGET times the sample std (k = 1).
+                jt_mc_uncertainty = K_TARGET * np.std(jt_samples, axis=0, ddof=1)
                 return jt_mc_uncertainty
             else:
                 return np.zeros_like(pressures)
-                
+
         except Exception as e:
             print(f"Error in Monte Carlo uncertainty: {e}")
             return np.zeros_like(pressures)

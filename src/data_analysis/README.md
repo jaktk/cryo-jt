@@ -15,8 +15,8 @@ Main script for calculating Joule-Thomson coefficients from processed experiment
 **Features:**
 - **Full uncertainty propagation** through polynomial fitting and differentiation
 - **Weighted least squares fitting** using measurement uncertainties
-- **Monte Carlo validation** of analytical uncertainty calculations
-- **Automatic polynomial degree selection** based on R² optimization
+- **Monte Carlo uncertainty** of the derived coefficient (Gaussian perturbations, expanded to k = 1.96)
+- **Automatic polynomial degree selection**: lowest degree reaching R² > 0.999
 - **Comprehensive output** with individual and summary results
 
 **Usage:**
@@ -36,20 +36,22 @@ python src/data_analysis/calculate_jt_coefficients.py
 **Methodology:**
 
 1. **Polynomial Fitting:**
-   - Fits Chebyshev polynomials to isenthalpic p-T data
+   - Fits first-kind Chebyshev polynomials to isenthalpic p-T data
    - Uses weighted least squares with measurement uncertainties
-   - Automatically selects optimal polynomial degree (1-6)
-   - Calculates covariance matrix for coefficient uncertainties
+     (weights `1/(u_T² + (u_p·dT/dp)²)`; weights do not affect an exact interpolation)
+   - Selects the lowest degree (1-6, capped at N_points-1) reaching R² > 0.999
 
 2. **JT Coefficient Calculation:**
-   - Computes μ_JT = dT/dp by taking polynomial derivative
-   - Propagates uncertainties through differentiation using covariance matrix
-   - Implements proper mathematical uncertainty propagation
+   - Computes μ_JT = dT/dp as the analytic derivative of the fitted polynomial
 
-3. **Uncertainty Analysis:**
-   - **Analytical propagation:** Uses covariance matrix of polynomial coefficients
-   - **Monte Carlo validation:** 1000 samples with perturbed measurements
-   - **Conservative approach:** Uses maximum of both uncertainty estimates
+3. **Uncertainty Analysis (Monte Carlo):**
+   - Perturbs each measured point with a **Gaussian** error whose standard
+     deviation is the **standard (k = 1)** uncertainty (expanded value / 1.96)
+   - Refits with the same weighted Chebyshev fit and re-differentiates, over
+     **2000** realizations (seeded for reproducibility)
+   - Reports the **expanded** uncertainty: k = 1.96 × the sample standard deviation
+   - The closed-form GUM propagation and sensor-floor bound are computed
+     separately by `theoretical_jt_uncertainty.py`
 
 4. **Validation:**
    - Compares measured vs. theoretical JT coefficients using REFPROP
@@ -71,7 +73,7 @@ Monte Carlo bound on the achievable $\mu_{\rm JT}$ uncertainty *for each actuall
 ```bash
 python src/data_analysis/monte_carlo_uncertainty.py             # all isenthalps
 python src/data_analysis/monte_carlo_uncertainty.py \           # one isenthalp
-    --isenthalp Helium-Neon_65K_5MPa --n-samples 5000 -v
+    --isenthalp Helium-Neon_65K_5MPa --n-samples 2000 -v
 ```
 
 Writes `data/derived_data/jt_coeffs/<stem>_MC_uncertainty.csv` per isenthalp and a combined `mc_uncertainty_summary.csv`. Requires REFPROP for the EOS lookups.
@@ -235,8 +237,8 @@ The analysis includes robust error handling for:
 ## Data Quality Metrics
 
 **Fitting quality:**
-- R² score > 0.95 typically achieved
-- Polynomial degree selection based on error minimization
+- R² > 0.999 reached by every retained fit
+- Polynomial degree: lowest degree (1-6) reaching R² > 0.999
 - Weighted fitting accounts for measurement uncertainties
 
 **Measurement accuracy:**

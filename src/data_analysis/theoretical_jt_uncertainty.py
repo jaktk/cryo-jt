@@ -7,6 +7,12 @@ from numpy.polynomial.chebyshev import Chebyshev
 STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 
+# Coverage factors: source specifications are expanded at K_SOURCE, the analysis
+# reports everything at K_TARGET (95 % level of confidence).
+K_TARGET = 1.96
+K_SOURCE = 2.0
+MC_SEED = 20210101  # seed for the synthetic-isenthalp Monte Carlo (reproducible figure)
+
 U_P = 0.0001 * 13.7  # MPa => 1.37e-3 MPa # Pressure sensor uncertainty: Mensor CPT 6100, 0.01% FS, p_max = 13.7 MPa
 
 def combined_temperature_uncertainty(T):
@@ -28,32 +34,38 @@ def combined_temperature_uncertainty(T):
     # 80-325 K (N=32, n=8, DTrms=5.84 mK); expanded to k=2.
     def _poly(t):
         N, n, DTrms = (31, 7, 1.60) if t < 80.0 else (32, 8, 5.84)
-        return 2 * (N / (N - n) * DTrms ** 2) ** 0.5
+        return K_SOURCE * (N / (N - n) * DTrms ** 2) ** 0.5
     u_poly = np.vectorize(_poly)(T)
-    # The three contributions above are expanded at k = 2; rescale the combined
-    # chain to k = 1.96 (95 % level of confidence) used throughout the analysis.
-    return (u_cernox + u_cabtr + u_poly) * 1e-3 * (1.96 / 2.0)  # combined [K]
+    # The three contributions above are expanded at k = K_SOURCE; sum linearly and
+    # rescale the combined chain to k = K_TARGET (95 %) used throughout the analysis.
+    return (u_cernox + u_cabtr + u_poly) * 1e-3 * (K_TARGET / K_SOURCE)  # combined [K]
 
 
-def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=1.96):
+def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=K_TARGET):
     """
-    Expanded relative standard uncertainty of the JT coefficient
-    from conventional error propagation (Eq. 5.10 in thesis).
+    Expanded relative uncertainty of the JT coefficient from conventional
+    (GUM) error propagation:
 
-    U_r(mu_JT) / |mu_JT| = k * sqrt([U(T_in)^2 + U(T_out)^2] / (T_in - T_out)^2
-                         + [U(p_in)^2 + U(p_out)^2] / (p_in - p_out)^2)
+    U_r(mu_JT) / |mu_JT| = k * sqrt([u(T_in)^2 + u(T_out)^2] / (T_in - T_out)^2
+                         + [u(p_in)^2 + u(p_out)^2] / (p_in - p_out)^2)
+
+    where the u(.) are the *standard* (k = 1) uncertainties and the coverage
+    factor k expands the combined result once. combined_temperature_uncertainty
+    returns the expanded (k) temperature uncertainty, so it is divided by k to
+    recover the standard uncertainty; U_P is already the standard pressure
+    uncertainty (0.01 % FS).
     """
-    U_Tin = combined_temperature_uncertainty(T_in)
-    U_Tout = combined_temperature_uncertainty(T_out)
-    U_pin = U_P
-    U_pout = U_P
+    u_Tin = combined_temperature_uncertainty(T_in) / k
+    u_Tout = combined_temperature_uncertainty(T_out) / k
+    u_pin = U_P
+    u_pout = U_P
 
-    term_T = (U_Tin**2 + U_Tout**2) / delta_T**2
-    term_p = (U_pin**2 + U_pout**2) / delta_p**2
+    term_T = (u_Tin**2 + u_Tout**2) / delta_T**2
+    term_p = (u_pin**2 + u_pout**2) / delta_p**2
     return k * np.sqrt(term_T + term_p)
 
 
-def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0.0, n_iter=1500, k=1.96):
+def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0.0, n_iter=2000, k=K_TARGET, seed=MC_SEED):
     """
     Monte Carlo uncertainty estimation for the differentiated JT coefficient, including the polynomial fitting step.
 
@@ -86,11 +98,12 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
     degree = min(3, n_points - 1) if abs(curvature) > 1e-10 else min(2, n_points - 1)
     degree = max(1, degree)
 
-    # Monte Carlo iterations
+    # Monte Carlo iterations (seeded for a reproducible figure)
+    rng = np.random.default_rng(seed)
     mu_samples = np.zeros((n_iter, n_points))
     for i in range(n_iter):
-        p_pert = p_meas + np.random.normal(0, sigma_p, n_points)
-        T_pert = T_meas + np.random.normal(0, sigma_T, n_points)
+        p_pert = p_meas + rng.normal(0, sigma_p, n_points)
+        T_pert = T_meas + rng.normal(0, sigma_T, n_points)
 
         try:
             poly = Chebyshev.fit(p_pert, T_pert, degree)

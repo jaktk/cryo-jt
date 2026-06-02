@@ -14,6 +14,7 @@ from numpy.polynomial.chebyshev import Chebyshev
 from FluidProps import FluidProps
 from get_git_root import get_git_root
 from theoretical_jt_uncertainty import U_P, combined_temperature_uncertainty
+from calculate_jt_coefficients import chebyshev_fit_weights
 
 logger = logging.getLogger(__name__)
 
@@ -51,24 +52,31 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
     T_eos = np.array([fp.get_T(p=p, h=h_in) for p in p_meas])
     jt_eos = np.array([fp.get_JT_coefficient(p=p, T=T) for p, T in zip(p_meas, T_eos)])
 
-    # Sensor-floor uncertainties at the idealised points (k=1.96).
-    u_T = combined_temperature_uncertainty(T_eos)  # K, k=1.96 expanded
-    u_p = np.full_like(p_meas, U_P, dtype=float)  # MPa, k=1.96 expanded
-    # 1-sigma half-widths for the uniform distribution
-    # (uniform on [-U, +U] has std = U/sqrt(3); we draw on [-U, +U] to match
-    # the paper's "random errors within the bounds of Table 3" convention).
+    # Standard (k=1) sensor-floor uncertainties at the idealised points. The
+    # combined temperature uncertainty is expanded (k=COVERAGE_FACTOR), so it is
+    # divided down to the standard deviation for sampling; the pressure standard
+    # uncertainty is U_P (0.01 % FS). A normal (Gaussian) error reflects the
+    # calibration-derived nature of the measurement uncertainties.
+    sigma_T = combined_temperature_uncertainty(T_eos) / COVERAGE_FACTOR  # K
+    sigma_p = np.full_like(p_meas, U_P, dtype=float)  # MPa
     n_points = p_meas.size
     deg = max(1, min(inputs.polynomial_degree, n_points - 1))
+    # Weight the refit as the data-reduction pipeline does, but only when the
+    # fit is over-determined (weights cannot change an exact interpolation and
+    # only destabilise the weighted Vandermonde there).
+    weights = (chebyshev_fit_weights(p_meas, T_eos, sigma_p, sigma_T)
+               if deg < n_points - 1 else None)
 
     jt_samples = np.empty((n_samples, n_points), dtype=float)
     jt_samples.fill(np.nan)
     n_failed = 0
 
     for k in range(n_samples):
-        p_pert = p_meas + rng.uniform(-u_p, u_p)
-        T_pert = T_eos + rng.uniform(-u_T, u_T)
+        # Gaussian perturbation within the standard measurement uncertainty
+        p_pert = p_meas + rng.normal(0.0, sigma_p)
+        T_pert = T_eos + rng.normal(0.0, sigma_T)
         try:
-            fit = Chebyshev.fit(p_pert, T_pert, deg)
+            fit = Chebyshev.fit(p_pert, T_pert, deg, w=weights)
             deriv = fit.deriv(m=1)
             jt_samples[k, :] = deriv(p_meas)
         except (np.linalg.LinAlgError, ValueError):
@@ -108,7 +116,7 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
 
     if inputs.is_mixture:
         df = _add_composition_contribution(
-            df, inputs, fp, p_meas, T_eos, jt_eos, deg, u_p, u_T,
+            df, inputs, fp, p_meas, T_eos, jt_eos,
             n_samples, u_x_k2, rng,
         )
     return df
@@ -131,9 +139,6 @@ def _add_composition_contribution(base: pd.DataFrame,
                                   p_meas: np.ndarray,
                                   T_eos: np.ndarray,
                                   jt_eos: np.ndarray,
-                                  deg: int,
-                                  u_p: np.ndarray,
-                                  u_T: np.ndarray,
                                   n_samples: int,
                                   u_x_k2: float,
                                   rng: np.random.Generator) -> pd.DataFrame:
@@ -142,17 +147,18 @@ def _add_composition_contribution(base: pd.DataFrame,
     n_failed = 0
 
     x1 = float(inputs.x1_mean)  # type: ignore[arg-type]
-    # Clip the uniform sampling range so x1 stays in (0, 1)
-    low = max(-u_x_k2, -x1)
-    high = min(u_x_k2, 1 - x1)
+    # Standard (k=1) composition uncertainty for Gaussian sampling.
+    sigma_x = u_x_k2 / COVERAGE_FACTOR
     # EOS lookups near a phase boundary occasionally return non-physical
     # values when composition is perturbed; reject realisations where any
     # per-point JT differs from the nominal-composition EOS by more than 5x
     max_rel_eos_deviation = 5.0
 
-    # Composition-only contribution: perturb the mixture composition alone while holding p and T on the EOS isenthalp
+    # Composition-only contribution: perturb the mixture composition alone
+    # (Gaussian, clipped to a physical mole fraction) while holding p and T on
+    # the EOS isenthalp.
     for k in range(n_samples):
-        x_pert = x1 + rng.uniform(low, high, size=n_points)
+        x_pert = np.clip(rng.normal(x1, sigma_x, size=n_points), 0.0, 1.0)
         try:
             jt_calc = np.empty(n_points)
             for i, (p, T, x) in enumerate(zip(p_meas, T_eos, x_pert)):
