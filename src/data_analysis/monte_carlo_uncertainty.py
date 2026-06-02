@@ -102,7 +102,7 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
         "jt_eos/(K/MPa)": jt_eos,
         "jt_mc_mean/(K/MPa)": jt_mc_mean,
         "jt_mc_std/(K/MPa)": jt_mc_std,
-        "jt_mc_unc_k2/(K/MPa)": jt_mc_unc,
+        "jt_mc_unc/(K/MPa)": jt_mc_unc,
         "jt_mc_rel_unc_perc": jt_mc_rel_unc_perc,
     })
 
@@ -181,13 +181,13 @@ def _add_composition_contribution(base: pd.DataFrame,
         logger.warning(
             "%s: composition contribution could not be evaluated", inputs.filename
         )
-        base["jt_mc_unc_cmp_k2_perc"] = np.nan
+        base["jt_mc_cmp_rel_unc_perc"] = np.nan
         return base
 
     jt_samples = jt_samples[valid]
     jt_mc_unc_cmp = COVERAGE_FACTOR * jt_samples.std(axis=0, ddof=1)
     with np.errstate(divide="ignore", invalid="ignore"):
-        base["jt_mc_unc_cmp_k2_perc"] = 100.0 * jt_mc_unc_cmp / np.abs(jt_eos)
+        base["jt_mc_cmp_rel_unc_perc"] = 100.0 * jt_mc_unc_cmp / np.abs(jt_eos)
     return base
 
 
@@ -279,8 +279,8 @@ def run_all(repo_root: str,
             "mean_jt_mc_rel_unc_perc": float(rel.mean()),
             "max_jt_mc_rel_unc_perc": float(rel.max()),
         }
-        if "jt_mc_unc_cmp_k2_perc" in df.columns:
-            cmp = df["jt_mc_unc_cmp_k2_perc"]
+        if "jt_mc_cmp_rel_unc_perc" in df.columns:
+            cmp = df["jt_mc_cmp_rel_unc_perc"]
             row["mean_jt_mc_cmp_rel_unc_perc"] = float(cmp.mean())
             row["max_jt_mc_cmp_rel_unc_perc"] = float(cmp.max())
         rows.append(row)
