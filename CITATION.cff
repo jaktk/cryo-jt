@@ -16,10 +16,10 @@ authors:
     orcid: https://orcid.org/0000-0002-1240-0138
     affiliation: Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France
 version: "1.2.0"
-date-released: "2026-05-31"
+date-released: "2026-06-02"
 license: CC-BY-4.0
 repository-code: https://github.com/jaktk/cryo-jt
-doi: 10.5281/zenodo.20469565
+doi: 10.5281/zenodo.20515089
 keywords:
   - Joule-Thomson coefficient
   - cryogenics
