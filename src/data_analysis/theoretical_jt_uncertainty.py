@@ -15,7 +15,7 @@ def combined_temperature_uncertainty(T):
     Sum of Cernox sensor, CABTR acquisition module, and calibration-polynomial
     fit, using the calibration of the outlet thermometer TT102 (sensor X93303),
     which sets the fitted p-T pairs and so matches the data-reduction pipeline.
-    Returns uncertainty for coverage factor k=2 (95.45%).
+    Returns uncertainty for coverage factor k=1.96 (95%).
 
     Temperature in K (valid 20-325 K)
     """
@@ -30,10 +30,12 @@ def combined_temperature_uncertainty(T):
         N, n, DTrms = (31, 7, 1.60) if t < 80.0 else (32, 8, 5.84)
         return 2 * (N / (N - n) * DTrms ** 2) ** 0.5
     u_poly = np.vectorize(_poly)(T)
-    return (u_cernox + u_cabtr + u_poly) * 1e-3  # combined [K]
+    # The three contributions above are expanded at k = 2; rescale the combined
+    # chain to k = 1.96 (95 % level of confidence) used throughout the analysis.
+    return (u_cernox + u_cabtr + u_poly) * 1e-3 * (1.96 / 2.0)  # combined [K]
 
 
-def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=2):
+def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=1.96):
     """
     Expanded relative standard uncertainty of the JT coefficient
     from conventional error propagation (Eq. 5.10 in thesis).
@@ -51,7 +53,7 @@ def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=2)
     return k * np.sqrt(term_T + term_p)
 
 
-def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0.0, n_iter=1500, k=2):
+def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0.0, n_iter=1500, k=1.96):
     """
     Monte Carlo uncertainty estimation for the differentiated JT coefficient, including the polynomial fitting step.
 
@@ -65,7 +67,7 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
     Returns
     -------
     mean_rel_err : float
-        Mean relative expanded uncertainty (k=2) across interior points.
+        Mean relative expanded uncertainty (k=1.96) across interior points.
     point_rel_errs : array
         Relative expanded uncertainty at each interior point.
     """
@@ -107,14 +109,14 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
     # these extreme values destabilize the std estimate
     rel_err_int = np.clip(rel_err_int, -5, 5)
 
-    # expanded uncertainty (k=2): 2 * std of the relative error
+    # expanded uncertainty (k=1.96): 1.96 * std of the relative error
     point_rel_errs = k * np.nanstd(rel_err_int, axis=0)
     mean_rel_err = np.nanmean(point_rel_errs)
 
     return mean_rel_err, point_rel_errs
 
 
-def _conv_uncert_for_slope(slope, dp, T_in, k=2):
+def _conv_uncert_for_slope(slope, dp, T_in, k=1.96):
     """
     Conventional relative expanded uncertainty for a given slope, pressure drop, and inlet temperature.
     T_out = T_in - slope * dp.
@@ -198,7 +200,7 @@ def run_analysis():
     ax_a.text(6.0, 0.052, r'N$_2$, Ar', fontsize=8.5, color='C3', ha='center', weight='bold')
 
     ax_a.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
-    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 2$)')
+    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 1.96$)')
     ax_a.set_title('(a) conventional')
     ax_a.set_yscale('log')
     ax_a.set_ylim(0.04, 100)

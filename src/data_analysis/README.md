@@ -139,7 +139,7 @@ err(x),err(x)_STD,err(x)_EXP_UNC
 **Temperature range:** 65K to 180K
 **Pressure range:** 0.1 MPa to 12 MPa
 
-**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
+**Measurement uncertainty** (k=1.96, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
 - **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
 - **Temperature (full chain, sensor + CABTR + calibration polynomial):** ±23 mK at 65 K to ±54 mK at 180 K
 - **Pressure:** ±0.01% of full scale (13.7 MPa)

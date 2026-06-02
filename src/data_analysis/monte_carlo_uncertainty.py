@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_N_SAMPLES = 2000
 DEFAULT_SEED = 20210101
-DEFAULT_U_X_K2 = 1e-3  # gas analyser expanded uncertainty, 0.1 mol-% (k=2)
-COVERAGE_FACTOR = 2  # 95.45 %
+DEFAULT_U_X_K2 = 1e-3  # gas analyser expanded uncertainty, 0.1 mol-% (k=1.96)
+COVERAGE_FACTOR = 1.96  # 95 %
 
 @dataclass(frozen=True)
 class IsenthalpInputs:
@@ -51,9 +51,9 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
     T_eos = np.array([fp.get_T(p=p, h=h_in) for p in p_meas])
     jt_eos = np.array([fp.get_JT_coefficient(p=p, T=T) for p, T in zip(p_meas, T_eos)])
 
-    # Sensor-floor uncertainties at the idealised points (k=2).
-    u_T = combined_temperature_uncertainty(T_eos)  # K, k=2 expanded
-    u_p = np.full_like(p_meas, U_P, dtype=float)  # MPa, k=2 expanded
+    # Sensor-floor uncertainties at the idealised points (k=1.96).
+    u_T = combined_temperature_uncertainty(T_eos)  # K, k=1.96 expanded
+    u_p = np.full_like(p_meas, U_P, dtype=float)  # MPa, k=1.96 expanded
     # 1-sigma half-widths for the uniform distribution
     # (uniform on [-U, +U] has std = U/sqrt(3); we draw on [-U, +U] to match
     # the paper's "random errors within the bounds of Table 3" convention).
@@ -147,20 +147,15 @@ def _add_composition_contribution(base: pd.DataFrame,
     high = min(u_x_k2, 1 - x1)
     # EOS lookups near a phase boundary occasionally return non-physical
     # values when composition is perturbed; reject realisations where any
-    # per-point JT differs from the nominal-composition EOS by more than
-    # this factor (relative). 5x is generous yet catches REFPROP failures.
+    # per-point JT differs from the nominal-composition EOS by more than 5x
     max_rel_eos_deviation = 5.0
 
+    # Composition-only contribution: perturb the mixture composition alone while holding p and T on the EOS isenthalp
     for k in range(n_samples):
-        p_pert = p_meas + rng.uniform(-u_p, u_p)
-        T_pert = T_eos + rng.uniform(-u_T, u_T)
         x_pert = x1 + rng.uniform(low, high, size=n_points)
         try:
-            fit = Chebyshev.fit(p_pert, T_pert, deg)
-            jt_meas = fit.deriv(m=1)(p_meas)
-            # Compare against EOS with the perturbed composition
             jt_calc = np.empty(n_points)
-            for i, (p, T, x) in enumerate(zip(p_meas, T_pert, x_pert)):
+            for i, (p, T, x) in enumerate(zip(p_meas, T_eos, x_pert)):
                 fp.set_composition_from_1st_fraction(x)
                 jt_calc[i] = fp.get_JT_coefficient(p=p, T=T)
             if not np.all(np.isfinite(jt_calc)):
@@ -169,7 +164,7 @@ def _add_composition_contribution(base: pd.DataFrame,
             if np.any(np.abs(jt_calc - jt_eos) > max_rel_eos_deviation * np.abs(jt_eos)):
                 n_failed += 1
                 continue
-            jt_samples[k, :] = jt_meas - jt_calc
+            jt_samples[k, :] = jt_calc
         except (np.linalg.LinAlgError, ValueError):
             n_failed += 1
 
@@ -311,7 +306,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--u-x-k2", type=float, default=DEFAULT_U_X_K2,
-        help="expanded (k=2) composition uncertainty, mole fraction",
+        help="expanded (k=1.96) composition uncertainty, mole fraction",
     )
     parser.add_argument(
         "--output-dir", default=None,

@@ -11,7 +11,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'derived_
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 SUMMARY = os.path.join(DATA_DIR, 'jt_coefficients_summary.csv')
 
-K = 2.0  # coverage factor for the plotted error bars
+K = 1.96  # coverage factor for the plotted error bars (95 %)
 
 PURE_FLUID_COLS = [
     ('Nitrogen', r'N$_2$'),
@@ -232,7 +232,7 @@ def main():
     df_hen2 = load_isenthalps('Nitrogen-Helium', summary)
     if not df_hen2.empty:
         groups = group_by_composition(df_hen2, [
-            (r'(a) $x_{\mathrm{He}} \approx 0.15$', 0.00, 0.30),
+            (r'(a) $x_{\mathrm{He}} \approx 0.14$', 0.00, 0.30),
             (r'(b) $x_{\mathrm{He}} \approx 0.50$', 0.30, 1.01),
         ])
         make_figure(groups, 'measurements_HeN2_errorbars.pdf',

@@ -158,11 +158,14 @@ class TempUncertainty(object):
         return 2 * sigm2**0.5
 
     def __call__(self, T):
-        """ return combined temperature uncertainty in K """
+        """ return combined temperature uncertainty in K (expanded, k = 1.96, 95 %) """
         cabtr = self.get_cabtr_uncertainty(T)
         cernox = self.get_cernox_uncertainty(T)
         poly = self.get_polynomial_fit_uncert(T)
-        return (cabtr + cernox + poly) * 1e-3
+        # The sensor, acquisition, and calibration-polynomial contributions above
+        # are expanded at k = 2; rescale the combined chain to the coverage factor
+        # k = 1.96 (95 % level of confidence) used consistently across the analysis.
+        return (cabtr + cernox + poly) * 1e-3 * (1.96 / 2.0)
 
 
 class JTCoefficientCalculator(object):
@@ -338,7 +341,7 @@ class JTCoefficientCalculator(object):
             
             # Per-point measurement uncertainty: max of the steady-state statistical
             # uncertainty (from the averaging window) and the sensor-chain expanded
-            # uncertainty (k=2) at the point's pressure / temperature.
+            # uncertainty (k=1.96) at the point's pressure / temperature.
             p_uncertainties = np.array([max(p, 1.96 * 0.01/100 * 13.7) for p in df['PT102/MPa_EXP_UNC'].values])
             comb_T_unc = TempUncertainty("X93303")
             t_uncertainties = np.array([
