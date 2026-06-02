@@ -4,13 +4,13 @@
   "upload_type": "dataset",
   "access_right": "open",
   "license": "cc-by-4.0",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "language": "eng",
   "creators": [
     {
       "name": "Tkaczuk, Jakub",
       "orcid": "0000-0001-7997-9423",
-      "affiliation": "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France; Global Health Engineering, ETH Zurich, Switzerland"
+      "affiliation": "Université Grenoble Alpes, CEA IRIG-dSBT, Grenoble, France"
     },
     {
       "name": "Luchier, Nicolas",
