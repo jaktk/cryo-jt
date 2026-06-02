@@ -17,14 +17,30 @@ class FluidProps(object):
         self.z = {1.0}
 
     def set_root(self):
-        os_idx = ["linux", "win32", "darwin"].index(sys.platform)
+        # Prefer REFPROP's standard RPPREFIX environment variable; fall back to
+        # the conventional per-platform install locations.
+        env_root = os.environ.get('RPPREFIX')
+        candidates = [env_root] if env_root else []
         home_dir = os.environ.get('HOME', '')
-        self.root = ["/etc/REFPROP", "c:/Program Files (x86)/REFPROP", os.path.join(home_dir, "codes", "REFPROP")][os_idx]
-        if os.path.exists(self.root):
-            os.environ['RPPREFIX'] = self.root
-        else:
-            print(f"{self.root} does not exist. Set existing path to REFPROP.")
-            raise
+        platform_default = {
+            'linux': '/etc/REFPROP',
+            'win32': 'c:/Program Files (x86)/REFPROP',
+            'darwin': os.path.join(home_dir, 'codes', 'REFPROP'),
+        }.get(sys.platform)
+        if platform_default:
+            candidates.append(platform_default)
+
+        for root in candidates:
+            if root and os.path.exists(root):
+                self.root = root
+                os.environ['RPPREFIX'] = root
+                return
+
+        raise FileNotFoundError(
+            "REFPROP installation not found. Set the RPPREFIX environment "
+            "variable to your REFPROP directory (tried: "
+            f"{', '.join(c for c in candidates if c) or 'no candidates'})."
+        )
 
     def set_fluid(self, fluid):
         return fluid if type(fluid) == str else '{};{}'.format(*fluid)
