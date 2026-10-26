@@ -1,5 +1,5 @@
 [![](img/license-badge-ccby.svg)](LICENSE.md)
-[![DOI](img/doi-badge-zenodo.svg)](https://doi.org/10.5281/zenodo.20469565)
+[![DOI](img/doi-badge-zenodo.svg)](https://doi.org/10.5281/zenodo.20444864)
 
 <h1> Measurements of the Joule-Thomson coefficient in cryogenic fluids </h1>
 
