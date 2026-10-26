@@ -82,6 +82,15 @@ def load(stem):
     return pd.read_csv(os.path.join(JT_DIR, f"{stem}_JT.csv"))
 
 
+def used_stats(stem):
+    """Number of points used in the AAD (extremities and inlet excluded) and
+    their mean relative expanded uncertainty U(mu_JT) in %."""
+    df = load(stem)
+    df = df[df["used"] == True]
+    u_rel = 100 * df["JT_UNC/(K/MPa)"] / df["JT_meas/(K/MPa)"].abs()
+    return len(df), u_rel.mean()
+
+
 def fmt_rows_pure(df):
     df = df.sort_values("p/MPa")
     out = []
@@ -137,8 +146,10 @@ def pure_summary_table():
     for stem in PURE_SUMMARY_ORDER:
         fluid, t, p = parse_name(stem)
         r = summ.loc[f"{stem}.csv"]
+        n_used, u_mean = used_stats(stem)
         rows.append(f"    {PURE_DISPLAY[fluid]} & {t} & {p} & {int(r['n_points'])} & "
-                    f"{int(r['polynomial_degree'])} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
+                    f"{int(r['polynomial_degree'])} & {n_used} & {u_mean:.1f} & "
+                    f"{r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 
 
@@ -148,6 +159,7 @@ def mix_summary_table():
     for stem in MIX_SUMMARY_ORDER:
         fluid, t, p = parse_name(stem)
         r = summ.loc[f"{stem}.csv"]
+        n_used, u_mean = used_stats(stem)
         he_is_first = fluid == "Helium-Neon"
         x1 = r["x1"]
         x_he = x1 if he_is_first else 1.0 - x1
@@ -158,7 +170,7 @@ def mix_summary_table():
             mix = "${\\rm ^4He-N_2}$"
         rows.append(f"    {mix} & {x_he:.2f} & {1-x_he:.2f} & {t} & {p} & "
                     f"{int(r['n_points'])} & {int(r['polynomial_degree'])} & "
-                    f"{r['mean_rel_abs_err_perc']:.1f} \\\\")
+                    f"{n_used} & {u_mean:.1f} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 
 

@@ -50,9 +50,10 @@ python src/data_analysis/calculate_jt_coefficients.py
    - Refits with the same weighted Chebyshev fit and re-differentiates, over
      **2000** realizations (seeded for reproducibility)
    - Reports the **expanded** uncertainty: k = 2 × the sample standard deviation (`JT_UNC_MC`)
-   - Adds the uncorrected heat-loss and kinetic-energy biases of the manuscript's
-     correction table as rectangular bounds, u = δ/√3, in quadrature (`JT_UNC`);
-     He-N2 uses the nitrogen values at x_He = 0.14 and the He-Ne values at x_He = 0.50
+   - Adds the uncorrected heat-loss and kinetic-energy biases as rectangular bounds,
+     u = δ/√3, in quadrature (`JT_UNC`). The mean corrections per fluid come from
+     `estimate_corrections.py` (constant 27 mW heat exchange, mass flow from the
+     capillary model in `data/derived_data/capillary_mass_flow`)
    - Adds a relative method uncertainty u_m = 2.4 % (k = 1) in quadrature (`JT_UNC`),
      estimated by `estimate_method_uncertainty.py` from the scatter of the N2 and Ar
      points about their reference EOS that the Monte Carlo, bias, and EOS terms do not explain

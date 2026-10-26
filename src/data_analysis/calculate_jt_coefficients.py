@@ -15,33 +15,35 @@ K_SOURCE = 2.0    # coverage factor of the sensor / calibration source specifica
 N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 
 # Mean relative heat-loss and kinetic-energy corrections (delta_Q, delta_k) in %
-# of the path coefficient (manuscript, Table of mean corrections; auxiliary
-# bounding estimates). The corrections are not applied; each is treated as the
-# half-width of a rectangular distribution of an uncorrected bias, u = delta/sqrt(3),
-# and added in quadrature to the Monte Carlo uncertainty. He-N2 has no evaluated
-# correction: the dilute mixture uses the nitrogen values and the helium-rich one
-# the He-Ne values (see systematic_rel_std_uncertainty).
+# of |mu_JT| for a constant heat exchange of 27 mW (estimate_corrections.py,
+# corrections_summary.csv). The corrections are not applied; each is treated as
+# the half-width of a rectangular distribution of an uncorrected bias,
+# u = delta/sqrt(3), and added in quadrature to the Monte Carlo uncertainty.
+# He-N2 is split by composition (see systematic_rel_std_uncertainty).
 CORRECTIONS_PERC = {
-    'Nitrogen': (0.19, 0.06),
-    'Argon': (0.79, 0.09),
-    'Helium': (2.93, 2.77),
-    'Helium-Neon': (2.13, 0.76),
+    'Nitrogen': (0.780, 0.027),
+    'Argon': (0.995, 0.031),
+    'Helium': (20.982, 1.687),
+    'Helium-Neon': (5.396, 0.320),
+    'Nitrogen-Helium-0.14': (1.198, 0.125),
+    'Nitrogen-Helium-0.50': (4.117, 0.334),
 }
-HEN2_PROXY_XHE = 0.3  # x_He below this uses the nitrogen corrections, above the He-Ne ones
-
-# Relative standard (k = 1) method uncertainty of mu_JT: the scatter of the N2 and
-# Ar validation points about their reference EOS not explained by the Monte Carlo,
-# bias, and EOS terms (estimate_method_uncertainty.py). Applied to all fluids.
-U_METHOD_REL = 0.024
+HEN2_SPLIT_XHE = 0.3  # He-N2 isenthalps below this x_He use the 0.14 values, above the 0.50 ones
 
 
 def systematic_rel_std_uncertainty(fluid, x_he=None):
     """ Relative standard (k = 1) uncertainty from the uncorrected heat-loss and
     kinetic-energy biases, as a fraction of mu_JT. """
     if fluid == 'Nitrogen-Helium':
-        fluid = 'Nitrogen' if x_he < HEN2_PROXY_XHE else 'Helium-Neon'
+        fluid = 'Nitrogen-Helium-0.14' if x_he < HEN2_SPLIT_XHE else 'Nitrogen-Helium-0.50'
     d_q, d_k = CORRECTIONS_PERC[fluid]
     return np.sqrt(d_q**2 + d_k**2) / np.sqrt(3) / 100
+
+
+# Relative standard (k = 1) method uncertainty of mu_JT: the scatter of the N2 and
+# Ar validation points about their reference EOS not explained by the Monte Carlo,
+# bias, and EOS terms (estimate_method_uncertainty.py). Applied to all fluids.
+U_METHOD_REL = 0.0236
 
 
 def chebyshev_fit_weights(pressures, temperatures, p_uncertainties, t_uncertainties):

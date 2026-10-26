@@ -39,6 +39,13 @@ fitting and differentiation, with uncertainties.
 - `jt_coefficients_detailed.json` — the same results in nested form, including
   per-point arrays, for programmatic use.
 
+## `capillary_mass_flow/`
+
+Capillary pressure-drop calculations (not measurements) of mass flow rate versus
+outlet pressure for each measured isenthalp (D = 0.365 mm, L = 6 m), used by
+`estimate_corrections.py` to estimate the mass flow of each point. File names
+encode the inlet pressure, temperature, and, for mixtures, the helium fraction.
+
 ## `calculated_mass_flow_rate/`
 
 Design calculations (not measurements) of the downstream pressure as a function
