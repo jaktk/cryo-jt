@@ -53,6 +53,9 @@ python src/data_analysis/calculate_jt_coefficients.py
    - Adds the uncorrected heat-loss and kinetic-energy biases of the manuscript's
      correction table as rectangular bounds, u = δ/√3, in quadrature (`JT_UNC`);
      He-N2 uses the nitrogen values at x_He = 0.14 and the He-Ne values at x_He = 0.50
+   - Adds a relative method uncertainty u_m = 2.4 % (k = 1) in quadrature (`JT_UNC`),
+     estimated by `estimate_method_uncertainty.py` from the scatter of the N2 and Ar
+     points about their reference EOS that the Monte Carlo, bias, and EOS terms do not explain
    - The closed-form GUM propagation and sensor-floor bound are computed
      separately by `theoretical_jt_uncertainty.py`
 

@@ -29,6 +29,11 @@ CORRECTIONS_PERC = {
 }
 HEN2_PROXY_XHE = 0.3  # x_He below this uses the nitrogen corrections, above the He-Ne ones
 
+# Relative standard (k = 1) method uncertainty of mu_JT: the scatter of the N2 and
+# Ar validation points about their reference EOS not explained by the Monte Carlo,
+# bias, and EOS terms (estimate_method_uncertainty.py). Applied to all fluids.
+U_METHOD_REL = 0.024
+
 
 def systematic_rel_std_uncertainty(fluid, x_he=None):
     """ Relative standard (k = 1) uncertainty from the uncorrected heat-loss and
@@ -445,13 +450,15 @@ class JTCoefficientCalculator(object):
                 pressures, temperatures, p_uncertainties, t_uncertainties, poly
             )
 
-            # Add the uncorrected heat-loss and kinetic-energy biases in quadrature
+            # Add the uncorrected heat-loss and kinetic-energy biases and the
+            # method uncertainty in quadrature
             fluid_key = fluid_type if isinstance(fluid_type, str) else '-'.join(fluid_type)
             x_he = None
             if fluid_key == 'Nitrogen-Helium':
                 x_he = 1.0 - composition
             u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
-            jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + u_sys**2)
+            u_method = U_METHOD_REL * np.abs(jt_measured)
+            jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + u_sys**2 + u_method**2)
             
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
