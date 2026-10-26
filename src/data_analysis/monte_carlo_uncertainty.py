@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_N_SAMPLES = 2000
 DEFAULT_SEED = 20210101
-DEFAULT_U_X_K2 = 1e-3  # gas analyser expanded uncertainty, 0.1 mol-% (k=1.96)
-COVERAGE_FACTOR = 1.96  # 95 %
+DEFAULT_U_X_K2 = 1e-3  # gas analyser expanded uncertainty, 0.1 mol-% (k=2)
+COVERAGE_FACTOR = 2.0  # approx. 95 %
 
 @dataclass(frozen=True)
 class IsenthalpInputs:
@@ -312,7 +312,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--u-x-k2", type=float, default=DEFAULT_U_X_K2,
-        help="expanded (k=1.96) composition uncertainty, mole fraction",
+        help="expanded (k=2) composition uncertainty, mole fraction",
     )
     parser.add_argument(
         "--output-dir", default=None,

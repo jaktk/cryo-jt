@@ -8,8 +8,8 @@ STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 
 # Coverage factors: source specifications are expanded at K_SOURCE, the analysis
-# reports everything at K_TARGET (95 % level of confidence).
-K_TARGET = 1.96
+# reports everything at K_TARGET (approx. 95 % level of confidence).
+K_TARGET = 2.0
 K_SOURCE = 2.0
 MC_SEED = 20210101  # seed for the synthetic-isenthalp Monte Carlo (reproducible figure)
 
@@ -21,7 +21,7 @@ def combined_temperature_uncertainty(T):
     Sum of Cernox sensor, CABTR acquisition module, and calibration-polynomial
     fit, using the calibration of the outlet thermometer TT102 (sensor X93303),
     which sets the fitted p-T pairs and so matches the data-reduction pipeline.
-    Returns uncertainty for coverage factor k=1.96 (95%).
+    Returns uncertainty for coverage factor k=K_TARGET (approx. 95 %).
 
     Temperature in K (valid 20-325 K)
     """
@@ -36,9 +36,9 @@ def combined_temperature_uncertainty(T):
         N, n, DTrms = (31, 7, 1.60) if t < 80.0 else (32, 8, 5.84)
         return K_SOURCE * (N / (N - n) * DTrms ** 2) ** 0.5
     u_poly = np.vectorize(_poly)(T)
-    # The three contributions above are expanded at k = K_SOURCE; sum linearly and
-    # rescale the combined chain to k = K_TARGET (95 %) used throughout the analysis.
-    return (u_cernox + u_cabtr + u_poly) * 1e-3 * (K_TARGET / K_SOURCE)  # combined [K]
+    # The three contributions above are independent and expanded at k = K_SOURCE;
+    # combine them in quadrature and rescale the chain to k = K_TARGET.
+    return np.sqrt(u_cernox**2 + u_cabtr**2 + u_poly**2) * 1e-3 * (K_TARGET / K_SOURCE)  # combined [K]
 
 
 def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=K_TARGET):
@@ -79,7 +79,7 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
     Returns
     -------
     mean_rel_err : float
-        Mean relative expanded uncertainty (k=1.96) across interior points.
+        Mean relative expanded uncertainty (k=K_TARGET) across interior points.
     point_rel_errs : array
         Relative expanded uncertainty at each interior point.
     """
@@ -91,7 +91,7 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
 
     U_T = np.array([combined_temperature_uncertainty(T) for T in T_meas]) # temperature uncertainty at each point (1-sigma = U_T/k)
     sigma_T = U_T / k
-    sigma_p = U_P / k
+    sigma_p = U_P  # U_P is already the standard pressure uncertainty
 
     # Choose polynomial degree (set by the isenthalp shape)
     # Linear isenthalps need degree 2, curved isenthalps need degree 3.
@@ -122,14 +122,14 @@ def monte_carlo_uncertainty(slope, p_in, p_out, n_points, T_in=80.0, curvature=0
     # these extreme values destabilize the std estimate
     rel_err_int = np.clip(rel_err_int, -5, 5)
 
-    # expanded uncertainty (k=1.96): 1.96 * std of the relative error
+    # expanded uncertainty: k * std of the relative error
     point_rel_errs = k * np.nanstd(rel_err_int, axis=0)
     mean_rel_err = np.nanmean(point_rel_errs)
 
     return mean_rel_err, point_rel_errs
 
 
-def _conv_uncert_for_slope(slope, dp, T_in, k=1.96):
+def _conv_uncert_for_slope(slope, dp, T_in, k=K_TARGET):
     """
     Conventional relative expanded uncertainty for a given slope, pressure drop, and inlet temperature.
     T_out = T_in - slope * dp.
@@ -213,7 +213,7 @@ def run_analysis():
     ax_a.text(6.0, 0.052, r'N$_2$, Ar', fontsize=8.5, color='C3', ha='center', weight='bold')
 
     ax_a.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
-    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 1.96$)')
+    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 2$)')
     ax_a.set_title('(a) conventional')
     ax_a.set_yscale('log')
     ax_a.set_ylim(0.04, 100)

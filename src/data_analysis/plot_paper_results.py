@@ -11,7 +11,6 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'derived_
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 SUMMARY = os.path.join(DATA_DIR, 'jt_coefficients_summary.csv')
 
-K = 1.96  # coverage factor for the plotted error bars (95 %)
 
 PURE_FLUID_COLS = [
     ('Nitrogen', r'N$_2$'),
@@ -112,7 +111,7 @@ def make_figure(groups, outname, reference='eos', limits=None):
             ax_mu.plot(g['p/MPa'], g['JT_eos/(K/MPa)'], '-', color=c,
                        lw=1.0, zorder=2)
             ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
-                           yerr=K * g['JT_UNC/(K/MPa)'],
+                           yerr=g['JT_UNC/(K/MPa)'],
                            fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                            capsize=1.8, mec='black', mew=0.5,
                            label=iso, alpha=0.8, zorder=3)
@@ -185,7 +184,7 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
                 ax_mu.plot(g['p/MPa'], g['JT_eos/(K/MPa)'], '-', color=c,
                            lw=1.0, zorder=2)
                 ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
-                               yerr=K * g['JT_UNC/(K/MPa)'],
+                               yerr=g['JT_UNC/(K/MPa)'],
                                fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
                                capsize=1.8, mec='black', mew=0.5,
                                label=iso, alpha=0.8, zorder=3)

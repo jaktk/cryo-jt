@@ -15,7 +15,7 @@ Main script for calculating Joule-Thomson coefficients from processed experiment
 **Features:**
 - **Full uncertainty propagation** through polynomial fitting and differentiation
 - **Weighted least squares fitting** using measurement uncertainties
-- **Monte Carlo uncertainty** of the derived coefficient (Gaussian perturbations, expanded to k = 1.96)
+- **Monte Carlo uncertainty** of the derived coefficient (Gaussian perturbations, expanded to k = 2), combined in quadrature with the uncorrected heat-loss and kinetic-energy biases (rectangular, u = δ/√3)
 - **Automatic polynomial degree selection**: lowest degree reaching R² > 0.999
 - **Comprehensive output** with individual and summary results
 
@@ -46,10 +46,13 @@ python src/data_analysis/calculate_jt_coefficients.py
 
 3. **Uncertainty Analysis (Monte Carlo):**
    - Perturbs each measured point with a **Gaussian** error whose standard
-     deviation is the **standard (k = 1)** uncertainty (expanded value / 1.96)
+     deviation is the **standard (k = 1)** uncertainty (expanded value / 2)
    - Refits with the same weighted Chebyshev fit and re-differentiates, over
      **2000** realizations (seeded for reproducibility)
-   - Reports the **expanded** uncertainty: k = 1.96 × the sample standard deviation
+   - Reports the **expanded** uncertainty: k = 2 × the sample standard deviation (`JT_UNC_MC`)
+   - Adds the uncorrected heat-loss and kinetic-energy biases of the manuscript's
+     correction table as rectangular bounds, u = δ/√3, in quadrature (`JT_UNC`);
+     He-N2 uses the nitrogen values at x_He = 0.14 and the He-Ne values at x_He = 0.50
    - The closed-form GUM propagation and sensor-floor bound are computed
      separately by `theoretical_jt_uncertainty.py`
 
@@ -141,9 +144,9 @@ err(x),err(x)_STD,err(x)_EXP_UNC
 **Temperature range:** 65K to 180K
 **Pressure range:** 0.1 MPa to 12 MPa
 
-**Measurement uncertainty** (k=1.96, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
+**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
 - **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
-- **Temperature (full chain, sensor + CABTR + calibration polynomial):** ±23 mK at 65 K to ±54 mK at 180 K
+- **Temperature (full chain, sensor + CABTR + calibration polynomial, combined in quadrature):** ±16 mK at 65 K to ±34 mK at 180 K
 - **Pressure:** ±0.01% of full scale (13.7 MPa)
 - **Composition:** ±0.1 mol% (binary mixtures)
 

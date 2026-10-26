@@ -31,11 +31,11 @@ for isenthalp_stamps in data["isenthalps"]:
         for col in mp.columns:
             if col not in ["date/yyyy-mm-dd", "time/hh:mm:ss"]:
                 # calculate mean, standard deviation, and expanded uncertainty of the
-                # mean (k=1.96) for all columns but date and time. The expanded
+                # mean (k=2) for all columns but date and time. The expanded
                 # uncertainty uses the standard error of the mean, std / sqrt(N).
                 mean_mp[col] = [mp[col].mean()]
                 mean_mp[f"{col}_STD"] = [mp[col].std(skipna=True)]
-                mean_mp[f"{col}_EXP_UNC"] = [1.96 * mean_mp[f"{col}_STD"][0] / np.sqrt(len(mp[col]))]
+                mean_mp[f"{col}_EXP_UNC"] = [2.0 * mean_mp[f"{col}_STD"][0] / np.sqrt(len(mp[col]))]
         measurement_isenthalp = pd.concat([measurement_isenthalp,
                                            pd.DataFrame.from_dict(mean_mp)])
     measurement_isenthalp.reset_index(drop=True, inplace=True)

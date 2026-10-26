@@ -10,9 +10,33 @@ from get_git_root import get_git_root
 
 # Coverage factors. The sensor, acquisition, and calibration specifications are
 # expanded at K_SOURCE; the analysis reports everything at K_TARGET (95 %).
-K_TARGET = 1.96   # coverage factor used throughout the analysis (95 % level of confidence)
+K_TARGET = 2.0    # coverage factor used throughout the analysis (approx. 95 % level of confidence)
 K_SOURCE = 2.0    # coverage factor of the sensor / calibration source specifications
 N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
+
+# Mean relative heat-loss and kinetic-energy corrections (delta_Q, delta_k) in %
+# of the path coefficient (manuscript, Table of mean corrections; auxiliary
+# bounding estimates). The corrections are not applied; each is treated as the
+# half-width of a rectangular distribution of an uncorrected bias, u = delta/sqrt(3),
+# and added in quadrature to the Monte Carlo uncertainty. He-N2 has no evaluated
+# correction: the dilute mixture uses the nitrogen values and the helium-rich one
+# the He-Ne values (see systematic_rel_std_uncertainty).
+CORRECTIONS_PERC = {
+    'Nitrogen': (0.19, 0.06),
+    'Argon': (0.79, 0.09),
+    'Helium': (2.93, 2.77),
+    'Helium-Neon': (2.13, 0.76),
+}
+HEN2_PROXY_XHE = 0.3  # x_He below this uses the nitrogen corrections, above the He-Ne ones
+
+
+def systematic_rel_std_uncertainty(fluid, x_he=None):
+    """ Relative standard (k = 1) uncertainty from the uncorrected heat-loss and
+    kinetic-energy biases, as a fraction of mu_JT. """
+    if fluid == 'Nitrogen-Helium':
+        fluid = 'Nitrogen' if x_he < HEN2_PROXY_XHE else 'Helium-Neon'
+    d_q, d_k = CORRECTIONS_PERC[fluid]
+    return np.sqrt(d_q**2 + d_k**2) / np.sqrt(3) / 100
 
 
 def chebyshev_fit_weights(pressures, temperatures, p_uncertainties, t_uncertainties):
@@ -166,9 +190,9 @@ class TempUncertainty(object):
         cernox = self.get_cernox_uncertainty(T)
         poly = self.get_polynomial_fit_uncert(T)
         # The sensor, acquisition, and calibration-polynomial contributions above
-        # are expanded at k = K_SOURCE; sum them linearly and rescale the combined
-        # chain to k = K_TARGET (95 % level of confidence) used across the analysis.
-        return (cabtr + cernox + poly) * 1e-3 * (K_TARGET / K_SOURCE)
+        # are independent and expanded at k = K_SOURCE; combine them in quadrature
+        # and rescale the combined chain to k = K_TARGET used across the analysis.
+        return np.sqrt(cabtr**2 + cernox**2 + poly**2) * 1e-3 * (K_TARGET / K_SOURCE)
 
 
 class JTCoefficientCalculator(object):
@@ -368,8 +392,8 @@ class JTCoefficientCalculator(object):
             
             # Per-point measurement uncertainty: max of the steady-state statistical
             # uncertainty (from the averaging window) and the sensor-chain expanded
-            # uncertainty (k=1.96) at the point's pressure / temperature.
-            p_uncertainties = np.array([max(p, 1.96 * 0.01/100 * 13.7) for p in df['PT102/MPa_EXP_UNC'].values])
+            # uncertainty (k=K_TARGET) at the point's pressure / temperature.
+            p_uncertainties = np.array([max(p, K_TARGET * 0.01/100 * 13.7) for p in df['PT102/MPa_EXP_UNC'].values])
             comb_T_unc = TempUncertainty("X93303")
             t_uncertainties = np.array([
                 max(t_stat, comb_T_unc(T))
@@ -417,9 +441,17 @@ class JTCoefficientCalculator(object):
             jt_measured = self._calculate_jt_coefficients(pressures, poly)
             
             # Calculate Monte Carlo uncertainty
-            jt_uncertainty = self._monte_carlo_uncertainty(
+            jt_uncertainty_mc = self._monte_carlo_uncertainty(
                 pressures, temperatures, p_uncertainties, t_uncertainties, poly
             )
+
+            # Add the uncorrected heat-loss and kinetic-energy biases in quadrature
+            fluid_key = fluid_type if isinstance(fluid_type, str) else '-'.join(fluid_type)
+            x_he = None
+            if fluid_key == 'Nitrogen-Helium':
+                x_he = 1.0 - composition
+            u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
+            jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + u_sys**2)
             
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
@@ -457,6 +489,7 @@ class JTCoefficientCalculator(object):
                 'T_UNC/K': t_uncertainties,
                 'JT_meas/(K/MPa)': jt_measured,
                 'JT_eos/(K/MPa)': jt_theoretical,
+                'JT_UNC_MC/(K/MPa)': jt_uncertainty_mc,
                 'JT_UNC/(K/MPa)': jt_uncertainty,
                 'used': interior_mask,
                 'rel_abs_err_perc': relative_abs_error,
@@ -555,6 +588,7 @@ class JTCoefficientCalculator(object):
                 'T_UNC/K': result['T_UNC/K'],
                 'x1': result['x1_per_point'] if result['x1_per_point'] is not None else [np.nan] * result['n_points'],
                 'JT_meas/(K/MPa)': result['JT_meas/(K/MPa)'],
+                'JT_UNC_MC/(K/MPa)': result['JT_UNC_MC/(K/MPa)'],
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
                 'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
                 'mean_unc_perc': result['mean_unc_perc'],
