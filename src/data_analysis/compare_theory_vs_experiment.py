@@ -96,7 +96,7 @@ def compute_theoretical_uncertainty_per_point(data):
 
 
 def make_figure(data):
-    fig, ax = plt.subplots(figsize=(5, 4))
+    fig, ax = plt.subplots(figsize=(3.1, 3.0))
 
     # Theoretical uncertainty curve
     slopes = np.concatenate([
@@ -108,9 +108,9 @@ def make_figure(data):
 
     # Band for T_in = 65..160 K
     dp_ref = 8.5
-    conv_65 = np.array([_conv_uncert_for_slope(s, dp_ref, 65) * 100 for s in slopes])
-    conv_160 = np.array([_conv_uncert_for_slope(s, dp_ref, 160) * 100 for s in slopes])
-    conv_80 = np.array([_conv_uncert_for_slope(s, dp_ref, 80) * 100 for s in slopes])
+    conv_65 = np.array([_conv_uncert_for_slope(s, dp_ref, 65) for s in slopes])
+    conv_160 = np.array([_conv_uncert_for_slope(s, dp_ref, 160) for s in slopes])
+    conv_80 = np.array([_conv_uncert_for_slope(s, dp_ref, 80) for s in slopes])
 
     ax.fill_between(slopes, conv_65, conv_160, color='0.80', alpha=0.4, zorder=1, label='Theoretical sensor uncertainty')
     ax.plot(slopes, conv_80, 'k-', lw=1.2, zorder=2, label=r'Conventional ($T_{\rm in}$ = 80 K)')
@@ -121,10 +121,10 @@ def make_figure(data):
         if not mask.any():
             continue
         sub = data[mask]
-        ax.scatter(sub['abs_mu_eos'], sub['rel_abs_err_perc'],
+        ax.scatter(sub['abs_mu_eos'], sub['rel_abs_err_perc'] / 100,
                    c=style['color'], marker=style['marker'],
-                   s=40, alpha=0.8, zorder=5,
-                   edgecolor='k', linewidths=0.7,
+                   s=18, alpha=0.8, zorder=5,
+                   edgecolor='k', linewidths=0.5,
                    label=style['label'])
 
     # Annotation
@@ -133,35 +133,35 @@ def make_figure(data):
         sub = data[n2_mask]
         idx = sub['abs_mu_eos'].sub(7.0).abs().idxmin()
         x_pt = sub.loc[idx, 'abs_mu_eos']
-        y_meas = sub.loc[idx, 'rel_abs_err_perc']
-        y_theo = sub.loc[idx, 'theory_unc_pct']
+        y_meas = sub.loc[idx, 'rel_abs_err_perc'] / 100
+        y_theo = sub.loc[idx, 'theory_unc_pct'] / 100
         if y_meas > y_theo and not np.isnan(y_theo):
             ax.annotate('',
                         xy=(x_pt, y_theo), xytext=(x_pt, y_meas),
                         arrowprops=dict(arrowstyle='<->', color='0.3',
                                         lw=1.2, shrinkA=2, shrinkB=2))
-            ax.text(x_pt + 0.3, np.sqrt(y_meas * y_theo), 'systematic\nerror gap', color='0.3', va='center')
+            ax.text(x_pt - 0.3, 0.002, 'systematic\nerror gap', color='0.3', ha='right', va='center')
 
     # Formatting
     ax.set_xlabel(r'$|\mu_{\rm JT}^{\rm EOS}|$/(K$\cdot$MPa$^{-1}$)')
-    ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$ at $k=2$')
+    ax.set_ylabel(r'$|\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}| / \mu_{\rm JT}^{\rm EOS}$, $U_{\rm r}(\mu_{\rm JT})$')
     ax.set_yscale('log')
     ax.set_xlim(0, 20)
-    ax.set_ylim(0.05, 100)
+    ax.set_ylim(5e-4, 1)
 
     # Fluid regions
     ax.axvspan(0, 0.5, alpha=0.08, color='C0')
     ax.axvspan(4, 8, alpha=0.06, color='C3')
-    ax.text(0.8, 0.06, 'He', color='C0', ha='center', weight='bold')
-    ax.text(6.0, 0.06, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
+    ax.text(0.6, 0.55, 'He', color='C0', ha='left', weight='bold')
+    ax.text(6.0, 0.55, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
 
     # Reference lines
-    ax.axhline(5, color='0.5', ls=':', lw=0.7)
-    ax.axhline(2, color='0.5', ls=':', lw=0.7)
-    ax.text(18, 5.3, r'5 \%', color='0.4', va='bottom')
-    ax.text(18, 2.15, r'2 \%', color='0.4', va='bottom')
+    ax.axhline(0.05, color='0.5', ls=':', lw=0.7)
+    ax.axhline(0.02, color='0.5', ls=':', lw=0.7)
+    ax.text(19.7, 0.053, '0.05', color='0.4', ha='right', va='bottom')
+    ax.text(19.7, 0.0215, '0.02', color='0.4', ha='right', va='bottom')
 
-    ax.legend(loc='upper right', ncol=2, frameon=True, fontsize=11,
+    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.02), ncol=2, frameon=True,
               edgecolor='black', facecolor='white', framealpha=1.0)
 
     return fig
@@ -193,7 +193,7 @@ def main():
     fig = make_figure(data)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     outpath = os.path.join(OUTPUT_DIR, 'theory_vs_experiment_uncertainty.pdf')
-    fig.savefig(outpath, bbox_inches='tight', dpi=300)
+    fig.savefig(outpath)
 
 
 if __name__ == '__main__':

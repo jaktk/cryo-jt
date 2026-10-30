@@ -38,13 +38,13 @@ def _isobar(FP, p, T_grid):
 
 
 def plot_mu_Z():
-    fig = plt.figure(figsize=(5.4, 4.4))
+    fig = plt.figure(figsize=(3.3, 3.4))
     fig.set_layout_engine('none')
     gs = GridSpec(
         2, 2, figure=fig,
         width_ratios=[30, 1],
         hspace=0.08, wspace=0.04,
-        left=0.12, right=0.90, bottom=0.11, top=0.97,
+        left=0.17, right=0.86, bottom=0.12, top=0.98,
     )
     ax_mu = fig.add_subplot(gs[0, 0])
     ax_Z = fig.add_subplot(gs[1, 0], sharex=ax_mu)
@@ -80,8 +80,7 @@ def plot_mu_Z():
         for (label, ls) in FLUIDS
     ]
     ax_mu.legend(handles=legend_handles, loc='upper right', frameon=True,
-                 edgecolor='black', facecolor='white', framealpha=1.0,
-                 fontsize=9)
+                 edgecolor='black', facecolor='white', framealpha=1.0)
 
     cb = fig.colorbar(sm, cax=cax, ticks=PRESSURES_MPa)
     cb.set_label(r'$p$/MPa')

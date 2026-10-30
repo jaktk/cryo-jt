@@ -169,11 +169,11 @@ def run_analysis():
     # conventional uncertainty
     conv = {}
     for T in [65, 80, 160]:
-        conv[T] = np.array([_conv_uncert_for_slope(s, dp, T) * 100
+        conv[T] = np.array([_conv_uncert_for_slope(s, dp, T)
                             for s in slopes])
 
     # conventional curve on the MC slope grid
-    conv_mc_grid = np.array([_conv_uncert_for_slope(s, dp, T_ref) * 100
+    conv_mc_grid = np.array([_conv_uncert_for_slope(s, dp, T_ref)
                              for s in slopes_mc])
 
     # MC uncertainty
@@ -190,10 +190,10 @@ def run_analysis():
                     slope=s, p_in=p_in, p_out=p_out,
                     n_points=n_pts, T_in=T_ref,
                     curvature=curv, n_iter=2000)
-                errs.append(me * 100)
+                errs.append(me)
             mc_results[key] = np.array(errs)
 
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(6.5, 2.9), sharey=True)
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(6.3, 2.9), sharey=True)
     
     ax_a.fill_between(slopes, conv[65], conv[160],
                       color='0.75', alpha=0.35,
@@ -201,24 +201,25 @@ def run_analysis():
     ax_a.plot(slopes, conv[80], 'k-', lw=1.5, label=r'$T_{\rm in}$ = 80 K')
 
     # reference lines
-    ax_a.axhline(5, color='0.4', ls=':', lw=0.8)
-    ax_a.axhline(2, color='0.4', ls=':', lw=0.8)
-    ax_a.text(13.5, 5.5, r'5 \%', fontsize=8.5, color='0.35', va='bottom')
-    ax_a.text(13.5, 2.2, r'2 \%', fontsize=8.5, color='0.35', va='bottom')
+    ax_a.axhline(0.05, color='0.4', ls=':', lw=0.8)
+    ax_a.axhline(0.02, color='0.4', ls=':', lw=0.8)
+    ax_a.text(14.7, 0.055, '0.05', color='0.35', ha='right', va='bottom')
+    ax_a.text(14.7, 0.022, '0.02', color='0.35', ha='right', va='bottom')
 
     # fluid regions
     ax_a.axvspan(0, 0.5, alpha=0.08, color='C0')
     ax_a.axvspan(4, 8, alpha=0.06, color='C3')
-    ax_a.text(0.55, 0.052, 'He', fontsize=8.5, color='C0', ha='center', weight='bold')
-    ax_a.text(6.0, 0.052, r'N$_2$, Ar', fontsize=8.5, color='C3', ha='center', weight='bold')
+    ax_a.text(0.6, 0.4, 'He', color='C0', ha='left', weight='bold')
+    ax_a.text(6.0, 0.4, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
 
     ax_a.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
-    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$/\% ($k = 2$)')
+    ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$ ($k = 2$)')
     ax_a.set_title('(a) conventional')
     ax_a.set_yscale('log')
-    ax_a.set_ylim(0.04, 100)
+    ax_a.set_ylim(4e-4, 1)
     ax_a.set_xlim(0, 15)
-    ax_a.legend(fontsize=8.5, loc='upper right', frameon=True,
+    ax_a.set_xticks([0, 5, 10, 15])
+    ax_a.legend(loc='upper right', frameon=True,
                 edgecolor='black', facecolor='white', framealpha=1.0)
 
     colors = ['#4B0082', '#1E90FF', '#2E8B57', '#DAA520']
@@ -233,34 +234,33 @@ def run_analysis():
                   '--', color=colors[ni], lw=1.2, zorder=2)
 
     # reference lines
-    ax_b.axhline(5, color='0.4', ls=':', lw=0.8)
-    ax_b.axhline(2, color='0.4', ls=':', lw=0.8)
-    ax_b.text(13.5, 5.5, r'5 \%', fontsize=8.5, color='0.35', va='bottom')
-    ax_b.text(13.5, 2.2, r'2 \%', fontsize=8.5, color='0.35', va='bottom')
+    ax_b.axhline(0.05, color='0.4', ls=':', lw=0.8)
+    ax_b.axhline(0.02, color='0.4', ls=':', lw=0.8)
+    ax_b.text(14.7, 0.055, '0.05', color='0.35', ha='right', va='bottom')
+    ax_b.text(14.7, 0.022, '0.02', color='0.35', ha='right', va='bottom')
 
     # fluid regions
     ax_b.axvspan(0, 0.5, alpha=0.08, color='C0')
     ax_b.axvspan(4, 8, alpha=0.06, color='C3')
-    ax_b.text(0.55, 0.052, 'He', fontsize=8.5, color='C0', ha='center', weight='bold')
-    ax_b.text(6.0, 0.052, r'N$_2$, Ar', fontsize=8.5, color='C3',ha='center', weight='bold')
 
     # legends
     handles1, labels1 = ax_b.get_legend_handles_labels()
     style_handles = [Line2D([0], [0], color='0.4', ls='-', lw=1.3),
                      Line2D([0], [0], color='0.4', ls='--', lw=1.3)]
     leg1 = ax_b.legend(handles=style_handles, labels=['linear', 'curved'],
-                fontsize=9, loc='upper right', frameon=True, edgecolor='black',
+                loc='upper right', frameon=True, edgecolor='black',
                 facecolor='white', framealpha=1.0)
     ax_b.add_artist(leg1)
-    ax_b.legend(handles1, labels1, fontsize=9, loc='upper center',
+    ax_b.legend(handles1, labels1, loc='upper center',
                        bbox_to_anchor=(0.45, 1.0), title='points / isenthalp',
-                       title_fontsize=9, frameon=True, edgecolor='black',
+                       frameon=True, edgecolor='black',
                        facecolor='white', framealpha=1.0)
 
     ax_b.set_xlabel(r'$|\mu_{\rm JT}|$/(K$\cdot$MPa$^{-1}$)')
     ax_b.set_title('(b) Monte Carlo')
     ax_b.set_yscale('log')
     ax_b.set_xlim(0, 15)
+    ax_b.set_xticks([0, 5, 10, 15])
 
     os.makedirs(OUT_DIR, exist_ok=True)
     fig.savefig(os.path.join(OUT_DIR, 'theoretical_uncertainty_combined.pdf'))

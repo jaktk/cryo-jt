@@ -15,6 +15,7 @@ All scripts write into the repository [`img/`](../../img) directory.
 | [`plot_mu_Z_combined.py`](plot_mu_Z_combined.py) | `mu_Z_He_Ne.pdf` |
 | [`plot_inversion_curves.py`](plot_inversion_curves.py) | `Tinv_mix.pdf` |
 | [`plot_literature_comparison.py`](plot_literature_comparison.py) | `literature_review_plus_this_work.pdf` |
+| [`plot_jt_method_schematic.py`](plot_jt_method_schematic.py) | `JT_theory_small_dp.pdf`, `JT_theory_large_dp.pdf` |
 
 ### `plot_mu_Z_combined.py`
 
@@ -29,6 +30,10 @@ targeted by the measurements of this work shaded for reference. Writes
 `Tinv_mix.pdf`. Each inversion pressure is obtained by a Brent root-find on
 μ_JT(p, T) = 0 in [0.05, 45] MPa.
 
+The `img/Tinv_mix.pdf` used in the paper is finished by hand in Inkscape
+(spurious low-temperature branches removed) from `img/Tinv_mix.svg`.
+Running the script overwrites it with the unedited plot.
+
 ### `plot_literature_comparison.py`
 
 Relative deviation of historical Joule-Thomson measurements (and the
@@ -37,6 +42,13 @@ versus temperature. Each point is coloured by author and shaped by fluid; a
 ±5 % band is shaded. The script reads
 [`data/literature/literature_measurements.csv`](../../data/literature/literature_measurements.csv)
 and evaluates the EOS μ_JT via REFPROP.
+
+### `plot_jt_method_schematic.py`
+
+Schematics of the small and large pressure-drop methods: a concave
+isenthalp with the measured points, the tangent at the reference point
+(angle α) and, for the small-Δp case, the secant between the two points
+(angle β). Uses no REFPROP data.
 
 ## Requirements
 
@@ -53,4 +65,5 @@ Regenerate the full theory-figure set with:
 python src/theory_figures/plot_mu_Z_combined.py
 python src/theory_figures/plot_inversion_curves.py
 python src/theory_figures/plot_literature_comparison.py
+python src/theory_figures/plot_jt_method_schematic.py
 ```

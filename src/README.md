@@ -12,6 +12,10 @@ Source code for the cryo-jt project, organised by purpose:
   [`jced.mplstyle`](jced.mplstyle) used by every figure script.
 - [`theory_figures`](theory_figures) — scripts that regenerate the
   theoretical paper figures (μ_JT–Z, inversion curves, literature
-  comparison) from REFPROP, in the same style.
+  comparison) from REFPROP, and the measurement-method schematics, in the
+  same style.
 
-Figure scripts write into the repository [`img/`](../img) directory.
+Figure scripts write into the repository [`img/`](../img) directory. Each
+figure is drawn at its printed size (3.3 in for one column, up to 6.5 in
+for full width) and is meant to be included without scaling, so the font
+sizes in `jced.mplstyle` are the sizes on the page.

@@ -18,10 +18,13 @@ PURE_FLUID_COLS = [
     ('Helium',   r'$^4$He'),
 ]
 PURE_YLIMS = {
-    'Nitrogen': {'mu': (0.0, 20.0),  'dev': (-5.0, 5.0)},
+    'Nitrogen': {'mu': (0.0, 30.0),  'dev': (-5.0, 5.0)},
     'Argon':    {'mu': (3.0, 12.0),  'dev': (-5.0, 5.0)},
     'Helium':   {'mu': (-0.6, 0),  'dev': (-40.0, 40.0)},
 }
+
+PURE_LEGEND_LOC = {'Nitrogen': 'upper right', 'Argon': 'center right',
+                   'Helium': 'upper right'}
 
 MIXTURE_LIMS = {
     'HeNe': {'mu': (0.0, 5.0),  'dev': (-20.0, 20.0), 'x': (0.0, 10.0)},
@@ -87,9 +90,9 @@ def make_figure(groups, outname, reference='eos', limits=None):
     if n_cols == 1:
         figsize = (4, 6)
     elif n_cols == 2:
-        figsize = (4.6, 4.6)
+        figsize = (4.4, 3.6)
     else:
-        figsize = (6.5, 4.3)
+        figsize = (6.3, 3.9)
 
     fig, axes = plt.subplots(2, n_cols, figsize=figsize, sharex='col', sharey='row',
                              gridspec_kw={'height_ratios': [2, 1]})
@@ -112,21 +115,20 @@ def make_figure(groups, outname, reference='eos', limits=None):
                        lw=1.0, zorder=2)
             ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
                            yerr=g['JT_UNC/(K/MPa)'],
-                           fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
+                           fmt=mk, color=c, ms=4, lw=0, elinewidth=0.7,
                            capsize=1.8, mec='black', mew=0.5,
                            label=iso, alpha=0.8, zorder=3)
             denom = g['JT_eos/(K/MPa)'] if reference == 'eos' \
                 else g['JT_meas/(K/MPa)']
             dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) / denom
-            ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
+            ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=4,
                         mec='black', mew=0.5, alpha=0.8, zorder=3)
 
         ax_dev.axhline(0, color='0.2', lw=0.6, zorder=1)
         if col_label is not None and n_cols > 1:
-            ax_mu.set_title(col_label, fontsize=9)
+            ax_mu.set_title(col_label)
         ax_mu.legend(ncol=2 if n_cols == 1 else 1,
                      loc='best',
-                     fontsize=9,
                      frameon=True, edgecolor='black',
                      facecolor='white', framealpha=1.0)
         ax_dev.set_xlabel(r'$p$/MPa')
@@ -159,13 +161,13 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
         ylims = PURE_YLIMS
 
     fig, axes = plt.subplots(
-        2, 3, figsize=(7.6, 4.6), sharex='col',
+        2, 3, figsize=(6.3, 3.9), sharex='col',
         gridspec_kw={'height_ratios': [2, 1]},
     )
 
     for j, (fluid_key, title) in enumerate(PURE_FLUID_COLS):
         ax_mu, ax_dev = axes[0, j], axes[1, j]
-        ax_mu.set_title(title, fontsize=10)
+        ax_mu.set_title(title)
         ax_dev.set_xlabel(r'$p$/MPa')
         ax_dev.axhline(0, color='0.2', lw=0.6, zorder=1)
 
@@ -185,14 +187,14 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
                            lw=1.0, zorder=2)
                 ax_mu.errorbar(g['p/MPa'], g['JT_meas/(K/MPa)'],
                                yerr=g['JT_UNC/(K/MPa)'],
-                               fmt=mk, color=c, ms=5.5, lw=0, elinewidth=0.7,
+                               fmt=mk, color=c, ms=4, lw=0, elinewidth=0.7,
                                capsize=1.8, mec='black', mew=0.5,
                                label=iso, alpha=0.8, zorder=3)
                 dev = 100.0 * (g['JT_meas/(K/MPa)'] - g['JT_eos/(K/MPa)']) \
                       / g['JT_eos/(K/MPa)']
-                ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=5.5,
+                ax_dev.plot(g['p/MPa'], dev, mk, color=c, ms=4,
                             mec='black', mew=0.5, alpha=0.8, zorder=3)
-            ax_mu.legend(loc='best', fontsize=9, frameon=True,
+            ax_mu.legend(loc=PURE_LEGEND_LOC[fluid_key], frameon=True,
                          edgecolor='black', facecolor='white', framealpha=1.0)
 
         if fluid_key in ylims:

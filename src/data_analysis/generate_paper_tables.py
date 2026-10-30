@@ -72,6 +72,21 @@ def sig2(x, sig=2):
     return f"{round(x, d):.{max(d, 0)}f}"
 
 
+def decimals(x, sig=2):
+    """Number of decimals that `sig2` uses for `x`."""
+    return max(sig - 1 - int(np.floor(np.log10(abs(x)))), 0)
+
+
+def fmt_mu(r):
+    """mu_JT^meas, U(mu_JT), and mu_JT^EOS, rounded so that the values carry
+    at most one digit more than the uncertainty (U to two significant
+    figures, the mu_JT values to the same decimal place)."""
+    U = r['JT_UNC/(K/MPa)']
+    d = decimals(U)
+    return (f"{r['JT_meas/(K/MPa)']:.{d}f}", sig2(U),
+            f"{r['JT_eos/(K/MPa)']:.{d}f}")
+
+
 def parse_name(stem):
     """`Nitrogen_150K_6MPa` -> (fluid, Tin, pin)."""
     fluid, t, p = stem.split("_")
@@ -84,10 +99,10 @@ def load(stem):
 
 def used_stats(stem):
     """Number of points used in the AAD (extremities and inlet excluded) and
-    their mean relative expanded uncertainty U(mu_JT) in %."""
+    their mean relative expanded uncertainty U_r(mu_JT) as a fraction."""
     df = load(stem)
     df = df[df["used"] == True]
-    u_rel = 100 * df["JT_UNC/(K/MPa)"] / df["JT_meas/(K/MPa)"].abs()
+    u_rel = df["JT_UNC/(K/MPa)"] / df["JT_meas/(K/MPa)"].abs()
     return len(df), u_rel.mean()
 
 
@@ -95,10 +110,10 @@ def fmt_rows_pure(df):
     df = df.sort_values("p/MPa")
     out = []
     for _, r in df.iterrows():
+        mu, U, mu_eos = fmt_mu(r)
         out.append(
             f"  {r['p/MPa']:7.3f} & {sig2(r['p_UNC/MPa']/K_TARGET*1e3):>5} & {r['T/K']:8.3f} & "
-            f"{sig2(r['T_UNC/K']/K_TARGET*1e3):>4} & {r['JT_meas/(K/MPa)']:7.3f} & "
-            f"{r['JT_UNC/(K/MPa)']:6.3f} & {r['JT_eos/(K/MPa)']:7.3f} \\\\"
+            f"{sig2(r['T_UNC/K']/K_TARGET*1e3):>4} & {mu:>7} & {U:>6} & {mu_eos:>7} \\\\"
         )
     return "\n".join(out)
 
@@ -108,10 +123,10 @@ def fmt_rows_mix(df, he_is_first):
     out = []
     for _, r in df.iterrows():
         x_he = r["x1"] if he_is_first else 1.0 - r["x1"]
+        mu, U, mu_eos = fmt_mu(r)
         out.append(
             f"  {r['p/MPa']:7.3f} & {sig2(r['p_UNC/MPa']/K_TARGET*1e3):>5} & {r['T/K']:8.3f} & "
-            f"{sig2(r['T_UNC/K']/K_TARGET*1e3):>4} & {x_he:6.4f} & {r['JT_meas/(K/MPa)']:7.3f} & "
-            f"{r['JT_UNC/(K/MPa)']:6.3f} & {r['JT_eos/(K/MPa)']:7.3f} \\\\"
+            f"{sig2(r['T_UNC/K']/K_TARGET*1e3):>4} & {x_he:6.4f} & {mu:>7} & {U:>6} & {mu_eos:>7} \\\\"
         )
     return "\n".join(out)
 
@@ -148,7 +163,7 @@ def pure_summary_table():
         r = summ.loc[f"{stem}.csv"]
         n_used, u_mean = used_stats(stem)
         rows.append(f"    {PURE_DISPLAY[fluid]} & {t} & {p} & {int(r['n_points'])} & "
-                    f"{int(r['polynomial_degree'])} & {n_used} & {u_mean:.1f} & "
+                    f"{int(r['polynomial_degree'])} & {n_used} & {sig2(u_mean)} & "
                     f"{r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 
@@ -170,7 +185,7 @@ def mix_summary_table():
             mix = "${\\rm ^4He-N_2}$"
         rows.append(f"    {mix} & {x_he:.2f} & {1-x_he:.2f} & {t} & {p} & "
                     f"{int(r['n_points'])} & {int(r['polynomial_degree'])} & "
-                    f"{n_used} & {u_mean:.1f} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
+                    f"{n_used} & {sig2(u_mean)} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 
 

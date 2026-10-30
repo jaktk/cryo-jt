@@ -68,7 +68,7 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     df = pd.read_csv(DATA)
 
-    fig, ax = plt.subplots(figsize=(6, 3))
+    fig, ax = plt.subplots(figsize=(3.15, 2.9))
 
     ax.add_patch(mpatches.Rectangle((0, -5), 600, 10, facecolor='0.88', edgecolor='none', zorder=-2))
     ax.axhline(0, color='k', lw=0.6, zorder=-1)
@@ -85,14 +85,14 @@ def main():
         color = AUTHOR_COLORS.get(author, '0.4')
         marker = FLUID_MARKERS.get(fluid, 'x')
         ax.scatter(group['T/K'], err,
-                   c=color, edgecolor='k', linewidths=0.7,
-                   s=60, alpha=0.85, marker=marker,
+                   c=color, edgecolor='k', linewidths=0.5,
+                   s=22, alpha=0.85, marker=marker,
                    zorder=0 if author == 'Roebuck' else 1)
         if fluid not in seen_fluids:
             seen_fluids.add(fluid)
             legend_handles.append(Line2D(
                 [0], [0], marker=marker, color='k', linestyle='',
-                markerfacecolor='w', markeredgecolor='k', markersize=6,
+                markerfacecolor='w', markeredgecolor='k', markersize=4,
                 label=FLUID_LABELS.get(fluid, fluid)))
 
     ax.set_yscale('symlog', linthresh=1)
@@ -104,7 +104,7 @@ def main():
     ax.set_xlabel(r'$T$/K')
     ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$')
     ax.legend(handles=legend_handles,
-              loc='lower center', bbox_to_anchor=(0.455, 1.02), ncol=4,
+              loc='lower center', bbox_to_anchor=(0.5, 1.02), ncol=3,
               frameon=True, edgecolor='black', facecolor='white',
               framealpha=1.0, handletextpad=0.1,
               labelspacing=0.1, columnspacing=0.7)
