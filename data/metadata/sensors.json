@@ -13,7 +13,7 @@
       "calibration_files_dir": "data/cernox_calibration_data/X115143/",
       "calibration_polynomial_fit_uncertainty_mK_k2": {
         "20.0_to_95.0_K": {"N": 28, "n": 7, "DTrms_mK": 0.91, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.10"},
-        "95.0_to_325.0_K": {"N": 29, "n": 9, "DTrms_mK": 3.45, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 7.80"}
+        "95.0_to_325.0_K": {"N": 29, "n": 9, "DTrms_mK": 3.45, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 8.31"}
       }
     },
     {
@@ -28,9 +28,9 @@
       "serial_number_note": "Inferred from the calibration fit ranges: X93303 is the only sensor whose lowest-temperature fit covers 1.4 to 14.1 K, matching the CX-1050-SD-HT-1.4L spec.",
       "calibration_files_dir": "data/cernox_calibration_data/X93303/",
       "calibration_polynomial_fit_uncertainty_mK_k2": {
-        "1.4_to_14.1_K": {"N": 31, "n": 9, "DTrms_mK": 0.93, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.36"},
-        "14.1_to_80.0_K": {"N": 31, "n": 7, "DTrms_mK": 1.60, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 4.00"},
-        "80.0_to_325.0_K": {"N": 32, "n": 8, "DTrms_mK": 5.84, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 13.69"}
+        "1.4_to_14.1_K": {"N": 31, "n": 9, "DTrms_mK": 0.93, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.21"},
+        "14.1_to_80.0_K": {"N": 31, "n": 7, "DTrms_mK": 1.60, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 3.64"},
+        "80.0_to_325.0_K": {"N": 32, "n": 8, "DTrms_mK": 5.84, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 13.49"}
       }
     },
     {
@@ -49,7 +49,7 @@
       "role": "outlet pressure (capillary downstream)",
       "manufacturer": "Mensor",
       "model": "CPT 6100",
-      "type": "gauge pressure transducer",
+      "type": "absolute pressure transducer",
       "full_scale_MPa": 13.7,
       "accuracy_pct_FS": 0.01,
       "expanded_uncertainty_k2_MPa": 0.00137,

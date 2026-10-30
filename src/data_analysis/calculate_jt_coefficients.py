@@ -20,9 +20,9 @@ N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 # u = delta/sqrt(3), and added in quadrature to the Monte Carlo uncertainty.
 # He-N2 is split by composition (see systematic_rel_std_uncertainty).
 CORRECTIONS_PERC = {
-    'Nitrogen': (0.783, 0.027),
-    'Argon': (1.003, 0.032),
-    'Helium': (26.548, 2.310),
+    'Nitrogen': (0.782, 0.027),
+    'Argon': (1.002, 0.032),
+    'Helium': (26.547, 2.310),
     'Helium-Neon': (5.298, 0.314),
     'Nitrogen-Helium-0.14': (1.194, 0.125),
     'Nitrogen-Helium-0.50': (4.115, 0.332),
@@ -44,7 +44,13 @@ def systematic_rel_std_uncertainty(fluid, x_he=None):
 # so that the expanded uncertainty covers the exact slope at 95 % in the
 # synthetic validation (validate_degree_criterion.py). Applied to all fluids;
 # estimate_method_uncertainty.py checks it against the N2 and Ar data.
-U_METHOD_REL = 0.0140
+U_METHOD_REL = 0.0065
+
+# Expanded (k = 2) uncertainty of the gas analyser GA016, mole fraction. It enters
+# U for mixtures through the sensitivity of the EOS mu_JT to the composition at
+# the measured state (central difference with step X_STEP).
+U_X_K2 = 1e-3
+X_STEP = 1e-3
 
 
 class CernoxCal(object):
@@ -254,6 +260,16 @@ class JTCoefficientCalculator(object):
         
         return jt_theoretical
     
+    def _composition_uncertainty(self, pressures, temperatures, fluid_props, composition):
+        """ Expanded (k = K_TARGET) uncertainty of mu_JT from the composition
+        uncertainty: |d mu_JT / d x1| * u(x1), with the sensitivity from the EOS
+        at the measured (p, T) and u(x1) = U_X_K2 / K_SOURCE. """
+        mu_plus = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition + X_STEP)
+        mu_minus = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition - X_STEP)
+        fluid_props.set_composition_from_1st_fraction(composition)
+        sensitivity = (mu_plus - mu_minus) / (2 * X_STEP)
+        return K_TARGET * np.abs(sensitivity) * U_X_K2 / K_SOURCE
+
     def _monte_carlo_uncertainty(self,
                                  pressures,
                                  temperatures,
@@ -336,8 +352,9 @@ class JTCoefficientCalculator(object):
             
             # Per-point measurement uncertainty: max of the steady-state statistical
             # uncertainty (from the averaging window) and the sensor-chain expanded
-            # uncertainty (k=K_TARGET) at the point's pressure / temperature.
-            p_uncertainties = np.array([max(p, K_TARGET * 0.01/100 * 13.7) for p in df['PT102/MPa_EXP_UNC'].values])
+            # uncertainty (k=K_TARGET) at the point's pressure / temperature. The
+            # pressure spec, 0.01 % of 13.7 MPa, is expanded at K_SOURCE.
+            p_uncertainties = np.array([max(p, 0.01/100 * 13.7 * K_TARGET / K_SOURCE) for p in df['PT102/MPa_EXP_UNC'].values])
             comb_T_unc = TempUncertainty("X93303")
             t_uncertainties = np.array([
                 max(t_stat, comb_T_unc(T))
@@ -383,8 +400,11 @@ class JTCoefficientCalculator(object):
             # Calculate JT coefficients with full uncertainty propagation
             jt_measured = self._calculate_jt_coefficients(pressures, poly)
             
-            # Calculate Monte Carlo uncertainty
-            jt_uncertainty_mc = self._monte_carlo_uncertainty(
+            # Calculate Monte Carlo uncertainty. Where no degree passes the
+            # chi-square test, the residuals exceed the measurement uncertainty,
+            # so the Monte Carlo part is scaled by the Birge ratio sqrt(chi2_red).
+            birge = np.sqrt(fit.chi2_red) if fit.passed is False else 1.0
+            jt_uncertainty_mc = birge * self._monte_carlo_uncertainty(
                 pressures, temperatures, p_uncertainties, t_uncertainties, poly
             )
 
@@ -396,7 +416,10 @@ class JTCoefficientCalculator(object):
                 x_he = 1.0 - composition
             u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
             u_method = U_METHOD_REL * np.abs(jt_measured)
-            jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + u_sys**2 + u_method**2)
+            jt_uncertainty_x = (self._composition_uncertainty(pressures, temperatures, fluid_props, composition)
+                                if is_mixture else np.zeros_like(pressures))
+            jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + (jt_uncertainty_x / K_TARGET)**2
+                                                + u_sys**2 + u_method**2)
             
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
@@ -429,6 +452,7 @@ class JTCoefficientCalculator(object):
                 'chi2_crit': fit.chi2_crit,
                 'chi2_pass': fit.passed,
                 's_T/mK': 1e3 * fit.s_T,
+                'birge_ratio': birge,
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
                 'p/MPa': pressures,
                 'T/K': temperatures,
@@ -438,6 +462,7 @@ class JTCoefficientCalculator(object):
                 'JT_meas/(K/MPa)': jt_measured,
                 'JT_eos/(K/MPa)': jt_theoretical,
                 'JT_UNC_MC/(K/MPa)': jt_uncertainty_mc,
+                'JT_UNC_X/(K/MPa)': jt_uncertainty_x,
                 'JT_UNC/(K/MPa)': jt_uncertainty,
                 'used': interior_mask,
                 'rel_abs_err_perc': relative_abs_error,
@@ -503,6 +528,7 @@ class JTCoefficientCalculator(object):
                 'chi2_crit': result['chi2_crit'],
                 'chi2_pass': result['chi2_pass'],
                 's_T/mK': result['s_T/mK'],
+                'birge_ratio': result['birge_ratio'],
                 'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc'],
                 'std_rel_abs_err_perc': result['std_rel_abs_err_perc'],
                 'rms_rel_abs_err_perc': result['rms_rel_abs_err_perc'],
@@ -541,6 +567,7 @@ class JTCoefficientCalculator(object):
                 'x1': result['x1_per_point'] if result['x1_per_point'] is not None else [np.nan] * result['n_points'],
                 'JT_meas/(K/MPa)': result['JT_meas/(K/MPa)'],
                 'JT_UNC_MC/(K/MPa)': result['JT_UNC_MC/(K/MPa)'],
+                'JT_UNC_X/(K/MPa)': result['JT_UNC_X/(K/MPa)'],
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
                 'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
                 'mean_unc_perc': result['mean_unc_perc'],

@@ -17,7 +17,7 @@ The measurements from this repository test the earlier-developed mixture equatio
 
 ## System description
 
-The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid or the pre-mixed binary mixture. The cylinder is connected through the pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.6 L) buffer volume that smooths out the manual adjustments of the reducer and absorbs the slow pressure decay of the supply cylinder, reducing the frequency of inlet corrections from seconds to minutes.
+The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid or the pre-mixed binary mixture. The cylinder is connected through the pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.8 L) buffer volume that smooths out the manual adjustments of the reducer and absorbs the slow pressure decay of the supply cylinder, reducing the frequency of inlet corrections from seconds to minutes.
 
 Inside the cryostat (dashed envelope in the P&ID below), a copper block with a brazed heat exchanger is mounted on the cold head of a Cryomech AL300 Gifford-McMahon cryocooler, capable of cooling the inlet flow from 300 K down to about 40 K. A 6 m helical capillary (304L stainless steel, 0.4 mm × 1 mm ID × OD, 0.365 mm equivalent ID) imposes the isenthalpic expansion. Two calibrated Lake Shore Cernox temperature sensors are placed upstream (`TT101`, T_in) and downstream (`TT102`, T_out) of the capillary, with their lead wires thermalised at the cold head. Pressure is measured at the same two stations with Mensor CPT 6100 absolute-pressure transducers (`PT101`, `PT102`; 0.01% FS, p_max = 13.7 MPa).
 
@@ -76,7 +76,7 @@ The components installed on the test bench, with their P&ID tag, function, and m
 | GA016    | Gas analyser                  | SRS BGA244HP                        |
 | PT101    | Absolute pressure transducer  | Mensor CPT 6100                     |
 | TT101    | Cernox temperature sensor     | Lake Shore CX-1080-CU-HT-20L        |
-| PT102    | Gauge pressure transducer     | Mensor CPT 6100                     |
+| PT102    | Absolute pressure transducer  | Mensor CPT 6100                     |
 | TT102    | Cernox temperature sensor     | Lake Shore CX-1050-SD-HT-1.4L       |
 
 #### Vacuum
@@ -132,7 +132,7 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 | 2020-12-09 | ${\rm N_2 - He}$ | -              | 0.8497/0.1503             |
 | 2020-12-10 | ${\rm N_2 - He}$ | -              | 0.8909/0.1091             |
 | 2020-12-11 | ${\rm N_2 - He}$ | -              | 0.5641/0.4359             |
-| 2020-12-14 | ${\rm N_2}$      | 0.9904         | -                         |
+| 2020-12-14 | ${\rm N_2}$      | -$^{a}$        | -                         |
 | 2020-12-15 | ${\rm Ar}$       | 0.9990         | -                         |
 | 2020-12-16 | ${\rm N_2}$      | 0.9977         | -                         |
 | 2020-12-17 | ${\rm N_2}$      | 0.9986         | -                         |
@@ -141,11 +141,13 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 | 2021-01-14 | ${\rm He - Ne}$  | -              | 0.7148/0.2852             |
 | 2021-01-15 | ${\rm He - Ne}$  | -              | 0.7385/0.2615             |
 | 2021-01-25 | ${\rm N_2}$      | 0.9977         | -                         |
-| 2021-01-26 | ${\rm He}$       | 0.9993         | -                         |
+| 2021-01-26 | ${\rm He}$       | 0.9951         | -                         |
 | 2021-01-27 | ${\rm He - Ne}$  | -              | 0.3464/0.6536             |
 | 2021-01-28 | ${\rm He - Ne}$  | -              | 0.4084/0.5916             |
 | 2021-03-03 | ${\rm He - Ne}$  | -              | 0.2219/0.7781             |
 | 2021-03-04 | ${\rm N_2}$      | 0.9987         | -                         |
+
+$^{a}$ The gas-analyser output was frozen at one value all day, so no valid purity frames exist. The purities are day means over the valid analyser frames ([`src/data_analysis/analyze_purity.py`](src/data_analysis/analyze_purity.py)).
 
 ## Derived data
 
@@ -172,7 +174,7 @@ The figure scripts share the style sheet `src/jced.mplstyle` and write to `img/`
 
 Install the Python dependencies with `pip install -r requirements.txt`. The scripts find the repository root from their own location, so they run from a git clone or from the Zenodo archive; git is not needed. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom mixture models are provided in `REFPROP/FLUIDS/HMX.BNC` and must be merged into REFPROP's own `HMX.BNC` file (see [`REFPROP/README.md`](REFPROP/README.md)). The figure scripts use LaTeX with the packages `helvet` and `newtxsf`.
 
-REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, `validate_degree_criterion.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
+REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, `validate_degree_criterion.py`, `refit_hene_eos.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
 
 ```bash
 python src/data_analysis/get_pT_pairs.py                 # 1. steady-state p-T pairs from the raw data
@@ -183,7 +185,9 @@ python src/data_analysis/estimate_corrections.py         # 4. heat-loss and kine
 python src/data_analysis/validate_degree_criterion.py   # 5. synthetic test; copy u_m to U_METHOD_REL     (REFPROP)
 # 6. if CORRECTIONS_PERC or U_METHOD_REL changed, rerun step 2
 python src/data_analysis/estimate_method_uncertainty.py  # 7. cross-check of u_m with the N2 and Ar data
-python src/data_analysis/generate_paper_tables.py        # 8. LaTeX bodies of the result tables
+python src/data_analysis/refit_hene_eos.py               # 8. refit of the He-Ne EOS parameters to mu_JT     (REFPROP)
+python src/data_analysis/analyze_purity.py               # 9. in-situ purity of the pure fluids
+python src/data_analysis/generate_paper_tables.py        # 10. LaTeX bodies of the result tables
 python src/data_analysis/extract_fit_coefficients.py     #    Chebyshev coefficients table of the SI
 python src/data_analysis/plot_paper_results.py           #    result figures (other figure scripts: img/README.md)
 ```

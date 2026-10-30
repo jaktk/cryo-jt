@@ -147,7 +147,7 @@ def make_figure(data):
     ax.set_ylabel(r'$|\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}| / \mu_{\rm JT}^{\rm EOS}$, $U_{\rm r}(\mu_{\rm JT})$')
     ax.set_yscale('log')
     ax.set_xlim(0, 20)
-    ax.set_ylim(5e-4, 1)
+    ax.set_ylim(1e-4, 1)
 
     # Fluid regions
     ax.axvspan(0, 0.5, alpha=0.08, color='C0')

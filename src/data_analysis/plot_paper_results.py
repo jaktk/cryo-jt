@@ -20,11 +20,11 @@ PURE_FLUID_COLS = [
 PURE_YLIMS = {
     'Nitrogen': {'mu': (0.0, 30.0),  'dev': (-5.0, 5.0)},
     'Argon':    {'mu': (3.0, 12.0),  'dev': (-5.0, 5.0)},
-    'Helium':   {'mu': (-0.8, 0),  'dev': (-80.0, 80.0)},
+    'Helium':   {'mu': (-0.9, 0),  'dev': (-80.0, 80.0)},
 }
 
 PURE_LEGEND_LOC = {'Nitrogen': 'upper right', 'Argon': 'center right',
-                   'Helium': 'lower left'}
+                   'Helium': 'lower right'}
 
 MIXTURE_LIMS = {
     'HeNe': {'mu': (0.0, 5.0),  'dev': (-20.0, 20.0), 'x': (0.0, 10.0)},
@@ -200,7 +200,7 @@ def make_pure_fluids_figure(summary, outname, ylims=None):
         if fluid_key in ylims:
             ax_mu.set_ylim(*ylims[fluid_key]['mu'])
             ax_dev.set_ylim(*ylims[fluid_key]['dev'])
-            ax_mu.set_xlim(0, 10)
+            ax_mu.set_xlim(0, 12)
 
     axes[0, 0].set_ylabel(r'$\mu_{\mathrm{JT}}$/(K$\cdot$MPa$^{-1}$)')
     axes[1, 0].set_ylabel(
@@ -222,8 +222,8 @@ def main():
     df_hene = load_isenthalps('Helium-Neon', summary)
     if not df_hene.empty:
         groups = group_by_composition(df_hene, [
-            (r'(a) $x_{\mathrm{He}} \approx 0.22$', 0.00, 0.25),
-            (r'(b) $x_{\mathrm{He}} \approx 0.30$', 0.25, 0.38),
+            (r'(a) $x_{\mathrm{He}} \approx 0.21$', 0.00, 0.25),
+            (r'(b) $x_{\mathrm{He}} \approx 0.32$', 0.25, 0.38),
             (r'(c) $x_{\mathrm{He}} \approx 0.47$', 0.38, 1.01),
         ])
         make_figure(groups, 'measurements_HeNe_errorbars.pdf',

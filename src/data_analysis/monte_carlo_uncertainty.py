@@ -54,7 +54,7 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
     # Standard (k=1) sensor-floor uncertainties at the idealised points. The
     # combined temperature uncertainty is expanded (k=COVERAGE_FACTOR), so it is
     # divided down to the standard deviation for sampling; the pressure standard
-    # uncertainty is U_P (0.01 % FS). A normal (Gaussian) error reflects the
+    # uncertainty is U_P (0.01 % FS at k = 2, divided by 2). A normal (Gaussian) error reflects the
     # calibration-derived nature of the measurement uncertainties.
     sigma_T = combined_temperature_uncertainty(T_eos) / COVERAGE_FACTOR  # K
     sigma_p = np.full_like(p_meas, U_P, dtype=float)  # MPa
@@ -206,8 +206,13 @@ def load_isenthalp(csv_path: str, fluid_name: str, polynomial_degree: int) -> Is
 
     x1_mean: float | None = None
     if is_mixture and "x1" in df.columns:
-        x1 = df["x1"].dropna()
-        x1_mean = float(x1.mean()) if not x1.empty else None
+        # Reject out-of-range gas-analyser readings as calculate_jt_coefficients.py does
+        x1 = df["x1"].to_numpy(dtype=float)
+        x2 = df["x2"].to_numpy(dtype=float) if "x2" in df.columns else 1.0 - x1
+        valid = np.isfinite(x1) & (np.abs(x1 + x2 - 1.0) < 0.02)
+        if not valid.any():
+            valid = np.isfinite(x1)
+        x1_mean = float(x1[valid].mean()) if valid.any() else None
 
     return IsenthalpInputs(
         filename=os.path.basename(csv_path),

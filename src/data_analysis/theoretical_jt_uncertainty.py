@@ -13,7 +13,9 @@ K_TARGET = 2.0
 K_SOURCE = 2.0
 MC_SEED = 20210101  # seed for the synthetic-isenthalp Monte Carlo (reproducible figure)
 
-U_P = 0.0001 * 13.7  # MPa => 1.37e-3 MPa # Pressure sensor uncertainty: Mensor CPT 6100, 0.01% FS, p_max = 13.7 MPa
+# Pressure sensor: Mensor CPT 6100, accuracy 0.01 % FS (p_max = 13.7 MPa), stated
+# by the manufacturer as an expanded uncertainty with k = 2 (K_SOURCE).
+U_P = 0.0001 * 13.7 / K_SOURCE  # MPa, standard (k = 1) => 0.685e-3 MPa
 
 def combined_temperature_uncertainty(T):
     """

@@ -1,0 +1,34 @@
+\begin{table}[h]
+  \centering
+  \caption{\label{tab:si_purity_day}Per-campaign in-situ purity of the pure fluids measured with the GA016 binary gas analyzer (purity mode): frames recorded, frames discarded as null (zero impurity) or frozen (runs of at least 300 identical readings), valid frames $N$, and the mean of $1-\text{impurity}$ over the valid frames.}
+  \begin{tabular}{llrrrrc}
+    \toprule
+    date & gas & recorded & null & frozen & $N$ & day-mean purity \\
+    \midrule
+    2020-11-27 & nitrogen & 5\,401 & 0 & 0 & 5\,401 & 0.9987 \\
+    2020-12-14 & nitrogen & 6\,601 & 0 & 6\,601 & 0 & -- \\
+    2020-12-15 & argon & 20\,701 & 74 & 0 & 20\,627 & 0.9990 \\
+    2020-12-16 & nitrogen & 6\,901 & 0 & 0 & 6\,901 & 0.9977 \\
+    2020-12-17 & nitrogen & 15\,901 & 10 & 0 & 15\,891 & 0.9986 \\
+    2021-01-12 & helium-4 & 5\,401 & 1\,210 & 0 & 4\,191 & 0.9967 \\
+    2021-01-13 & helium-4 & 13\,201 & 5\,805 & 0 & 7\,396 & 0.9904 \\
+    2021-01-25 & nitrogen & 6\,601 & 40 & 0 & 6\,561 & 0.9977 \\
+    2021-01-26 & helium-4 & 22\,201 & 8\,240 & 0 & 13\,961 & 0.9951 \\
+    2021-03-04 & nitrogen & 11\,401 & 6 & 0 & 11\,395 & 0.9987 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[h]
+  \centering
+  \caption{\label{tab:si_purity_gas}Pooled in-situ mole-fraction purity of each pure fluid (mean over all valid frames of that gas) with the number of valid frames and campaigns, and the expanded uncertainty ($k = 2$, twice the standard deviation of the per-frame purity).}
+  \begin{tabular}{lccc}
+    \toprule
+    gas & purity & $N_{\rm frames}$ ($N_{\rm campaigns}$) & $U$ ($k = 2$) \\
+    \midrule
+    nitrogen & 0.9984 & 46\,149 (5) & 0.005 \\
+    argon & 0.9990 & 20\,627 (1) & 0.001 \\
+    helium-4 & 0.9940 & 25\,548 (3) & 0.014 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

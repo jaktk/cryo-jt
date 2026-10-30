@@ -15,7 +15,8 @@ slope. This is repeated over N_REAL realisations for three degree rules:
            residual sum of squares at the 5 % level (n <= N_s - 2).
 
 U_MC(n) is the k = 2 Monte Carlo uncertainty at fixed degree n, computed as in
-the pipeline. The method uncertainty u_m is the smallest relative standard
+the pipeline and, under the chi2 rule, scaled by the Birge ratio sqrt(chi2_red)
+of the realisation where no degree passes the test, as in the pipeline. The method uncertainty u_m is the smallest relative standard
 uncertainty for which U = 2 sqrt(u_MC^2 + u_m^2) covers the exact slope at
 COVERAGE_GOAL of all interior points under the chi2 rule. It covers the fit and
 differentiation error that the fixed-degree Monte Carlo misses. The measured
@@ -37,7 +38,7 @@ and prints the pooled results and u_m (the constant U_METHOD_REL in
 calculate_jt_coefficients.py).
 
 Run after calculate_jt_coefficients.py (reads jt_coefficients_summary.csv for
-the list of isenthalps). Takes about 10 minutes.
+the list of isenthalps). Takes a few minutes.
 """
 import os
 import numpy as np
@@ -50,7 +51,7 @@ from FluidProps import FluidProps
 from repo_root import REPO_ROOT
 from chebyshev_fit import (MAX_DEGREE, chebyshev_fit_weights, effective_t_uncertainty,
                            fit_chebyshev, select_degree)
-from calculate_jt_coefficients import K_TARGET, TempUncertainty
+from calculate_jt_coefficients import K_TARGET, K_SOURCE, TempUncertainty
 
 JT_DIR = os.path.join(REPO_ROOT, 'data', 'derived_data', 'jt_coeffs')
 PT_DIR = os.path.join(REPO_ROOT, 'data', 'derived_data', 'p_T_pairs')
@@ -94,12 +95,16 @@ def degree_ftest(p, T, u_p, u_T, alpha=0.05):
 
 
 def fit_rule(rule, p, T, u_p, u_T):
+    """ Fitted polynomial and the factor applied to its Monte Carlo
+    uncertainty: the Birge ratio sqrt(chi2_red) where the chi2 rule finds no
+    passing degree, as in calculate_jt_coefficients.py, and 1 otherwise. """
     if rule == 'chi2':
-        return select_degree(p, T, u_p, u_T).polynomial
+        fit = select_degree(p, T, u_p, u_T)
+        return fit.polynomial, (np.sqrt(fit.chi2_red) if fit.passed is False else 1.0)
     if rule == 'r2':
-        return degree_r2(p, T, u_p, u_T)
+        return degree_r2(p, T, u_p, u_T), 1.0
     if rule == 'ftest':
-        return degree_ftest(p, T, u_p, u_T)
+        return degree_ftest(p, T, u_p, u_T), 1.0
     raise ValueError(rule)
 
 
@@ -108,7 +113,7 @@ def load_isenthalp(filename, fluid):
     df = pd.read_csv(os.path.join(PT_DIR, filename))
     p = df['PT102/MPa'].values.astype(float)
     T = df['TT102/K'].values.astype(float)
-    u_p = np.array([max(u, K_TARGET * 0.01 / 100 * 13.7) for u in df['PT102/MPa_EXP_UNC']]) / K_TARGET
+    u_p = np.array([max(u, 0.01 / 100 * 13.7 * K_TARGET / K_SOURCE) for u in df['PT102/MPa_EXP_UNC']]) / K_TARGET
     t_chain = TempUncertainty('X93303')
     u_T = np.array([max(u, t_chain(Ti)) for u, Ti in zip(df['TT102/K_EXP_UNC'], T)]) / K_TARGET
     fp = FluidProps(tuple(fluid.split('-')) if '-' in fluid else fluid)
@@ -216,7 +221,7 @@ def main():
         # mixtures, as in the paper (eq AAD_res)
         mu_eos = np.array([fp.get_JT_coefficient(p=pi, T=Ti) for pi, Ti in zip(p, T)])
         for rule in RULES:
-            poly = fit_rule(rule, p, T, u_p, u_T)
+            poly, _ = fit_rule(rule, p, T, u_p, u_T)
             mu = poly.deriv()(p)
             dev = (mu - mu_eos) / (mu if '-' in fluid else mu_eos)
             sens_rows.append({'isenthalp': fname[:-4], 'fluid': fluid, 'rule': rule,
@@ -228,11 +233,11 @@ def main():
             p_s = p + rng.normal(0, u_p)
             T_s = T_eos + rng.normal(0, u_T)
             for rule in RULES:
-                poly = fit_rule(rule, p_s, T_s, u_p, u_T)
+                poly, birge = fit_rule(rule, p_s, T_s, u_p, u_T)
                 n = poly.degree()
                 err = (poly.deriv()(p) - mu_true) / np.abs(mu_true)
                 for i in np.where(interior)[0]:
-                    points.append((fname[:-4], fluid, rule, n, err[i], u_mc[n][i]))
+                    points.append((fname[:-4], fluid, rule, n, err[i], birge * u_mc[n][i]))
         print(f'{fname[:-4]} done', flush=True)
 
     pts = pd.DataFrame(points, columns=['isenthalp', 'fluid', 'rule', 'degree', 'err', 'u_mc'])

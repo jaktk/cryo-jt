@@ -14,7 +14,19 @@ raw time series, one CSV per isenthalpic line. File names follow
 `Fluid_TK_PMPa.csv`, where `T` is the mean inlet temperature and `P` the
 mean inlet pressure, both rounded (e.g. `Nitrogen_160K_6MPa.csv`). These are
 the inputs to the Joule-Thomson coefficient extraction. See
-[`p_T_pairs/README.md`](p_T_pairs/README.md).
+[`p_T_pairs/README.md`](p_T_pairs/README.md). Of the 27 isenthalps in
+`data/raw_data/extraction_windows.json`, five (13, 15, 23, 24, 25) are marked
+`"excluded"` because their inlet conditions were not stable or the isenthalp
+was not completed; the remaining 22 are analysed.
+
+## `purity/`
+
+In-situ purity of the pure fluids from the gas analyser, written by
+`analyze_purity.py`: `purity_per_day.csv` (frames recorded, null, frozen, and
+valid, and the day-mean purity), `purity_per_gas.csv` (pooled purity and its
+expanded uncertainty), and `si_purity_tables.tex` (the tables of SI Section S1).
+On 2020-12-14 the analyser output was frozen all day, so that day has no valid
+purity frames.
 
 ## `jt_coeffs/`
 
@@ -33,8 +45,9 @@ the correction estimates, and the generated LaTeX tables. See
   | `T_UNC/K` | K | expanded (k = 2) uncertainty in temperature |
   | `x1` | mole fraction | first-component mole fraction at the point (mixtures only) |
   | `JT_meas/(K/MPa)` | K MPa⁻¹ | measured μ_JT (derivative of the fit) |
-  | `JT_UNC_MC/(K/MPa)` | K MPa⁻¹ | Monte Carlo part of the expanded (k = 2) uncertainty |
-  | `JT_UNC/(K/MPa)` | K MPa⁻¹ | expanded (k = 2) uncertainty of μ_JT: Monte Carlo, bias, and method terms combined |
+  | `JT_UNC_MC/(K/MPa)` | K MPa⁻¹ | Monte Carlo part of the expanded (k = 2) uncertainty, with the Birge ratio where the fit fails the χ² test |
+  | `JT_UNC_X/(K/MPa)` | K MPa⁻¹ | composition part of the expanded (k = 2) uncertainty (mixtures) |
+  | `JT_UNC/(K/MPa)` | K MPa⁻¹ | expanded (k = 2) uncertainty of μ_JT: Monte Carlo, composition, bias, and method terms combined |
   | `JT_eos/(K/MPa)` | K MPa⁻¹ | μ_JT from the reference EOS at the same point |
   | `mean_unc_perc` | % | mean of 100 `JT_UNC`/\|`JT_meas`\| over the used points of the isenthalp |
   | `rel_abs_err_perc` | % | relative absolute deviation from the EOS |
@@ -43,7 +56,7 @@ the correction estimates, and the generated LaTeX tables. See
 - `jt_coefficients_summary.csv`: one row per isenthalp: fluid, mixture flag,
   composition (`x1`, `x2`), mean inlet temperature, number of points,
   polynomial degree, fit statistics (`chi2_red`, `chi2_crit`, `chi2_pass`,
-  `s_T/mK`), the mean/std/rms relative absolute
+  `s_T/mK`, `birge_ratio`), the mean/std/rms relative absolute
   deviation from the EOS, and `mean_unc_perc`.
 - `jt_coefficients_detailed.json`: the same results in nested form, including
   per-point arrays, for programmatic use.

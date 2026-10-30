@@ -27,7 +27,9 @@ unpacked Zenodo archive; git is not needed. Run them from any directory as
 | 5 | `validate_degree_criterion.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `degree_validation.csv`, `degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`; prints u_m |
 | 6 | `calculate_jt_coefficients.py` again, only if the constants below changed | yes | as step 2 | as step 2 |
 | 7 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv` | prints the cross-check of u_m |
-| 8 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
+| 8 | `refit_hene_eos.py` | yes | He-Ne `*_JT.csv`, `jt_coefficients_summary.csv` | `hene_eos_refit.csv` |
+| 9 | `analyze_purity.py` | no | `data/metadata/campaigns.csv`, `data/raw_data/*.csv` | `purity/purity_per_day.csv`, `purity/purity_per_gas.csv`, `purity/si_purity_tables.tex` |
+| 10 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
 
 Paths in the table are relative to `data/derived_data/` unless given in full.
 `p_T_pairs/index.json` is maintained by hand: `get_pT_pairs.py` does not
@@ -39,7 +41,7 @@ outputs of later steps:
 - `CORRECTIONS_PERC`: the mean relative heat-loss and kinetic-energy
   corrections (δ_Q, δ_k in %) per fluid group, copied from the `dQ/%` and
   `dk/%` columns of `corrections_summary.csv` (step 4).
-- `U_METHOD_REL` (0.0140): the relative method uncertainty u_m printed by
+- `U_METHOD_REL` (0.0065): the relative method uncertainty u_m printed by
   `validate_degree_criterion.py` (step 5), from the synthetic test only.
 
 The two constants only affect `JT_UNC/(K/MPa)` and `mean_unc_perc`.
@@ -56,7 +58,7 @@ Cuts each steady-state window listed in
 averages it (5 samples at 1 s). For every column `X` it writes the mean, the
 standard deviation `X_STD`, and the expanded uncertainty of the mean
 `X_EXP_UNC` = 2 `X_STD`/√N (k = 2). Isenthalps with an `"excluded"` field
-(13, 15, 23, 24, 25: not used in the published analysis) are skipped. The
+(13, 15, 23, 24, 25: inlet conditions not stable or isenthalp incomplete) are skipped. The
 output name is `<fluid>_<T_in>K_<p_in>MPa.csv` from the rounded mean inlet
 conditions; the script raises an error if two isenthalps map to the same name.
 
@@ -65,7 +67,8 @@ conditions; the script raises an error if two isenthalps map to the same name.
 Main script for the Joule-Thomson coefficients.
 
 1. **Measurement uncertainties** (expanded, k = 2): `p_UNC` is the larger of
-   `PT102/MPa_EXP_UNC` and the sensor floor 2 × 0.01 % of 13.7 MPa; `T_UNC` is
+   `PT102/MPa_EXP_UNC` and the sensor floor 0.01 % of 13.7 MPa (stated by the
+   manufacturer at k = 2); `T_UNC` is
    the larger of `TT102/K_EXP_UNC` and the sensor-chain uncertainty of TT102
    (Cernox sensor, CABTR module, calibration polynomial, in quadrature).
 2. **Composition** (mixtures): gas-analyser readings with |x1 + x2 - 1| ≥ 0.02
@@ -81,12 +84,16 @@ Main script for the Joule-Thomson coefficients.
 5. **Monte Carlo** (`JT_UNC_MC`): each point is perturbed with a Gaussian error
    at the standard (k = 1) measurement uncertainty, refitted with the same
    weighted Chebyshev degree, and re-differentiated over 2000 seeded
-   realisations; `JT_UNC_MC` is 2 × the sample standard deviation.
+   realisations; `JT_UNC_MC` is 2 × the sample standard deviation, scaled by
+   the Birge ratio √χ²_ν (`birge_ratio` in the summary) where the fit fails
+   the χ² test.
 6. **Combined uncertainty** (`JT_UNC`): the Monte Carlo standard uncertainty,
-   the uncorrected heat-loss and kinetic-energy biases (rectangular,
-   u = δ/√3, from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the
-   method uncertainty u_m = 1.40 % (k = 1) are added in quadrature and
-   expanded with k = 2.
+   for mixtures the composition term `JT_UNC_X` (|∂μ_JT/∂x1| u(x1) with
+   u(x1) = 0.0005 and the sensitivity from the EOS at the measured state), the
+   uncorrected heat-loss and kinetic-energy biases (rectangular, u = δ/√3,
+   from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the method
+   uncertainty u_m = 0.65 % (k = 1) are added in quadrature and expanded with
+   k = 2.
 7. **Comparison with the EOS**: μ_JT from REFPROP at each measured (p, T) and
    the relative absolute deviation, referred to the EOS value for pure fluids
    and to the measured value for mixtures.
@@ -138,7 +145,25 @@ deviations from the EOS are not used. The script also applies the three rules
 to the measured data (degree and AAD per isenthalp, for the sensitivity
 statement in the SI). Writes `degree_validation.csv`,
 `degree_sensitivity.csv`, `degree_pooled.csv`, and `si_degree_tables.tex`.
-Takes about 10 minutes.
+Takes a few minutes.
+
+### `refit_hene_eos.py`
+
+Refits the binary parameters of the He-Ne model (β_T, γ_T, β_v, γ_v, and the
+departure-function weight F) to the measured He-Ne μ_JT, weighted by U/2,
+free and with the phase envelope of the published model held (bubble points
+at (30 to 42) K as pseudo-data), each to all He-Ne points and to the
+well-conditioned isenthalps. The parameters are changed in memory through
+REFPROP's `SETKTVdll`; no REFPROP file is modified. Writes
+`hene_eos_refit.csv` with the AAD, the points outside U, and the change of the
+bubble points and densities for each fit.
+
+### `analyze_purity.py`
+
+In-situ purity of the pure fluids from the gas analyser: drops null frames
+(impurity 0) and frozen frames (runs of 300 or more identical readings), and
+writes the per-day and per-gas purities and the SI tables to
+`data/derived_data/purity/`.
 
 ### `estimate_method_uncertainty.py`
 
@@ -225,7 +250,7 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 ### Output: `jt_coefficients_summary.csv`
 
 `filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
-`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`,
+`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `birge_ratio`,
 `mean_rel_abs_err_perc`,
 `std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
 deviation statistics and `mean_unc_perc` are taken over the used points.
@@ -238,7 +263,8 @@ deviation statistics and `mean_unc_perc` are taken over the used points.
 | `p_UNC/MPa`, `T_UNC/K` | expanded (k = 2) measurement uncertainties |
 | `x1` | first-component mole fraction at the point (mixtures only) |
 | `JT_meas/(K/MPa)` | measured μ_JT |
-| `JT_UNC_MC/(K/MPa)` | Monte Carlo part of the uncertainty (k = 2) |
+| `JT_UNC_MC/(K/MPa)` | Monte Carlo part of the uncertainty (k = 2, with the Birge ratio) |
+| `JT_UNC_X/(K/MPa)` | composition part of the uncertainty (k = 2, mixtures) |
 | `JT_UNC/(K/MPa)` | combined expanded uncertainty (k = 2) |
 | `JT_eos/(K/MPa)` | μ_JT from the EOS at the same point |
 | `mean_unc_perc` | mean of 100 `JT_UNC`/\|`JT_meas`\| over the used points (same on every row) |
@@ -264,7 +290,7 @@ contribution).
 **Measurement uncertainty** (k = 2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
 - **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
 - **Temperature (full chain, sensor + CABTR + calibration polynomial, combined in quadrature):** ±16 mK at 65 K to ±34 mK at 180 K
-- **Pressure:** ±0.01 % of full scale (13.7 MPa)
+- **Pressure:** ±0.01 % of full scale (13.7 MPa), k = 2
 - **Composition:** ±0.1 mol-% (binary mixtures)
 
 ## Theoretical background
@@ -368,7 +394,9 @@ python src/data_analysis/extract_fit_coefficients.py
 - Helium-neon: 3.1 % to 13 %
 - Helium-nitrogen: 0.7 % to 11 %
 
-The mean relative expanded uncertainty (`mean_unc_perc`) is about 3 % for
-nitrogen, argon, and dilute He-N2 (5.6 % for the He-N2 isenthalp with about
-50 % helium), 6.8 % to 7.4 % for He-Ne, and 31 % to 32 % for helium-4. See
+The mean relative expanded uncertainty (`mean_unc_perc`) is 1.6 % to 4.3 %
+for nitrogen and argon, 2.0 % for dilute He-N2 (5.0 % for the He-N2
+isenthalp with about 50 % helium), 6.3 % to 26 % for He-Ne, and 32 % to 70 %
+for helium-4; the larger values belong to fits that fail the χ² test, whose
+Monte Carlo part is scaled by the Birge ratio. See
 `jt_coefficients_summary.csv` for the values per isenthalp.

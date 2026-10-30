@@ -386,7 +386,7 @@
         "Nitrogen",
         "Helium"
       ],
-      "excluded": "not used in the published analysis",
+      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
       "stamps": [
         {
           "date/yyyy-mm-dd": "2020-12-10",
@@ -440,7 +440,7 @@
         "Nitrogen",
         "Helium"
       ],
-      "excluded": "not used in the published analysis",
+      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
       "stamps": [
         {
           "date/yyyy-mm-dd": "2020-12-11",
@@ -683,7 +683,7 @@
         "Helium",
         "Neon"
       ],
-      "excluded": "not used in the published analysis",
+      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
       "stamps": [
         {
           "date/yyyy-mm-dd": "2021-01-28",
@@ -708,7 +708,7 @@
         "Helium",
         "Neon"
       ],
-      "excluded": "not used in the published analysis",
+      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
       "stamps": [
         {
           "date/yyyy-mm-dd": "2021-01-28",
@@ -738,7 +738,7 @@
         "Helium",
         "Neon"
       ],
-      "excluded": "not used in the published analysis",
+      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
       "stamps": [
         {
           "date/yyyy-mm-dd": "2021-01-28",

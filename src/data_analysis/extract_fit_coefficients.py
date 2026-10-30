@@ -78,7 +78,7 @@ def main():
         T = df["TT102/K"].values.astype(float)
         if len(p) < 3:
             continue
-        p_unc = np.array([max(u, K_TARGET * 0.01 / 100 * 13.7) for u in df["PT102/MPa_EXP_UNC"].values])
+        p_unc = np.array([max(u, 0.01 / 100 * 13.7 * K_TARGET / K_SOURCE) for u in df["PT102/MPa_EXP_UNC"].values])
         t_unc = np.array([max(us, t_unc_chain(Ti)) for us, Ti in zip(df["TT102/K_EXP_UNC"].values, T)])
 
         fit = select_degree(p, T, p_unc / K_TARGET, t_unc / K_TARGET)

@@ -43,17 +43,35 @@ derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT102/K,"numeric, continuous",NA,mean o
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT102/K_STD,"numeric, continuous",NA,standard deviation of TT102 over the averaging window,K
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT102/K_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of TT102 over the averaging window (k=2): 2 STD / sqrt(N),K
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT101/ohm,"numeric, continuous",NA,mean resistance of the TT101 Cernox sensor over the averaging window (also _STD and _EXP_UNC variants),ohm
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT101/ohm_STD,"numeric, continuous",NA,standard deviation of RT101 over the averaging window,ohm
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT101/ohm_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of RT101 over the averaging window (k=2): 2 STD / sqrt(N),ohm
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT102/ohm,"numeric, continuous",NA,mean resistance of the TT102 Cernox sensor over the averaging window (also _STD and _EXP_UNC variants),ohm
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT102/ohm_STD,"numeric, continuous",NA,standard deviation of RT102 over the averaging window,ohm
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,RT102/ohm_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of RT102 over the averaging window (k=2): 2 STD / sqrt(N),ohm
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT009/K,"numeric, continuous",NA,mean shield temperature over the averaging window (also _STD and _EXP_UNC variants),K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT009/K_STD,"numeric, continuous",NA,standard deviation of TT009 over the averaging window,K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT009/K_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of TT009 over the averaging window (k=2): 2 STD / sqrt(N),K
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT010/K,"numeric, continuous",NA,mean cryostat-outlet temperature over the averaging window (also _STD and _EXP_UNC variants),K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT010/K_STD,"numeric, continuous",NA,standard deviation of TT010 over the averaging window,K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT010/K_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of TT010 over the averaging window (k=2): 2 STD / sqrt(N),K
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT008/K,"numeric, continuous",NA,mean cold-head temperature over the averaging window (also _STD and _EXP_UNC variants),K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT008/K_STD,"numeric, continuous",NA,standard deviation of TT008 over the averaging window,K
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT008/K_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of TT008 over the averaging window (k=2): 2 STD / sqrt(N),K
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,Q008/W,"numeric, continuous",NA,mean cold-head heater power over the averaging window; absent where the raw data lack Q008 (also _STD and _EXP_UNC variants),W
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,Q008/W_STD,"numeric, continuous",NA,standard deviation of Q008 over the averaging window,W
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,Q008/W_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of Q008 over the averaging window (k=2): 2 STD / sqrt(N),W
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x1,"numeric, continuous","[0, 1]",mean mole fraction of the first mixture component over the averaging window,dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x1_STD,"numeric, continuous",NA,standard deviation of x1 over the averaging window,dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x1_EXP_UNC,"numeric, continuous",NA,expanded statistical uncertainty of the mean of x1 over the averaging window (k=2); the gas analyser floor is 1e-3,dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x2,"numeric, continuous","[0, 1]",mean mole fraction of the second mixture component over the averaging window (also _STD and _EXP_UNC variants),dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x2_STD,"numeric, continuous",NA,standard deviation of x2 over the averaging window,dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,x2_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of x2 over the averaging window (k=2): 2 STD / sqrt(N),dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,impurity,"numeric, continuous","[0, 1]",mean impurity over the averaging window for pure-fluid campaigns (also _STD and _EXP_UNC variants),dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,impurity_STD,"numeric, continuous",NA,standard deviation of impurity over the averaging window,dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,impurity_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of impurity over the averaging window (k=2): 2 STD / sqrt(N),dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x),"numeric, continuous",NA,mean GA016 composition uncertainty over the averaging window (also _STD and _EXP_UNC variants),dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x)_STD,"numeric, continuous",NA,standard deviation of err(x) over the averaging window,dimensionless
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x)_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of err(x) over the averaging window (k=2): 2 STD / sqrt(N),dimensionless
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p/MPa,"numeric, continuous",NA,pressure of the measured point (PT102 from the p_T_pairs CSV),MPa
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p_UNC/MPa,"numeric, continuous",NA,expanded uncertainty in pressure (k=2): the larger of PT102/MPa_EXP_UNC and the sensor floor 2 x 0.01 % of 13.7 MPa,MPa
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T/K,"numeric, continuous",NA,temperature of the measured point (TT102 from the p_T_pairs CSV),K
@@ -61,6 +79,7 @@ derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T_UNC/K,"numeric, continuous",NA,exp
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,x1,"numeric, continuous","[0, 1]",first-component mole fraction at the point (He for Helium-Neon; N2 for Nitrogen-Helium); out-of-range GA016 frames are replaced by the isenthalp mean; NA for pure fluids,mole fraction
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_meas/(K/MPa),"numeric, continuous",NA,measured Joule-Thomson coefficient (derivative of the fitted Chebyshev polynomial evaluated at p),K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC_MC/(K/MPa),"numeric, continuous",NA,Monte Carlo part of the uncertainty of JT_meas (2000 realisations; k=2),K MPa^-1
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC_X/(K/MPa),"numeric, continuous",NA,"composition part of the uncertainty of JT_meas (k=2): |d mu_JT/d x1| u(x1) with the sensitivity from the EOS at the measured (p, T) and u(x1) = 0.0005; zero for pure fluids",K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC/(K/MPa),"numeric, continuous",NA,expanded uncertainty of JT_meas (k=2) combining in quadrature the Monte Carlo standard uncertainty; the uncorrected heat-loss and kinetic-energy biases (rectangular; delta/sqrt(3)); and the method uncertainty u_m,K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_eos/(K/MPa),"numeric, continuous",NA,reference Joule-Thomson coefficient from the EOS (REFPROP) at the same point,K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,mean_unc_perc,"numeric, continuous",NA,mean of 100 * JT_UNC / |JT_meas| over the used points of the isenthalp (same value on every row),%
@@ -78,6 +97,7 @@ derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_red,"numeric, continuous
 derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_crit,"numeric, continuous",NA,0.95 quantile of chi2_nu/nu for the fit (the degree passes if chi2_red <= chi2_crit); empty for the interpolated three-point isenthalps,dimensionless
 derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_pass,boolean,True; False,"true if the selected degree passes the chi-square test; false if no degree up to n_points - 2 passes (not well-conditioned); empty for the interpolated three-point isenthalps",NA
 derived_data/jt_coeffs,jt_coefficients_summary.csv,s_T/mK,"numeric, continuous",NA,root mean square of the temperature residuals of the fit (zero for an interpolation),mK
+derived_data/jt_coeffs,jt_coefficients_summary.csv,birge_ratio,"numeric, continuous",NA,"factor sqrt(chi2_red) applied to the Monte Carlo part JT_UNC_MC where chi2_pass is false; 1 otherwise",dimensionless
 derived_data/jt_coeffs,jt_coefficients_summary.csv,mean_rel_abs_err_perc,"numeric, continuous",NA,mean of rel_abs_err_perc over the used points (the AAD reported in the paper),%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,std_rel_abs_err_perc,"numeric, continuous",NA,standard deviation of rel_abs_err_perc over the used points,%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,rms_rel_abs_err_perc,"numeric, continuous",NA,root mean square of rel_abs_err_perc over the used points,%
@@ -174,3 +194,30 @@ literature,literature_measurements.csv,uJT_meas/(K/MPa),"numeric, continuous",NA
 literature,literature_measurements.csv,uJT_meas/(F/psi),"numeric, continuous",NA,published Joule-Thomson coefficient,F psi^-1
 literature,literature_measurements.csv,uJT_meas/(degC/atm),"numeric, continuous",NA,published Joule-Thomson coefficient,degC atm^-1
 literature,literature_measurements.csv,rel_err,"numeric, continuous",NA,"relative deviation from the EOS as a fraction; empty in all rows since version 1.3.2 (it was filled only for the removed Tkaczuk rows), so the figure script computes the deviation from the EOS",dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,fit,categorical,"published; all, free; all, phase envelope held; well-conditioned, free; well-conditioned, phase envelope held","He-Ne EOS parameter set: the published model, or a refit to all He-Ne points or to the well-conditioned isenthalps, free or with the phase envelope of the published model held",NA
+derived_data/jt_coeffs,hene_eos_refit.csv,betaT,"numeric, continuous",NA,reducing parameter beta_T of the He-Ne model,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,gammaT,"numeric, continuous",NA,reducing parameter gamma_T,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,betaV,"numeric, continuous",NA,reducing parameter beta_v,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,gammaV,"numeric, continuous",NA,reducing parameter gamma_v,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,F,"numeric, continuous",NA,weight F of the departure function,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,AAD_all_perc,"numeric, continuous",NA,AAD of the He-Ne points used for mu_JT (referred to the measurement),%
+derived_data/jt_coeffs,hene_eos_refit.csv,outside_U_all,"numeric, integer",NA,number of these points with |mu_meas - mu_EOS| > U,count
+derived_data/jt_coeffs,hene_eos_refit.csv,n_all,"numeric, integer",NA,number of He-Ne points used for mu_JT,count
+derived_data/jt_coeffs,hene_eos_refit.csv,AAD_wc_perc,"numeric, continuous",NA,AAD over the points of the well-conditioned He-Ne isenthalps,%
+derived_data/jt_coeffs,hene_eos_refit.csv,outside_U_wc,"numeric, integer",NA,number of well-conditioned points outside U,count
+derived_data/jt_coeffs,hene_eos_refit.csv,n_wc,"numeric, integer",NA,number of well-conditioned points,count
+derived_data/jt_coeffs,hene_eos_refit.csv,max_dp_bubble_perc,"numeric, continuous",NA,largest relative change of the bubble-point pressure from the published model over the grid of the constraint,%
+derived_data/jt_coeffs,hene_eos_refit.csv,max_dy_bubble,"numeric, continuous",NA,largest change of the helium mole fraction of the vapour at the bubble point,dimensionless
+derived_data/jt_coeffs,hene_eos_refit.csv,max_drho_perc,"numeric, continuous",NA,largest relative change of the density at the measured states,%
+derived_data/purity,purity_per_day.csv,date,date,NA,campaign day (pure fluids),yyyy-mm-dd
+derived_data/purity,purity_per_day.csv,gas,categorical,nitrogen; argon; helium-4,gas of the campaign,NA
+derived_data/purity,purity_per_day.csv,frames,"numeric, integer",NA,analyser frames recorded (1 Hz),count
+derived_data/purity,purity_per_day.csv,null,"numeric, integer",NA,frames with impurity exactly zero (no valid reading),count
+derived_data/purity,purity_per_day.csv,frozen,"numeric, integer",NA,frames in runs of at least 300 identical readings (frozen analyser output),count
+derived_data/purity,purity_per_day.csv,valid,"numeric, integer",NA,frames used for the purity,count
+derived_data/purity,purity_per_day.csv,mean_purity,"numeric, continuous","[0, 1]",mean of 1 - impurity over the valid frames (empty if none),mol/mol
+derived_data/purity,purity_per_gas.csv,gas,categorical,nitrogen; argon; helium-4,gas,NA
+derived_data/purity,purity_per_gas.csv,purity,"numeric, continuous","[0, 1]",mean of 1 - impurity over the valid frames of all days of the gas,mol/mol
+derived_data/purity,purity_per_gas.csv,frames,"numeric, integer",NA,number of valid frames,count
+derived_data/purity,purity_per_gas.csv,days,"numeric, integer",NA,number of days with valid frames,count
+derived_data/purity,purity_per_gas.csv,U_k2,"numeric, continuous",NA,expanded uncertainty (k=2): twice the standard deviation of the per-frame purity,mol/mol

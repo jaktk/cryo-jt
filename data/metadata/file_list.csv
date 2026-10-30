@@ -24,3 +24,11 @@ data/literature,literature_measurements.csv,historical Joule-Thomson coefficient
 data/cernox_calibration_data/SERIAL,SERIAL.cof,calibration polynomial coefficients (Chebyshev) supplied by Lake Shore for the Cernox sensor with the given serial number,CC-BY-4.0
 data/cernox_calibration_data/SERIAL,SERIAL.dat,calibration point list (resistance and temperature pairs) for the Cernox sensor with the given serial number,CC-BY-4.0
 data/cernox_calibration_data/SERIAL,SERIAL.tbl,calibration look-up table for the Cernox sensor with the given serial number,CC-BY-4.0
+data/derived_data/jt_coeffs,hene_eos_refit.csv,"refit of the He-Ne mixture model parameters to the measured mu_JT, free and with the phase envelope held, written by refit_hene_eos.py",CC-BY-4.0
+data/derived_data/purity,purity_per_day.csv,"in-situ purity of the pure fluids per campaign day from the gas analyser, written by analyze_purity.py",CC-BY-4.0
+data/derived_data/purity,purity_per_gas.csv,"pooled in-situ purity per gas with its expanded uncertainty, written by analyze_purity.py",CC-BY-4.0
+data/derived_data/purity,si_purity_tables.tex,"LaTeX tables of the in-situ purity for the Supporting Information, written by analyze_purity.py",CC-BY-4.0
+data/cernox_calibration_data/SERIAL,"SERIAL.234, SERIAL.330, SERIAL.340, SERIAL.34A, SERIAL.91C",Lake Shore-format calibration curve files for the corresponding instrument models,CC-BY-4.0
+data/cernox_calibration_data/SERIAL,SERIAL.curve,Lake Shore-format curve file for a 218 / 224 / 240 temperature monitor (X115143 only),CC-BY-4.0
+data/cernox_calibration_data/SERIAL,SERIAL.pdf,scanned Lake Shore calibration certificate of the sensor,CC-BY-4.0
+REFPROP/FLUIDS,HMX.BNC,"mixture models (reducing parameters and departure functions) for He-Ne, He-Ar, Ne-Ar, and He-N2, to be merged into the local REFPROP installation",see REFPROP/README.md
