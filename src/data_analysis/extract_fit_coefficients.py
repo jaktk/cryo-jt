@@ -9,7 +9,7 @@ The coefficients refer to the scaled pressure
 which maps the measured pressure range of the isenthalp (rounded to 1 kPa)
 onto [-1, 1], so that
     T/K = sum_k a_k C_k(x),   mu_JT = 2 / (p_max - p_min) * sum_k a_k C_k'(x)
-with the Chebyshev polynomials C_k of the first kind (SI eqs S5 and S6). The
+with the Chebyshev polynomials C_k of the first kind (SI Section S4). The
 scaled basis keeps the coefficients well conditioned at degree 5.
 
 The fit is the one of calculate_jt_coefficients.py (chebyshev_fit.select_degree,

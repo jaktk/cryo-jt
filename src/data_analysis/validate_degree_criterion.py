@@ -173,8 +173,9 @@ def write_si_tables(pooled, sens, u_m):
     tex = [r"\begin{table}[h]", r"  \centering", r"  \footnotesize",
            r"  \caption{\label{tab:si_synth}Synthetic test of the degree rules: RMS of the relative "
            r"error of $\mu_{\rm JT}$ against the exact EOS slope at the interior points, and the "
-           r"fraction of points for which the error lies within $U = 2\sqrt{u_{\rm MC}^2 + "
-           rf"(u_{{\rm m}}\,\mu_{{\rm JT}})^2}}$ with $u_{{\rm m}} = {u_m:.4f}$ "
+           r"fraction of points for which the error lies within $U = 2\sqrt{B^2 u_{\rm MC}^2 + "
+           rf"(u_{{\rm m}}\,\mu_{{\rm JT}})^2}}$ with $u_{{\rm m}} = {u_m:.4f}$ and the Birge ratio $B$ "
+           r"of the chi-square rule ($B = 1$ for the other rules) "
            rf"({N_REAL} realizations per isenthalp). Isenthalps whose EOS curve enters the "
            r"two-phase region are left out.}",
            r"  \begin{tabular}{lcccccc}", r"    \toprule",

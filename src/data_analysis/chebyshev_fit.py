@@ -60,7 +60,8 @@ def chebyshev_fit_weights(pressures, temperatures, u_p, u_T):
 
 def fit_chebyshev(pressures, temperatures, degree, weights=None):
     """ Least-squares Chebyshev fit, returned in the raw-pressure basis
-    T/K = sum_k a_k C_k(p/MPa) (SI eq S5). """
+    T/K = sum_k a_k C_k(p/MPa); the SI tabulates it in the scaled pressure
+    (extract_fit_coefficients.py). """
     fit = Chebyshev.fit(pressures, temperatures, degree, w=weights)
     return Chebyshev(fit.convert().coef)
 
