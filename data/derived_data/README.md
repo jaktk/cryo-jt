@@ -56,7 +56,7 @@ the correction estimates, and the generated LaTeX tables. See
 - `jt_coefficients_summary.csv`: one row per isenthalp: fluid, mixture flag,
   composition (`x1`, `x2`), mean inlet temperature, number of points,
   polynomial degree, fit statistics (`chi2_red`, `chi2_crit`, `chi2_pass`,
-  `s_T/mK`, `birge_ratio`), the mean/std/rms relative absolute
+  `s_T/mK`, `birge_ratio`), the composition uncertainty `u_x1`, the mean/std/rms relative absolute
   deviation from the EOS, and `mean_unc_perc`.
 - `jt_coefficients_detailed.json`: the same results in nested form, including
   per-point arrays, for programmatic use.

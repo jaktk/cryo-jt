@@ -49,8 +49,9 @@ The same stem is used for the matching p-T input in
 All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
 95 % level of confidence).
 
-- `p_UNC/MPa` and `T_UNC/K` are the larger of the statistical uncertainty of
-  the steady-state window and the sensor-chain uncertainty.
+- `p_UNC/MPa` and `T_UNC/K` combine in quadrature the statistical
+  uncertainty of the steady-state window (with a Student factor for the five
+  samples) and the sensor-chain uncertainty (`measurement_uncertainty.py`).
 - `JT_UNC_MC/(K/MPa)` is the Monte Carlo part: each point is perturbed with a
   Gaussian error at the standard (k = 1) measurement uncertainty, the data are
   refitted with the same weighted Chebyshev polynomial (same degree), and the spread of the
@@ -58,8 +59,9 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
   the χ² test, it is scaled by the Birge ratio √χ²_ν (`birge_ratio` in the
   summary).
 - `JT_UNC_X/(K/MPa)` is the composition part for mixtures (k = 2):
-  |∂μ_JT/∂x1| u(x1), with u(x1) = 0.0005 and the sensitivity from the EOS at
-  the measured state; zero for pure fluids.
+  |∂μ_JT/∂x1| u(x1), with the sensitivity from the EOS at the measured state
+  and u(x1) the larger of 0.0005 and the standard deviation of the point
+  compositions of the isenthalp (`u_x1` in the summary); zero for pure fluids.
 - `JT_UNC/(K/MPa)` combines in quadrature the Monte Carlo standard
   uncertainty, the composition term, the uncorrected heat-loss and kinetic-energy biases (treated as
   rectangular, u = δ/√3, with δ from `corrections_summary.csv`), and the

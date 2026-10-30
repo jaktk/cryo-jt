@@ -6,7 +6,10 @@ For every published isenthalp, the measured pressures are placed on the EOS
 isenthalp through the mean inlet state. Gaussian noise at the standard (k = 1)
 measurement uncertainty of each point is added to p and T, the degree is
 selected, and mu_JT at the interior points is compared with the exact EOS
-slope. This is repeated over N_REAL realisations for three degree rules:
+slope. This is repeated over N_REAL realisations for three degree rules
+(isenthalps whose EOS curve between the lowest and highest measured pressure
+enters the two-phase region have no smooth reference slope and are left out
+of u_m and of the pooled results):
 
   * chi2   the rule of chebyshev_fit.select_degree used by the pipeline;
   * r2     the earlier rule, lowest degree (capped at N_s - 1) with R^2 > 0.999,
@@ -51,7 +54,7 @@ from FluidProps import FluidProps
 from repo_root import REPO_ROOT
 from chebyshev_fit import (MAX_DEGREE, chebyshev_fit_weights, effective_t_uncertainty,
                            fit_chebyshev, select_degree)
-from calculate_jt_coefficients import K_TARGET, K_SOURCE, TempUncertainty
+from measurement_uncertainty import K_TARGET, point_uncertainties
 
 JT_DIR = os.path.join(REPO_ROOT, 'data', 'derived_data', 'jt_coeffs')
 PT_DIR = os.path.join(REPO_ROOT, 'data', 'derived_data', 'p_T_pairs')
@@ -113,9 +116,8 @@ def load_isenthalp(filename, fluid):
     df = pd.read_csv(os.path.join(PT_DIR, filename))
     p = df['PT102/MPa'].values.astype(float)
     T = df['TT102/K'].values.astype(float)
-    u_p = np.array([max(u, 0.01 / 100 * 13.7 * K_TARGET / K_SOURCE) for u in df['PT102/MPa_EXP_UNC']]) / K_TARGET
-    t_chain = TempUncertainty('X93303')
-    u_T = np.array([max(u, t_chain(Ti)) for u, Ti in zip(df['TT102/K_EXP_UNC'], T)]) / K_TARGET
+    p_unc, t_unc = point_uncertainties(df)
+    u_p, u_T = p_unc / K_TARGET, t_unc / K_TARGET
     fp = FluidProps(tuple(fluid.split('-')) if '-' in fluid else fluid)
     if '-' in fluid:
         x1 = df['x1'].values.astype(float)
@@ -140,6 +142,16 @@ def mc_uncertainty(p, T_eos, u_p, u_T, degree, rng):
     return K_TARGET * samples.std(axis=0, ddof=1)
 
 
+def enters_two_phase(fp, h, p_min, p_max, n_grid=100):
+    """ True if the EOS isenthalp h between p_min and p_max enters the
+    two-phase region (vapour quality between 0 and 1). """
+    for p in np.linspace(p_min, p_max, n_grid):
+        q = fp.RP.REFPROPdll(fp.fluid, 'PH', 'QMASS', fp.MASS_BASE_SI, 0, 0, p * 1e6, h, fp.z).Output[0]
+        if 0.0 <= q <= 1.0:
+            return True
+    return False
+
+
 def required_u_m(err, u_mc, goal=COVERAGE_GOAL):
     """ Smallest u_m (step 0.0005) with |err| <= 2 sqrt(u_mc^2 + u_m^2) for a fraction goal. """
     for u_m in np.arange(0.0, 0.1, 0.0005):
@@ -162,8 +174,9 @@ def write_si_tables(pooled, sens, u_m):
            r"  \caption{\label{tab:si_synth}Synthetic test of the degree rules: RMS of the relative "
            r"error of $\mu_{\rm JT}$ against the exact EOS slope at the interior points, and the "
            r"fraction of points for which the error lies within $U = 2\sqrt{u_{\rm MC}^2 + "
-           rf"(u_{{\rm m}}\,\mu_{{\rm JT}})^2}}$ with $u_{{\rm m}} = {u_m:.3f}$ "
-           rf"({N_REAL} realizations per isenthalp).}}",
+           rf"(u_{{\rm m}}\,\mu_{{\rm JT}})^2}}$ with $u_{{\rm m}} = {u_m:.4f}$ "
+           rf"({N_REAL} realizations per isenthalp). Isenthalps whose EOS curve enters the "
+           r"two-phase region are left out.}",
            r"  \begin{tabular}{lcccccc}", r"    \toprule",
            r"    & \multicolumn{2}{c}{chi-square} & \multicolumn{2}{c}{$R^2 > 0.999$} & "
            r"\multicolumn{2}{c}{F-test} \\",
@@ -206,11 +219,12 @@ def write_si_tables(pooled, sens, u_m):
 def main():
     summary = pd.read_csv(os.path.join(JT_DIR, 'jt_coefficients_summary.csv'))
     rng = np.random.default_rng(SEED)
-    points, sens_rows = [], []
+    points, sens_rows, two_phase = [], [], {}
     for _, meta in summary.iterrows():
         fname, fluid = meta['filename'], meta['fluid']
         p, T, u_p, u_T, p_in, T_in, fp, interior = load_isenthalp(fname, fluid)
         h_in = fp.get_hmass(p=p_in, T=T_in)
+        two_phase[fname[:-4]] = enters_two_phase(fp, h_in, p.min(), p.max())
         T_eos = np.array([fp.get_T(p=pi, h=h_in) for pi in p])
         mu_true = np.array([fp.get_JT_coefficient(p=pi, T=Ti) for pi, Ti in zip(p, T_eos)])
         u_mc = {n: mc_uncertainty(p, T_eos, u_p, u_T, n, rng) / K_TARGET / np.abs(mu_true)
@@ -240,7 +254,11 @@ def main():
                     points.append((fname[:-4], fluid, rule, n, err[i], birge * u_mc[n][i]))
         print(f'{fname[:-4]} done', flush=True)
 
-    pts = pd.DataFrame(points, columns=['isenthalp', 'fluid', 'rule', 'degree', 'err', 'u_mc'])
+    # Isenthalps whose synthetic curve enters the two-phase region have no
+    # smooth single-phase reference slope; they are reported per isenthalp but
+    # left out of u_m and of the pooled results.
+    all_pts = pd.DataFrame(points, columns=['isenthalp', 'fluid', 'rule', 'degree', 'err', 'u_mc'])
+    pts = all_pts[~all_pts['isenthalp'].map(two_phase)].copy()
     chi2 = pts[pts['rule'] == 'chi2']
     u_m = required_u_m(chi2['err'].values, chi2['u_mc'].values)
 
@@ -260,10 +278,11 @@ def main():
         })
 
     degree_cols = ['degree_mode', 'degree_min', 'degree_max']
-    per_iso = pts.groupby(['isenthalp', 'rule']).apply(summarise, include_groups=False).reset_index()
+    per_iso = all_pts.groupby(['isenthalp', 'rule']).apply(summarise, include_groups=False).reset_index()
     per_iso[degree_cols] = per_iso[degree_cols].astype(int)
     per_iso.insert(2, 'n_points', per_iso['isenthalp'].map(
         {f[:-4]: n for f, n in zip(summary['filename'], summary['n_points'])}))
+    per_iso.insert(3, 'two_phase', per_iso['isenthalp'].map(two_phase))
     per_iso.to_csv(os.path.join(JT_DIR, 'degree_validation.csv'), index=False)
     pd.DataFrame(sens_rows).to_csv(os.path.join(JT_DIR, 'degree_sensitivity.csv'), index=False)
 
@@ -279,6 +298,8 @@ def main():
     cols = ['rms_perc', 'bias_perc', 'coverage_mc', 'coverage_mc_um']
     print(f'\nSynthetic validation, {N_REAL} realisations per isenthalp, interior points')
     print(pooled[cols].round(3).to_string())
+    print('isenthalps left out (synthetic curve enters the two-phase region):',
+          [k for k, v in two_phase.items() if v])
     print(f'\nu_m (k = 1) for {COVERAGE_GOAL:.0%} coverage under the chi2 rule: {u_m:.4f}')
 
 

@@ -8,13 +8,13 @@ The coefficients refer to the scaled pressure
     x = (2 p - p_max - p_min) / (p_max - p_min),
 which maps the measured pressure range of the isenthalp (rounded to 1 kPa)
 onto [-1, 1], so that
-    T/K = sum_k a_k T_k(x),   mu_JT = 2 / (p_max - p_min) * sum_k a_k T_k'(x)
-with the Chebyshev polynomials T_k of the first kind (SI eqs S5 and S6). The
+    T/K = sum_k a_k C_k(x),   mu_JT = 2 / (p_max - p_min) * sum_k a_k C_k'(x)
+with the Chebyshev polynomials C_k of the first kind (SI eqs S5 and S6). The
 scaled basis keeps the coefficients well conditioned at degree 5.
 
 The fit is the one of calculate_jt_coefficients.py (chebyshev_fit.select_degree,
-same uncertainties and weights). No REFPROP needed: only the measured p-T pairs
-and the closed-form sensor-chain temperature uncertainty are required.
+same uncertainties from measurement_uncertainty.py, same weights). No REFPROP
+needed: only the measured p-T pairs are required.
 
 Verification: the derivative of the polynomial rebuilt from the printed
 coefficients is compared with the published JT_meas/(K/MPa) column of
@@ -26,38 +26,14 @@ import pandas as pd
 from numpy.polynomial.chebyshev import Chebyshev
 from repo_root import REPO_ROOT
 from chebyshev_fit import select_degree
+from measurement_uncertainty import K_TARGET, point_uncertainties
 
 ROOT = REPO_ROOT
 PT_DIR = os.path.join(ROOT, "data", "derived_data", "p_T_pairs")
 JT_DIR = os.path.join(ROOT, "data", "derived_data", "jt_coeffs")
 
-# Coverage factors: source specifications are expanded at K_SOURCE, the analysis
-# reports everything at K_TARGET (approx. 95 % level of confidence).
-K_TARGET = 2.0
-K_SOURCE = 2.0
-
 DECIMALS = 5      # printed decimals of a_k in K
 MAX_ORDER = 5     # highest coefficient column in the table
-
-# Sensor-chain temperature uncertainty, X93303 (closed form, == TempUncertainty.__call__)
-_POLY_BANDS = [
-    {"Tmin": 1.4, "Tmax": 14.1, "N": 31, "n": 9, "DTrms": 0.93},
-    {"Tmin": 14.1, "Tmax": 80.0, "N": 31, "n": 7, "DTrms": 1.60},
-    {"Tmin": 80.0, "Tmax": 325.0, "N": 32, "n": 8, "DTrms": 5.84},
-]
-
-
-def t_unc_chain(T):
-    cernox = -5e-05 * T**2 + 0.1281 * T + 6.4603
-    cabtr = 2e-05 * T**2 + 0.0695 * T - 0.1001
-    poly = 0.0
-    for b in _POLY_BANDS:
-        if b["Tmin"] <= T < b["Tmax"]:
-            poly = K_SOURCE * np.sqrt(b["N"] / (b["N"] - b["n"]) * b["DTrms"] ** 2)
-            break
-    # Contributions are independent and expanded at K_SOURCE; combine them in
-    # quadrature and rescale the chain to K_TARGET used throughout the analysis.
-    return np.sqrt(cernox**2 + cabtr**2 + poly**2) * 1e-3 * (K_TARGET / K_SOURCE)  # K (k=K_TARGET)
 
 
 def scaled_series(coef, p_min, p_max):
@@ -78,8 +54,7 @@ def main():
         T = df["TT102/K"].values.astype(float)
         if len(p) < 3:
             continue
-        p_unc = np.array([max(u, 0.01 / 100 * 13.7 * K_TARGET / K_SOURCE) for u in df["PT102/MPa_EXP_UNC"].values])
-        t_unc = np.array([max(us, t_unc_chain(Ti)) for us, Ti in zip(df["TT102/K_EXP_UNC"].values, T)])
+        p_unc, t_unc = point_uncertainties(df)
 
         fit = select_degree(p, T, p_unc / K_TARGET, t_unc / K_TARGET)
         # The scaling uses the printed (rounded) pressure range, so that the
@@ -127,7 +102,7 @@ def main():
         r"  \centering",
         r"  \footnotesize",
         r"  \setlength{\tabcolsep}{4pt}",
-        r"  \caption{\label{tab:si_cheb}Chebyshev fit $T/{\rm K} = \sum_{k=0}^{n} a_k\, T_k(x)$ "
+        r"  \caption{\label{tab:si_cheb}Chebyshev fit $T/{\rm K} = \sum_{k=0}^{n} a_k\, C_k(x)$ "
         r"(eq~\ref{eq:si_cheb}) of each measured isenthalp in the scaled pressure "
         r"$x = (2p - p_{\max} - p_{\min})/(p_{\max} - p_{\min})$: number of points $N_{\rm s}$, "
         r"selected degree $n$, pressure range, reduced chi-square $\chi^2_\nu$ with "

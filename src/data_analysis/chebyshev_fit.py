@@ -8,9 +8,10 @@ script fits the same way. No REFPROP needed.
 Degree rule: the lowest degree n (1 to MAX_DEGREE, at most N_s - 2) whose
 weighted residuals agree with the measurement uncertainty, i.e. whose reduced
 chi-square is below the CHI2_LEVEL quantile of chi2_nu / nu with nu = N_s - n - 1
-degrees of freedom. If no degree passes, the cap N_s - 2 is used and the fit is
-marked as not passing. The cap keeps at least one residual degree of freedom,
-so the polynomial never interpolates. The only exception is a three-point
+degrees of freedom. If no degree up to the cap N_s - 2 passes, the degree with
+the lowest reduced chi-square is used and the fit is marked as not passing.
+The cap keeps at least one residual degree of freedom, so the polynomial never
+interpolates. The only exception is a three-point
 isenthalp, which is interpolated with n = 2: a straight line through three
 unevenly spaced points biases the slope at the middle point.
 """
@@ -93,10 +94,12 @@ def select_degree(pressures, temperatures, u_p, u_T, max_degree=MAX_DEGREE):
         return FitResult(poly, 2, dof, chi2_red, chi2_crit, None, s_t)
 
     cap = min(max_degree, n_points - 2)
+    tried = []
     for degree in range(1, cap + 1):
         poly = fit_chebyshev(pressures, temperatures, degree, weights)
         dof, chi2_red, chi2_crit, s_t = fit_statistics(pressures, temperatures, poly, u_eff)
-        passed = bool(chi2_red <= chi2_crit)
-        if passed:
-            break
-    return FitResult(poly, degree, dof, chi2_red, chi2_crit, passed, s_t)
+        if chi2_red <= chi2_crit:
+            return FitResult(poly, degree, dof, chi2_red, chi2_crit, True, s_t)
+        tried.append(FitResult(poly, degree, dof, chi2_red, chi2_crit, False, s_t))
+    # No degree passes: keep the one with the lowest reduced chi-square
+    return min(tried, key=lambda f: f.chi2_red)

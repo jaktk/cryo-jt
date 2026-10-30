@@ -26,7 +26,7 @@ derived isenthalp files) live next to the data they act on:
 | [`codebook.csv`](codebook.csv) | Variable dictionary: per-column type, allowed values, unit, and description for the raw and derived data CSVs, `all_measurements.csv`, and the capillary calculations (the literature CSV is described in `data/literature/README.md`). |
 | [`file_list.csv`](file_list.csv) | Manifest of the data files in the repository, with a one-line description and license for each. |
 | [`sensors.json`](sensors.json) | P&ID tag ↔ sensor model ↔ serial number ↔ calibration provenance for the principal measurement chain (TT101, TT102, PT101, PT102, GA016). |
-| [`campaigns.csv`](campaigns.csv) | Measurement campaign log: date, fluid or mixture, mean composition or purity, raw data file name. |
+| [`campaigns.csv`](campaigns.csv) | Measurement campaign log: date, fluid or mixture, mean composition (over the steady-state windows of the analysed isenthalps of the day) or in-situ purity (from `analyze_purity.py`), raw data file name. |
 | [`daq.json`](daq.json) | Data-acquisition stack: SCADA software, temperature acquisition module, transport. |
 
 ## How to use it

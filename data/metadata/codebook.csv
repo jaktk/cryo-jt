@@ -73,13 +73,13 @@ derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x),"numeric, continuous",NA,mean GA
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x)_STD,"numeric, continuous",NA,standard deviation of err(x) over the averaging window,dimensionless
 derived_data/p_T_pairs,Fluid_TK_PMPa.csv,err(x)_EXP_UNC,"numeric, continuous",NA,expanded uncertainty of the mean of err(x) over the averaging window (k=2): 2 STD / sqrt(N),dimensionless
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p/MPa,"numeric, continuous",NA,pressure of the measured point (PT102 from the p_T_pairs CSV),MPa
-derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p_UNC/MPa,"numeric, continuous",NA,expanded uncertainty in pressure (k=2): the larger of PT102/MPa_EXP_UNC and the sensor floor 2 x 0.01 % of 13.7 MPa,MPa
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,p_UNC/MPa,"numeric, continuous",NA,expanded uncertainty in pressure (k=2): PT102/MPa_EXP_UNC (scaled by t(0.975; 4)/2) and the sensor uncertainty 0.01 % of 13.7 MPa (k=2) in quadrature (measurement_uncertainty.py),MPa
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T/K,"numeric, continuous",NA,temperature of the measured point (TT102 from the p_T_pairs CSV),K
-derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T_UNC/K,"numeric, continuous",NA,expanded uncertainty in temperature (k=2): the larger of TT102/K_EXP_UNC and the sensor-chain uncertainty of TT102,K
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,T_UNC/K,"numeric, continuous",NA,expanded uncertainty in temperature (k=2): TT102/K_EXP_UNC (scaled by t(0.975; 4)/2) and the sensor-chain uncertainty of TT102 in quadrature (measurement_uncertainty.py),K
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,x1,"numeric, continuous","[0, 1]",first-component mole fraction at the point (He for Helium-Neon; N2 for Nitrogen-Helium); out-of-range GA016 frames are replaced by the isenthalp mean; NA for pure fluids,mole fraction
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_meas/(K/MPa),"numeric, continuous",NA,measured Joule-Thomson coefficient (derivative of the fitted Chebyshev polynomial evaluated at p),K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC_MC/(K/MPa),"numeric, continuous",NA,Monte Carlo part of the uncertainty of JT_meas (2000 realisations; k=2),K MPa^-1
-derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC_X/(K/MPa),"numeric, continuous",NA,"composition part of the uncertainty of JT_meas (k=2): |d mu_JT/d x1| u(x1) with the sensitivity from the EOS at the measured (p, T) and u(x1) = 0.0005; zero for pure fluids",K MPa^-1
+derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC_X/(K/MPa),"numeric, continuous",NA,"composition part of the uncertainty of JT_meas (k=2): |d mu_JT/d x1| u(x1) with the sensitivity from the EOS at the measured (p, T) and u(x1) = u_x1 of the summary; zero for pure fluids",K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_UNC/(K/MPa),"numeric, continuous",NA,expanded uncertainty of JT_meas (k=2) combining in quadrature the Monte Carlo standard uncertainty; the uncorrected heat-loss and kinetic-energy biases (rectangular; delta/sqrt(3)); and the method uncertainty u_m,K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,JT_eos/(K/MPa),"numeric, continuous",NA,reference Joule-Thomson coefficient from the EOS (REFPROP) at the same point,K MPa^-1
 derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,mean_unc_perc,"numeric, continuous",NA,mean of 100 * JT_UNC / |JT_meas| over the used points of the isenthalp (same value on every row),%
@@ -92,12 +92,13 @@ derived_data/jt_coeffs,jt_coefficients_summary.csv,x1,"numeric, continuous","[0,
 derived_data/jt_coeffs,jt_coefficients_summary.csv,x2,"numeric, continuous","[0, 1]",mean mole fraction of the second mixture component (empty for pure fluids),dimensionless
 derived_data/jt_coeffs,jt_coefficients_summary.csv,TT101_mean/K,"numeric, continuous",NA,mean inlet temperature for the isenthalp (from p_T_pairs/index.json),K
 derived_data/jt_coeffs,jt_coefficients_summary.csv,n_points,"numeric, integer",NA,"number of (p, T) points fitted in the isenthalp",count
-derived_data/jt_coeffs,jt_coefficients_summary.csv,polynomial_degree,"numeric, integer","[1, 6]","degree of the Chebyshev polynomial used for the fit: the lowest degree up to n_points - 2 that passes the chi-square test (2 for the interpolated three-point isenthalps)",count
+derived_data/jt_coeffs,jt_coefficients_summary.csv,polynomial_degree,"numeric, integer","[1, 6]","degree of the Chebyshev polynomial used for the fit: the lowest degree up to n_points - 2 that passes the chi-square test, else the one with the lowest chi2_red (2 for the interpolated three-point isenthalps)",count
 derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_red,"numeric, continuous",NA,"reduced chi-square of the weighted Chebyshev fit, chi2/nu with nu = n_points - polynomial_degree - 1, using the standard (k=1) uncertainties; empty for the interpolated three-point isenthalps",dimensionless
 derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_crit,"numeric, continuous",NA,0.95 quantile of chi2_nu/nu for the fit (the degree passes if chi2_red <= chi2_crit); empty for the interpolated three-point isenthalps,dimensionless
-derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_pass,boolean,True; False,"true if the selected degree passes the chi-square test; false if no degree up to n_points - 2 passes (not well-conditioned); empty for the interpolated three-point isenthalps",NA
+derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_pass,boolean,True; False,"true if the selected degree passes the chi-square test; false if no degree up to n_points - 2 passes, in which case the degree with the lowest chi2_red is used (not well-conditioned); empty for the interpolated three-point isenthalps",NA
 derived_data/jt_coeffs,jt_coefficients_summary.csv,s_T/mK,"numeric, continuous",NA,root mean square of the temperature residuals of the fit (zero for an interpolation),mK
 derived_data/jt_coeffs,jt_coefficients_summary.csv,birge_ratio,"numeric, continuous",NA,"factor sqrt(chi2_red) applied to the Monte Carlo part JT_UNC_MC where chi2_pass is false; 1 otherwise",dimensionless
+derived_data/jt_coeffs,jt_coefficients_summary.csv,u_x1,"numeric, continuous",NA,"standard composition uncertainty of x1 used for JT_UNC_X: the larger of 0.0005 and the standard deviation of the point compositions (empty for pure fluids)",mol/mol
 derived_data/jt_coeffs,jt_coefficients_summary.csv,mean_rel_abs_err_perc,"numeric, continuous",NA,mean of rel_abs_err_perc over the used points (the AAD reported in the paper),%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,std_rel_abs_err_perc,"numeric, continuous",NA,standard deviation of rel_abs_err_perc over the used points,%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,rms_rel_abs_err_perc,"numeric, continuous",NA,root mean square of rel_abs_err_perc over the used points,%
@@ -153,6 +154,7 @@ capillary_design,D0.4_L10_x0.501_p13_T80.csv,T2/K,"numeric, continuous",NA,calcu
 derived_data/jt_coeffs,degree_validation.csv,isenthalp,categorical,stem of a p_T_pairs file,isenthalp of the synthetic test,NA
 derived_data/jt_coeffs,degree_validation.csv,rule,categorical,chi2; r2; ftest,"degree rule: chi2 = rule used by the pipeline (chebyshev_fit.py); r2 = earlier R^2 > 0.999 rule; ftest = nested F-test",NA
 derived_data/jt_coeffs,degree_validation.csv,n_points,"numeric, integer",NA,number of points of the isenthalp,count
+derived_data/jt_coeffs,degree_validation.csv,two_phase,boolean,True; False,"true if the EOS isenthalp between the lowest and highest measured pressure enters the two-phase region; such isenthalps are left out of u_m and degree_pooled.csv",NA
 derived_data/jt_coeffs,degree_validation.csv,degree_mode,"numeric, integer","[1, 6]",most frequent degree selected over the realisations,count
 derived_data/jt_coeffs,degree_validation.csv,degree_mode_frac,"numeric, continuous","[0, 1]",fraction of realisations that selected degree_mode,dimensionless
 derived_data/jt_coeffs,degree_validation.csv,degree_min,"numeric, integer","[1, 6]",lowest degree selected,count

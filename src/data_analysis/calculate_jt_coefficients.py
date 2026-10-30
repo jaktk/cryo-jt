@@ -2,15 +2,15 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from scipy import optimize, interpolate
+from scipy import interpolate
 from FluidProps import FluidProps
 from chebyshev_fit import chebyshev_fit_weights, fit_chebyshev, select_degree
+from measurement_uncertainty import K_TARGET, K_SOURCE, point_uncertainties
 from repo_root import REPO_ROOT
 
-# Coverage factors. The sensor, acquisition, and calibration specifications are
-# expanded at K_SOURCE; the analysis reports everything at K_TARGET (95 %).
-K_TARGET = 2.0    # coverage factor used throughout the analysis (approx. 95 % level of confidence)
-K_SOURCE = 2.0    # coverage factor of the sensor / calibration source specifications
+# Coverage factors (measurement_uncertainty.py): the sensor, acquisition, and
+# calibration specifications are expanded at K_SOURCE; the analysis reports
+# everything at K_TARGET (95 %).
 N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 
 # Mean relative heat-loss and kinetic-energy corrections (delta_Q, delta_k) in %
@@ -22,8 +22,8 @@ N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 CORRECTIONS_PERC = {
     'Nitrogen': (0.782, 0.027),
     'Argon': (1.002, 0.032),
-    'Helium': (26.547, 2.310),
-    'Helium-Neon': (5.298, 0.314),
+    'Helium': (26.552, 2.311),
+    'Helium-Neon': (5.338, 0.316),
     'Nitrogen-Helium-0.14': (1.194, 0.125),
     'Nitrogen-Helium-0.50': (4.115, 0.332),
 }
@@ -46,9 +46,12 @@ def systematic_rel_std_uncertainty(fluid, x_he=None):
 # estimate_method_uncertainty.py checks it against the N2 and Ar data.
 U_METHOD_REL = 0.0065
 
-# Expanded (k = 2) uncertainty of the gas analyser GA016, mole fraction. It enters
-# U for mixtures through the sensitivity of the EOS mu_JT to the composition at
-# the measured state (central difference with step X_STEP).
+# Expanded (k = 2) uncertainty of the gas analyser GA016, mole fraction. The
+# composition uncertainty of an isenthalp is the larger of U_X_K2 / K_SOURCE and
+# the standard deviation of its point compositions (the readings drift along
+# some isenthalps by more than the analyser uncertainty). It enters U for
+# mixtures through the sensitivity of the EOS mu_JT to the composition at the
+# measured state (central difference with step X_STEP).
 U_X_K2 = 1e-3
 X_STEP = 1e-3
 
@@ -143,59 +146,6 @@ class CernoxCal(object):
         return T, DT
 
 
-class TempUncertainty(object):
-    sensor = ''
-    def __init__(self, sensor):
-        assert sensor in ['X93303','X115143']
-        self.sensor = sensor
-        self.cernox = CernoxCal(sensor)
-
-    def _get_R_from_T(self, T):
-        dfx0 = self.cernox.dat.iloc[(self.cernox.dat[('Temperature','(Kelvin)')]-T).abs().argsort()[:1]]
-        res = optimize.minimize(fun = lambda x: np.abs(self.cernox.get_T_from_coefs(x) - T),
-                                x0 = dfx0[('Resistance','(Ohms)')])
-        return res.x[0]
-
-    def get_cernox_uncertainty(self, T):
-        """ Uncertainty in mK for temperature from 20 K to 300 K """
-        return -5e-05 * T**2 + 0.1281 * T + 6.4603
-
-    def get_cabtr_uncertainty(self, T):
-        """
-        Uncertainty in mK for temperature from 20 K to 300 K.
-        Fit to data from CABTR user manual.
-        """
-        return 2e-05 * T**2 + 0.0695 * T - 0.1001
-
-    def get_polynomial_fit_uncert(self, T):
-        """ uncertainty in mK from fitting Chebyshev polynomial """
-        d = {
-        'X93303': [{'Tmin': 1.4 , 'Tmax': 14.1 , 'N': 31, 'n': 9, 'DTrms': 0.93},
-                  {'Tmin': 14.1, 'Tmax': 80.0 , 'N': 31, 'n': 7, 'DTrms': 1.60},
-                  {'Tmin': 80.0, 'Tmax': 325.0, 'N': 32, 'n': 8, 'DTrms': 5.84}],
-        'X115143': [{'Tmin': 20.0, 'Tmax': 95.0, 'N': 28, 'n': 7, 'DTrms': 0.91},
-                   {'Tmin': 95.0, 'Tmax': 325.0, 'N': 29, 'n': 9, 'DTrms': 3.45}],
-        }
-
-        for i in d[self.sensor]:
-            if T >= i['Tmin'] and T < i['Tmax']:
-                sigm2 = i['N'] / (i['N'] - i['n']) * i['DTrms']**2
-                break
-            else:
-                sigm2 = 0
-        return K_SOURCE * sigm2**0.5
-
-    def __call__(self, T):
-        """ return combined temperature uncertainty in K (expanded, k = K_TARGET, 95 %) """
-        cabtr = self.get_cabtr_uncertainty(T)
-        cernox = self.get_cernox_uncertainty(T)
-        poly = self.get_polynomial_fit_uncert(T)
-        # The sensor, acquisition, and calibration-polynomial contributions above
-        # are independent and expanded at k = K_SOURCE; combine them in quadrature
-        # and rescale the combined chain to k = K_TARGET used across the analysis.
-        return np.sqrt(cabtr**2 + cernox**2 + poly**2) * 1e-3 * (K_TARGET / K_SOURCE)
-
-
 class JTCoefficientCalculator(object):
     def __init__(self):
         self.git_root = REPO_ROOT
@@ -260,15 +210,15 @@ class JTCoefficientCalculator(object):
         
         return jt_theoretical
     
-    def _composition_uncertainty(self, pressures, temperatures, fluid_props, composition):
-        """ Expanded (k = K_TARGET) uncertainty of mu_JT from the composition
-        uncertainty: |d mu_JT / d x1| * u(x1), with the sensitivity from the EOS
-        at the measured (p, T) and u(x1) = U_X_K2 / K_SOURCE. """
+    def _composition_uncertainty(self, pressures, temperatures, fluid_props, composition, u_x):
+        """ Expanded (k = K_TARGET) uncertainty of mu_JT from the standard
+        composition uncertainty u_x: |d mu_JT / d x1| * u_x, with the sensitivity
+        from the EOS at the measured (p, T). """
         mu_plus = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition + X_STEP)
         mu_minus = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition - X_STEP)
         fluid_props.set_composition_from_1st_fraction(composition)
         sensitivity = (mu_plus - mu_minus) / (2 * X_STEP)
-        return K_TARGET * np.abs(sensitivity) * U_X_K2 / K_SOURCE
+        return K_TARGET * np.abs(sensitivity) * u_x
 
     def _monte_carlo_uncertainty(self,
                                  pressures,
@@ -350,17 +300,11 @@ class JTCoefficientCalculator(object):
             pressures = df['PT102/MPa'].values # Downstream pressure
             temperatures = df['TT102/K'].values # Downstream temperature
             
-            # Per-point measurement uncertainty: max of the steady-state statistical
-            # uncertainty (from the averaging window) and the sensor-chain expanded
-            # uncertainty (k=K_TARGET) at the point's pressure / temperature. The
-            # pressure spec, 0.01 % of 13.7 MPa, is expanded at K_SOURCE.
-            p_uncertainties = np.array([max(p, 0.01/100 * 13.7 * K_TARGET / K_SOURCE) for p in df['PT102/MPa_EXP_UNC'].values])
-            comb_T_unc = TempUncertainty("X93303")
-            t_uncertainties = np.array([
-                max(t_stat, comb_T_unc(T))
-                for t_stat, T in zip(df['TT102/K_EXP_UNC'].values, temperatures)
-            ])
-            
+            # Per-point expanded (k = K_TARGET) measurement uncertainties: the
+            # statistical uncertainty of the window mean and the sensor chain in
+            # quadrature (measurement_uncertainty.py)
+            p_uncertainties, t_uncertainties = point_uncertainties(df)
+
             # Skip if insufficient data
             if len(pressures) < 3:
                 print(f"  Insufficient data points: {len(pressures)}")
@@ -371,6 +315,7 @@ class JTCoefficientCalculator(object):
             # Get composition, if mixture
             composition = None
             x1_per_point = None
+            u_x = np.nan
             if is_mixture:
                 if 'x1' in df.columns and not df['x1'].isna().all():
                     x1 = df['x1'].values.astype(float)
@@ -381,6 +326,9 @@ class JTCoefficientCalculator(object):
                     if not valid.any():
                         valid = np.ones_like(x1, dtype=bool)
                     composition = x1[valid].mean()
+                    u_x = U_X_K2 / K_SOURCE
+                    if valid.sum() > 1:
+                        u_x = max(u_x, np.std(x1[valid], ddof=1))
                     n_rejected = int((~valid).sum())
                     if n_rejected:
                         print(f"  Rejected {n_rejected} out-of-range GA reading(s); "
@@ -416,7 +364,7 @@ class JTCoefficientCalculator(object):
                 x_he = 1.0 - composition
             u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
             u_method = U_METHOD_REL * np.abs(jt_measured)
-            jt_uncertainty_x = (self._composition_uncertainty(pressures, temperatures, fluid_props, composition)
+            jt_uncertainty_x = (self._composition_uncertainty(pressures, temperatures, fluid_props, composition, u_x)
                                 if is_mixture else np.zeros_like(pressures))
             jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + (jt_uncertainty_x / K_TARGET)**2
                                                 + u_sys**2 + u_method**2)
@@ -453,6 +401,7 @@ class JTCoefficientCalculator(object):
                 'chi2_pass': fit.passed,
                 's_T/mK': 1e3 * fit.s_T,
                 'birge_ratio': birge,
+                'u_x1': u_x,
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
                 'p/MPa': pressures,
                 'T/K': temperatures,
@@ -529,6 +478,7 @@ class JTCoefficientCalculator(object):
                 'chi2_pass': result['chi2_pass'],
                 's_T/mK': result['s_T/mK'],
                 'birge_ratio': result['birge_ratio'],
+                'u_x1': result['u_x1'],
                 'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc'],
                 'std_rel_abs_err_perc': result['std_rel_abs_err_perc'],
                 'rms_rel_abs_err_perc': result['rms_rel_abs_err_perc'],

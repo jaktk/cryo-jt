@@ -13,6 +13,7 @@ Outputs (printed to stdout, and written to data/derived_data/jt_coeffs/paper_tab
 Run after calculate_jt_coefficients.py.
 """
 import os
+from decimal import Decimal, ROUND_HALF_UP
 import numpy as np
 import pandas as pd
 from repo_root import REPO_ROOT
@@ -69,7 +70,10 @@ def sig2(x, sig=2):
     if x == 0:
         return "0"
     d = sig - 1 - int(np.floor(np.log10(abs(x))))
-    return f"{round(x, d):.{max(d, 0)}f}"
+    # Round half up on the value cut to 10 significant digits (binary floats
+    # such as 0.685 come out as 0.68499..., which round() would take down)
+    q = Decimal(1).scaleb(-d)
+    return f"{Decimal(f'{x:.10g}').quantize(q, rounding=ROUND_HALF_UP):.{max(d, 0)}f}"
 
 
 def decimals(x, sig=2):

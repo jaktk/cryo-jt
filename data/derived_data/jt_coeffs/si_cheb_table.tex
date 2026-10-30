@@ -2,33 +2,33 @@
   \centering
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \caption{\label{tab:si_cheb}Chebyshev fit $T/{\rm K} = \sum_{k=0}^{n} a_k\, T_k(x)$ (eq~\ref{eq:si_cheb}) of each measured isenthalp in the scaled pressure $x = (2p - p_{\max} - p_{\min})/(p_{\max} - p_{\min})$: number of points $N_{\rm s}$, selected degree $n$, pressure range, reduced chi-square $\chi^2_\nu$ with $\nu = N_{\rm s} - n - 1$, root mean square $s_T$ of the temperature residuals, and coefficients $a_k$. $\chi^2_\nu$ values above the 0.95 quantile of $\chi^2_\nu/\nu$ are marked with an asterisk; for these isenthalps no degree up to the cap $n = N_{\rm s} - 2$ passes the test. The three-point isenthalps are interpolated ($n = 2$, $\nu = 0$). The Joule-Thomson coefficient is the analytic derivative (eq~\ref{eq:si_chebderiv}). Empty cells denote coefficients absent at the selected degree.}
+  \caption{\label{tab:si_cheb}Chebyshev fit $T/{\rm K} = \sum_{k=0}^{n} a_k\, C_k(x)$ (eq~\ref{eq:si_cheb}) of each measured isenthalp in the scaled pressure $x = (2p - p_{\max} - p_{\min})/(p_{\max} - p_{\min})$: number of points $N_{\rm s}$, selected degree $n$, pressure range, reduced chi-square $\chi^2_\nu$ with $\nu = N_{\rm s} - n - 1$, root mean square $s_T$ of the temperature residuals, and coefficients $a_k$. $\chi^2_\nu$ values above the 0.95 quantile of $\chi^2_\nu/\nu$ are marked with an asterisk; for these isenthalps no degree up to the cap $n = N_{\rm s} - 2$ passes the test. The three-point isenthalps are interpolated ($n = 2$, $\nu = 0$). The Joule-Thomson coefficient is the analytic derivative (eq~\ref{eq:si_chebderiv}). Empty cells denote coefficients absent at the selected degree.}
   \begin{tabular}{lccccccrrD{.}{.}{3.5}D{.}{.}{2.5}D{.}{.}{2.5}D{.}{.}{2.5}D{.}{.}{2.5}D{.}{.}{2.5}}
     \toprule
     fluid & $T_{\rm in}$/K & $p_{\rm in}$/MPa & $N_{\rm s}$ & $n$ & $p_{\min}$/MPa & $p_{\max}$/MPa & \multicolumn{1}{c}{$\chi^2_\nu$} & \multicolumn{1}{c}{$s_T$/mK} & \multicolumn{1}{c}{$a_0$} & \multicolumn{1}{c}{$a_1$} & \multicolumn{1}{c}{$a_2$} & \multicolumn{1}{c}{$a_3$} & \multicolumn{1}{c}{$a_4$} & \multicolumn{1}{c}{$a_5$} \\
     \midrule
-    nitrogen & 150 & 6 & 6 & 4 & 0.141 & 5.000 & 0.2 & 3 & 120.75423 & 27.69045 & -4.22189 & 0.56332 & -0.05179 &  \\
-    nitrogen & 160 & 12 & 8 & 5 & 3.004 & 11.026 & 1.0 & 8 & 145.01719 & 16.44318 & -3.50570 & 0.69905 & -0.13888 & 0.02673 \\
-    nitrogen & 160 & 5 & 4 & 2 & 1.007 & 3.996 & 13.4$^{*}$ & 29 & 143.90097 & 11.99253 & -0.57003 &  &  &  \\
-    nitrogen & 160 & 6 & 5 & 3 & 0.994 & 4.944 & 0.6 & 32 & 140.01437 & 16.32304 & -1.30221 & 0.10994 &  &  \\
-    nitrogen & 160 & 7 & 4 & 2 & 2.018 & 5.909 & 51.4$^{*}$ & 56 & 142.11768 & 14.64004 & -1.26395 &  &  &  \\
-    nitrogen & 160 & 9 & 7 & 5 & 2.001 & 7.990 & 28.4$^{*}$ & 38 & 140.22174 & 19.69242 & -3.19806 & 0.49636 & -0.10157 & 0.01580 \\
-    argon & 180 & 12 & 6 & 4 & 5.015 & 11.010 & 2.2 & 10 & 166.47752 & 12.69933 & -1.44214 & 0.17000 & -0.02457 &  \\
-    argon & 180 & 5 & 4 & 2 & 1.008 & 3.990 & 35.0$^{*}$ & 50 & 160.19440 & 14.79417 & -0.75656 &  &  &  \\
-    helium-4 & 141 & 10 & 4 & 2 & 3.179 & 9.022 & 9.8$^{*}$ & 23 & 143.21715 & -1.45010 & 0.05571 &  &  &  \\
-    helium-4 & 65 & 5 & 4 & 2 & 1.004 & 4.043 & 24.5$^{*}$ & 20 & 66.65852 & -0.33159 & 0.05200 &  &  &  \\
-    helium-4 & 65 & 7 & 4 & 2 & 2.018 & 5.005 & 99.2$^{*}$ & 40 & 67.40690 & -0.25448 & -0.06396 &  &  &  \\
-    ${\rm ^4He-Ne}$ & 65 & 10 & 5 & 3 & 2.037 & 9.075 & 7.6$^{*}$ & 19 & 61.03613 & 4.78212 & -0.43481 & 0.02514 &  &  \\
-    ${\rm ^4He-Ne}$ & 65 & 5 & 5 & 3 & 0.147 & 3.954 & 0.7 & 6 & 60.50036 & 4.68823 & -0.19645 & 0.04262 &  &  \\
-    ${\rm ^4He-Ne}$ & 65 & 7 & 7 & 3 & 0.176 & 6.011 & 1.8 & 17 & 58.88947 & 6.73641 & -0.60636 & 0.10892 &  &  \\
-    ${\rm ^4He-Ne}$ & 65 & 8 & 4 & 2 & 2.977 & 6.049 & 1.3 & 6 & 63.16114 & 1.42564 & -0.05717 &  &  &  \\
-    ${\rm ^4He-Ne}$ & 66 & 10 & 4 & 2 & 2.196 & 7.999 & 37.3$^{*}$ & 31 & 63.14222 & 2.50397 & -0.17195 &  &  &  \\
-    ${\rm ^4He-Ne}$ & 80 & 10 & 4 & 2 & 4.005 & 6.527 & 71.7$^{*}$ & 43 & 78.69669 & 0.70851 & 0.03063 &  &  &  \\
+    nitrogen & 150 & 6 & 6 & 4 & 0.141 & 5.000 & 0.2 & 3 & 120.75425 & 27.69044 & -4.22190 & 0.56333 & -0.05180 &  \\
+    nitrogen & 160 & 12 & 8 & 5 & 3.004 & 11.026 & 1.0 & 8 & 145.01720 & 16.44314 & -3.50572 & 0.69902 & -0.13888 & 0.02682 \\
+    nitrogen & 160 & 5 & 4 & 2 & 1.007 & 3.996 & 13.7$^{*}$ & 29 & 143.90099 & 11.99253 & -0.57027 &  &  &  \\
+    nitrogen & 160 & 6 & 5 & 3 & 0.994 & 4.944 & 0.3 & 34 & 140.01363 & 16.32423 & -1.30170 & 0.10874 &  &  \\
+    nitrogen & 160 & 7 & 4 & 2 & 2.018 & 5.909 & 52.2$^{*}$ & 56 & 142.11772 & 14.64000 & -1.26433 &  &  &  \\
+    nitrogen & 160 & 9 & 7 & 4 & 2.001 & 7.990 & 13.0$^{*}$ & 51 & 140.23206 & 19.71436 & -3.19482 & 0.48972 & -0.11479 &  \\
+    argon & 180 & 12 & 6 & 4 & 5.015 & 11.010 & 2.1 & 10 & 166.47756 & 12.69933 & -1.44216 & 0.17002 & -0.02461 &  \\
+    argon & 180 & 5 & 4 & 2 & 1.008 & 3.990 & 34.8$^{*}$ & 50 & 160.19450 & 14.79418 & -0.75712 &  &  &  \\
+    helium-4 & 141 & 10 & 4 & 2 & 3.179 & 9.022 & 10.1$^{*}$ & 23 & 143.21714 & -1.45010 & 0.05574 &  &  &  \\
+    helium-4 & 65 & 5 & 4 & 2 & 1.004 & 4.043 & 28.0$^{*}$ & 20 & 66.65852 & -0.33158 & 0.05200 &  &  &  \\
+    helium-4 & 65 & 7 & 4 & 2 & 2.018 & 5.005 & 113.0$^{*}$ & 40 & 67.40704 & -0.25441 & -0.06411 &  &  &  \\
+    ${\rm ^4He-Ne}$ & 65 & 10 & 5 & 3 & 2.037 & 9.075 & 4.8$^{*}$ & 20 & 61.03659 & 4.78397 & -0.43416 & 0.02393 &  &  \\
+    ${\rm ^4He-Ne}$ & 65 & 5 & 5 & 3 & 0.147 & 3.954 & 0.4 & 6 & 60.50051 & 4.68854 & -0.19637 & 0.04234 &  &  \\
+    ${\rm ^4He-Ne}$ & 65 & 7 & 7 & 3 & 0.176 & 6.011 & 1.0 & 18 & 58.88994 & 6.73717 & -0.60575 & 0.10877 &  &  \\
+    ${\rm ^4He-Ne}$ & 65 & 8 & 4 & 2 & 2.977 & 6.049 & 1.0 & 6 & 63.16106 & 1.42580 & -0.05753 &  &  &  \\
+    ${\rm ^4He-Ne}$ & 66 & 10 & 4 & 2 & 2.196 & 7.999 & 29.9$^{*}$ & 33 & 63.13828 & 2.50518 & -0.16658 &  &  &  \\
+    ${\rm ^4He-Ne}$ & 80 & 10 & 4 & 1 & 4.005 & 6.527 & 42.1$^{*}$ & 62 & 78.69126 & 0.68709 &  &  &  &  \\
     ${\rm ^4He-Ne}$ & 80 & 7 & 3 & 2 & 3.005 & 5.018 & -- & 0 & 79.26183 & 0.62391 & -0.00678 &  &  &  \\
-    ${\rm ^4He-Ne}$ & 80 & 8 & 4 & 2 & 1.992 & 6.974 & 37.2$^{*}$ & 30 & 78.40125 & 2.40594 & -0.08492 &  &  &  \\
-    ${\rm ^4He-N_2}$ & 140 & 8 & 6 & 3 & 1.003 & 6.951 & 2.0 & 11 & 133.34699 & 6.50890 & -0.39597 & 0.06305 &  &  \\
+    ${\rm ^4He-Ne}$ & 80 & 8 & 4 & 2 & 1.992 & 6.974 & 38.9$^{*}$ & 31 & 78.39776 & 2.40704 & -0.08098 &  &  &  \\
+    ${\rm ^4He-N_2}$ & 140 & 8 & 6 & 3 & 1.003 & 6.951 & 2.0 & 11 & 133.34697 & 6.50892 & -0.39595 & 0.06297 &  &  \\
     ${\rm ^4He-N_2}$ & 160 & 5 & 3 & 2 & 1.001 & 3.981 & -- & 0 & 148.88365 & 8.35673 & -0.30456 &  &  &  \\
-    ${\rm ^4He-N_2}$ & 160 & 8 & 5 & 3 & 0.994 & 5.996 & 1.4 & 8 & 140.05277 & 14.51509 & -1.29506 & 0.09860 &  &  \\
+    ${\rm ^4He-N_2}$ & 160 & 8 & 5 & 3 & 0.994 & 5.996 & 1.5 & 8 & 140.05279 & 14.51512 & -1.29508 & 0.09850 &  &  \\
     \bottomrule
   \end{tabular}
 \end{sidewaystable}

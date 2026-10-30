@@ -1,5 +1,5 @@
 {
-  "description": "Principal measurement chain for the Joule-Thomson experiment. The PandID tag, sensor model, and calibration provenance for each sensor. Cernox calibration files are in data/cernox_calibration_data/SERIAL/. Polynomial-fit residuals quoted as DTrms come from the Lake Shore calibration certificates and are reproduced in calculate_jt_coefficients.CernoxCal.get_polynomial_fit_uncert.",
+  "description": "Principal measurement chain for the Joule-Thomson experiment. The PandID tag, sensor model, and calibration provenance for each sensor. Cernox calibration files are in data/cernox_calibration_data/SERIAL/. Polynomial-fit residuals quoted as DTrms come from the Lake Shore calibration certificates and are reproduced in src/data_analysis/measurement_uncertainty.py.",
   "sensors": [
     {
       "tag": "TT101",
@@ -8,7 +8,7 @@
       "model": "CX-1080-CU-HT-20L",
       "type": "Cernox resistive temperature sensor",
       "calibration_range_K": [20, 325],
-      "sensor_only_expanded_uncertainty_k2_mK": "approx 13 mK at 50 K rising to 28 mK at 180 K (Cernox sensor alone)",
+      "sensor_only_expanded_uncertainty_k2_mK": "calibration report, CX-1080 column: 11 mK at 50 K, 14 mK at 100 K, 36 mK at 300 K (TT101 is not fitted)",
       "serial_number": "X115143",
       "calibration_files_dir": "data/cernox_calibration_data/X115143/",
       "calibration_polynomial_fit_uncertainty_mK_k2": {
@@ -23,9 +23,9 @@
       "model": "CX-1050-SD-HT-1.4L",
       "type": "Cernox resistive temperature sensor",
       "calibration_range_K": [1.4, 325],
-      "sensor_only_expanded_uncertainty_k2_mK": "approx 13 mK at 50 K rising to 28 mK at 180 K (Cernox sensor alone)",
+      "sensor_only_expanded_uncertainty_k2_mK": "calibration report, CX-1050 column: 12 mK at 50 K, 17 mK at 100 K, 46 mK at 300 K, interpolated linearly in src/data_analysis/measurement_uncertainty.py",
       "serial_number": "X93303",
-      "serial_number_note": "Inferred from the calibration fit ranges: X93303 is the only sensor whose lowest-temperature fit covers 1.4 to 14.1 K, matching the CX-1050-SD-HT-1.4L spec.",
+      "serial_number_note": "X93303 (CX-1050-SD-HT-1.4L, calibrated 1.4 to 325 K) is the outlet thermometer TT102.",
       "calibration_files_dir": "data/cernox_calibration_data/X93303/",
       "calibration_polynomial_fit_uncertainty_mK_k2": {
         "1.4_to_14.1_K": {"N": 31, "n": 9, "DTrms_mK": 0.93, "u_k2_mK": "2*sqrt(N/(N-n))*DTrms = 2.21"},

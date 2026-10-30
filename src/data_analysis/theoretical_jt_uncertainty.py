@@ -7,40 +7,17 @@ from numpy.polynomial.chebyshev import Chebyshev
 STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 
-# Coverage factors: source specifications are expanded at K_SOURCE, the analysis
-# reports everything at K_TARGET (approx. 95 % level of confidence).
-K_TARGET = 2.0
-K_SOURCE = 2.0
+from measurement_uncertainty import K_TARGET, K_SOURCE, U_P, temperature_chain_uncertainty
+
 MC_SEED = 20210101  # seed for the synthetic-isenthalp Monte Carlo (reproducible figure)
 
-# Pressure sensor: Mensor CPT 6100, accuracy 0.01 % FS (p_max = 13.7 MPa), stated
-# by the manufacturer as an expanded uncertainty with k = 2 (K_SOURCE).
-U_P = 0.0001 * 13.7 / K_SOURCE  # MPa, standard (k = 1) => 0.685e-3 MPa
 
 def combined_temperature_uncertainty(T):
     """
-    Combined temperature measurement uncertainty in K.
-    Sum of Cernox sensor, CABTR acquisition module, and calibration-polynomial
-    fit, using the calibration of the outlet thermometer TT102 (sensor X93303),
-    which sets the fitted p-T pairs and so matches the data-reduction pipeline.
-    Returns uncertainty for coverage factor k=K_TARGET (approx. 95 %).
-
-    Temperature in K (valid 20-325 K)
+    Combined sensor-chain temperature uncertainty of the outlet thermometer
+    TT102 (X93303) in K, expanded with K_TARGET (measurement_uncertainty.py).
     """
-    T = np.asarray(T, dtype=float)
-    u_cernox = np.maximum(-5e-05 * T**2 + 0.1281 * T + 6.4603, 0.5) # Cernox sensor uncertainty [mK]
-    u_cabtr = np.maximum(2e-05 * T**2 + 0.0695 * T - 0.1001, 0.5) # CABTR acquisition module uncertainty [mK]
-
-    # Calibration-polynomial fit uncertainty [mK], sensor X93303, piecewise over
-    # the two calibration bands: 14.1-80 K (N=31, n=7, DTrms=1.60 mK) and
-    # 80-325 K (N=32, n=8, DTrms=5.84 mK); expanded to k=2.
-    def _poly(t):
-        N, n, DTrms = (31, 7, 1.60) if t < 80.0 else (32, 8, 5.84)
-        return K_SOURCE * (N / (N - n) * DTrms ** 2) ** 0.5
-    u_poly = np.vectorize(_poly)(T)
-    # The three contributions above are independent and expanded at k = K_SOURCE;
-    # combine them in quadrature and rescale the chain to k = K_TARGET.
-    return np.sqrt(u_cernox**2 + u_cabtr**2 + u_poly**2) * 1e-3 * (K_TARGET / K_SOURCE)  # combined [K]
+    return temperature_chain_uncertainty(T)
 
 
 def conventional_relative_uncertainty(mu_jt, delta_T, delta_p, T_in, T_out, k=K_TARGET):

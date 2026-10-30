@@ -10,13 +10,12 @@ from matplotlib.lines import Line2D
 sys.path.insert(0, os.path.dirname(__file__))
 from theoretical_jt_uncertainty import (
     conventional_relative_uncertainty,
-    combined_temperature_uncertainty,
     _conv_uncert_for_slope,
-    U_P,
 )
 
 STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'derived_data', 'jt_coeffs')
+PT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'derived_data', 'p_T_pairs')
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 
 FLUID_STYLE = {
@@ -48,6 +47,10 @@ def load_all_measurements():
     for f in files:
         fluid, T_nom, p_nom = parse_filename(f)
         df = pd.read_csv(f)
+        # inlet state of each point, from the p-T pairs (same row order)
+        pt = pd.read_csv(os.path.join(PT_DIR, os.path.basename(f).replace('_JT.csv', '.csv')))
+        df['p_in/MPa'] = pt['PT101/MPa'].values
+        df['T_in/K'] = pt['TT101/K'].values
         # keep only the interior points used for the mu_JT evaluation
         # (the isenthalp extremities are excluded from the analysis)
         if 'used' in df.columns:
@@ -67,28 +70,21 @@ def load_all_measurements():
 
 def compute_theoretical_uncertainty_per_point(data):
     """
-    Compute theoretical (conventional) relative uncertainty at each
-    measured point using the actual pressure drop and temperatures.
+    Conventional (sensor-level) relative uncertainty of each measured point,
+    from its own pressure drop p_in - p_out and its inlet and outlet
+    temperatures.
     """
     theory_pct = []
     for _, row in data.iterrows():
-        # Use the actual measured T and p for that point
-        T_out = row['T/K']
-        p_out = row['p/MPa']
-        mu_meas = row['JT_meas/(K/MPa)']
-        abs_mu = abs(mu_meas)
-        T_unc = row['T_UNC/K']
-        p_unc = row['p_UNC/MPa']
-        U_T = combined_temperature_uncertainty(T_out) # temperature measuremnets uncertainty
-
-        if abs_mu > 1e-6:
-            # Use equipment uncertainties with a representative dp
-            # matching the theoretical analysis (p_in=10, p_out=1.5)
-            dp_ref = 8.5  # same as theoretical analysis
-            u_conv = _conv_uncert_for_slope(abs_mu, dp_ref, T_out) * 100
+        abs_mu = abs(row['JT_meas/(K/MPa)'])
+        T_in, T_out = row['T_in/K'], row['T/K']
+        dp = row['p_in/MPa'] - row['p/MPa']
+        if abs_mu > 1e-6 and dp > 0 and T_in != T_out:
+            u_conv = conventional_relative_uncertainty(
+                mu_jt=abs_mu, delta_T=abs(T_in - T_out), delta_p=dp,
+                T_in=T_in, T_out=T_out) * 100
         else:
             u_conv = np.nan
-
         theory_pct.append(u_conv)
 
     data['theory_unc_pct'] = theory_pct
@@ -147,7 +143,7 @@ def make_figure(data):
     ax.set_ylabel(r'$|\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}| / \mu_{\rm JT}^{\rm EOS}$, $U_{\rm r}(\mu_{\rm JT})$')
     ax.set_yscale('log')
     ax.set_xlim(0, 20)
-    ax.set_ylim(1e-4, 1)
+    ax.set_ylim(1e-5, 1)
 
     # Fluid regions
     ax.axvspan(0, 0.5, alpha=0.08, color='C0')

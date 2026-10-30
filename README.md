@@ -129,25 +129,25 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 | Date       | Fluid            | Average purity | Average molar composition |
 | ---------- | ---------------- | -------------- | ------------------------- |
 | 2020-11-27 | ${\rm N_2}$      | 0.9987         | -                         |
-| 2020-12-09 | ${\rm N_2 - He}$ | -              | 0.8497/0.1503             |
-| 2020-12-10 | ${\rm N_2 - He}$ | -              | 0.8909/0.1091             |
-| 2020-12-11 | ${\rm N_2 - He}$ | -              | 0.5641/0.4359             |
+| 2020-12-09 | ${\rm N_2 - He}$ | -              | 0.8546/0.1454             |
+| 2020-12-10 | ${\rm N_2 - He}$ | -              | 0.8551/0.1449             |
+| 2020-12-11 | ${\rm N_2 - He}$ | -              | 0.4972/0.5028             |
 | 2020-12-14 | ${\rm N_2}$      | -$^{a}$        | -                         |
 | 2020-12-15 | ${\rm Ar}$       | 0.9990         | -                         |
 | 2020-12-16 | ${\rm N_2}$      | 0.9977         | -                         |
 | 2020-12-17 | ${\rm N_2}$      | 0.9986         | -                         |
 | 2021-01-12 | ${\rm He}$       | 0.9967         | -                         |
 | 2021-01-13 | ${\rm He}$       | 0.9904         | -                         |
-| 2021-01-14 | ${\rm He - Ne}$  | -              | 0.7148/0.2852             |
-| 2021-01-15 | ${\rm He - Ne}$  | -              | 0.7385/0.2615             |
+| 2021-01-14 | ${\rm He - Ne}$  | -              | 0.4640/0.5360             |
+| 2021-01-15 | ${\rm He - Ne}$  | -              | 0.4668/0.5332             |
 | 2021-01-25 | ${\rm N_2}$      | 0.9977         | -                         |
 | 2021-01-26 | ${\rm He}$       | 0.9951         | -                         |
-| 2021-01-27 | ${\rm He - Ne}$  | -              | 0.3464/0.6536             |
-| 2021-01-28 | ${\rm He - Ne}$  | -              | 0.4084/0.5916             |
-| 2021-03-03 | ${\rm He - Ne}$  | -              | 0.2219/0.7781             |
+| 2021-01-27 | ${\rm He - Ne}$  | -              | 0.3181/0.6819             |
+| 2021-01-28 | ${\rm He - Ne}$  | -              | 0.4171/0.5829             |
+| 2021-03-03 | ${\rm He - Ne}$  | -              | 0.2136/0.7864             |
 | 2021-03-04 | ${\rm N_2}$      | 0.9987         | -                         |
 
-$^{a}$ The gas-analyser output was frozen at one value all day, so no valid purity frames exist. The purities are day means over the valid analyser frames ([`src/data_analysis/analyze_purity.py`](src/data_analysis/analyze_purity.py)).
+$^{a}$ The gas-analyser output was frozen at one value all day, so no valid purity frames exist. Mixture compositions are the mean analyser readings (x1/x2 of the raw data, rejecting readings with |x1 + x2 - 1| ≥ 0.02) over the steady-state windows of the analysed isenthalps of the day; 2021-01-28 has no analysed isenthalp and gives the day mean of the valid readings. The purities are day means over the valid analyser frames ([`src/data_analysis/analyze_purity.py`](src/data_analysis/analyze_purity.py)).
 
 ## Derived data
 
