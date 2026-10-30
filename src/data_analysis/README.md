@@ -268,7 +268,7 @@ TT008/K,TT008/K_STD,TT008/K_EXP_UNC,TT101/K,TT101/K_STD,TT101/K_EXP_UNC,
 RT101/ohm,RT101/ohm_STD,RT101/ohm_EXP_UNC,TT102/K,TT102/K_STD,TT102/K_EXP_UNC,
 RT102/ohm,RT102/ohm_STD,RT102/ohm_EXP_UNC,Q008/W,Q008/W_STD,Q008/W_EXP_UNC,
 x1,x1_STD,x1_EXP_UNC,x2,x2_STD,x2_EXP_UNC,impurity,impurity_STD,impurity_EXP_UNC,
-err(x),err(x)_STD,err(x)_EXP_UNC
+err(x),err(x)_STD,err(x)_EXP_UNC,PT102/MPa_DRIFT,TT102/K_DRIFT
 ```
 
 The `Q008/W` columns are absent where the raw data have no heater power.
@@ -277,6 +277,7 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 - `PT102/MPa`, `TT102/K`: downstream pressure and temperature (measurement point)
 - `PT101/MPa`, `TT101/K`: upstream pressure and temperature (inlet condition)
 - `*_EXP_UNC`: expanded (k = 2) uncertainty of the window mean
+- `PT102/MPa_DRIFT`, `TT102/K_DRIFT`: drift (per second) over the 60 s before the window
 - `x1`, `x2`: mixture composition (binary mixtures)
 
 ### Output: `jt_coefficients_summary.csv`

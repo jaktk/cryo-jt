@@ -1,7 +1,7 @@
 directory,filename,description,license
 data,all_measurements.csv,one raw sample per steady-state measurement point (106 points over 22 isenthalps numbered in column no) compiled as an overview; not read by the pipeline,CC-BY-4.0
 data/raw_data,YYYY-MM-DD.csv,raw acquisition time series for one campaign day (sample interval 1 s),CC-BY-4.0
-data/raw_data,extraction_windows.json,start/end time stamps used by get_pT_pairs.py to slice each steady-state measurement window out of the raw time series, and the windows of the hysteresis check,CC-BY-4.0
+data/raw_data,extraction_windows.json,"start/end time stamps used by get_pT_pairs.py to slice each steady-state measurement window out of the raw time series, and the windows of the hysteresis check",CC-BY-4.0
 data/derived_data/p_T_pairs,Fluid_TK_PMPa.csv,one isenthalp: the steady-state means of every raw variable over its measurement windows with standard deviation and expanded (k=2) uncertainty of the mean,CC-BY-4.0
 data/derived_data/p_T_pairs,index.json,"manifest of the per-isenthalp CSVs (file name, fluid, mean inlet temperature) read by calculate_jt_coefficients.py",CC-BY-4.0
 data/derived_data/jt_coeffs,Fluid_TK_PMPa_JT.csv,"one isenthalp: derived Joule-Thomson coefficient with its Monte Carlo and combined expanded (k=2) uncertainties, the EOS reference, and the used flag at each point",CC-BY-4.0

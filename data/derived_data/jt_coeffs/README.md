@@ -54,7 +54,9 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
 
 - `p_UNC/MPa` and `T_UNC/K` combine in quadrature the statistical
   uncertainty of the steady-state window (with a Student factor for the five
-  samples) and the sensor-chain uncertainty (`measurement_uncertainty.py`).
+  samples), the sensor-chain uncertainty, and, for points that had not settled, a
+  drift term (the drift over 60 s before the window × 60 s / √3)
+  (`measurement_uncertainty.py`).
 - `JT_UNC_MC/(K/MPa)` is the Monte Carlo part: each point is perturbed with a
   Gaussian error at the standard (k = 1) measurement uncertainty, the data are
   refitted with the same weighted Chebyshev polynomial (same degree), and the spread of the
@@ -82,4 +84,5 @@ paper tables.
 
 The `*_MC_uncertainty.csv` files are a separate, idealised bound: the measured
 pressures are placed on the EOS isenthalp through the mean inlet condition and
-perturbed within the sensor floor only (2000 realisations, k = 2).
+perturbed within the sensor floor only (and, for mixtures, the composition
+uncertainty; 2000 realisations, k = 2).

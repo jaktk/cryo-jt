@@ -44,7 +44,7 @@ the correction estimates, and the generated LaTeX tables. See
   | `JT_meas/(K/MPa)` | K MPa⁻¹ | measured μ_JT (derivative of the fit) |
   | `JT_UNC_MC/(K/MPa)` | K MPa⁻¹ | Monte Carlo part of the expanded (k = 2) uncertainty, with the Birge ratio where the fit fails the χ² test |
   | `JT_UNC_X/(K/MPa)` | K MPa⁻¹ | composition part of the expanded (k = 2) uncertainty (mixtures) |
-  | `JT_UNC/(K/MPa)` | K MPa⁻¹ | expanded (k = 2) uncertainty of μ_JT: Monte Carlo, composition, bias, and method terms combined |
+  | `JT_UNC/(K/MPa)` | K MPa⁻¹ | expanded (k = 2) uncertainty of μ_JT: Monte Carlo, composition, bias, Cernox-stability, and method terms combined |
   | `JT_eos/(K/MPa)` | K MPa⁻¹ | μ_JT from the reference EOS at the same point |
   | `mean_unc_perc` | % | mean of 100 `JT_UNC`/\|`JT_meas`\| over the used points of the isenthalp |
   | `rel_abs_err_perc` | % | relative absolute deviation from the EOS |
@@ -53,7 +53,7 @@ the correction estimates, and the generated LaTeX tables. See
 - `jt_coefficients_summary.csv`: one row per isenthalp: fluid, mixture flag,
   composition (`x1`, `x2`), mean inlet temperature, number of points,
   polynomial degree, fit statistics (`chi2_red`, `chi2_crit`, `chi2_pass`,
-  `s_T/mK`, `birge_ratio`), the composition uncertainty `u_x1`, the mean/std/rms relative absolute
+  `s_T/mK`, `birge_ratio`), the flags `steady` and `well_conditioned`, the composition uncertainty `u_x1`, the mean/std/rms relative absolute
   deviation from the EOS, and `mean_unc_perc`.
 - `jt_coefficients_detailed.json`: the same results in nested form, including
   per-point arrays, for programmatic use.

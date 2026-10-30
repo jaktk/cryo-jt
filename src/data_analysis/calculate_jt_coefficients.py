@@ -321,7 +321,7 @@ class JTCoefficientCalculator(object):
                     x1 = df['x1'].values.astype(float)
                     x2 = (df['x2'].values.astype(float)
                           if 'x2' in df.columns else 1.0 - x1)
-                    # Reject out-of-range gas-analyzer (GA244) readings
+                    # Reject out-of-range gas-analyzer (BGA244, tag GA016) readings
                     valid = np.abs(x1 + x2 - 1.0) < 0.02
                     if not valid.any():
                         valid = np.ones_like(x1, dtype=bool)

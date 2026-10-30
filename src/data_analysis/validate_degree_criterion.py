@@ -20,7 +20,7 @@ of u_m and of the pooled results):
 U_MC(n) is the k = 2 Monte Carlo uncertainty at fixed degree n, computed as in
 the pipeline and, under the chi2 rule, scaled by the Birge ratio sqrt(chi2_red)
 of the realisation where no degree passes the test, as in the pipeline. The method uncertainty u_m is the smallest relative standard
-uncertainty for which U = 2 sqrt(u_MC^2 + u_m^2) covers the exact slope at
+uncertainty for which U = 2 sqrt(B^2 u_MC^2 + u_m^2) (B the Birge ratio) covers the exact slope at
 COVERAGE_GOAL of all interior points under the chi2 rule. It covers the fit and
 differentiation error that the fixed-degree Monte Carlo misses. The measured
 deviations from the EOS are not used, so the N2 and Ar data remain an

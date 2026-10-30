@@ -9,7 +9,9 @@ Each row is the mean over one steady-state window of
 [`extraction_windows.json`](../../raw_data/extraction_windows.json) (5 samples
 at 1 s). For every raw column `X` the files also hold its standard deviation
 `X_STD` and the expanded uncertainty of the mean `X_EXP_UNC` = 2 `X_STD`/√N
-(k = 2, about 95 % level of confidence).
+(k = 2, about 95 % level of confidence). For the outlet pressure and
+temperature, `PT102/MPa_DRIFT` and `TT102/K_DRIFT` give the drift (slope per
+second of a straight line fitted over the 60 s before the window).
 
 File names follow `<fluid>_<T_in>K_<p_in>MPa.csv`, where `T_in` and `p_in` are
 the mean inlet temperature and pressure of the isenthalp, rounded to K and
