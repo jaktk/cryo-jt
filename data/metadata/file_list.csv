@@ -32,3 +32,9 @@ data/cernox_calibration_data/SERIAL,"SERIAL.234, SERIAL.330, SERIAL.340, SERIAL.
 data/cernox_calibration_data/SERIAL,SERIAL.curve,Lake Shore-format curve file for a 218 / 224 / 240 temperature monitor (X115143 only),CC-BY-4.0
 data/cernox_calibration_data/SERIAL,SERIAL.pdf,scanned Lake Shore calibration certificate of the sensor,CC-BY-4.0
 REFPROP/FLUIDS,HMX.BNC,"mixture models (reducing parameters and departure functions) for He-Ne, He-Ar, Ne-Ar, and He-N2, to be merged into the local REFPROP installation",see REFPROP/README.md
+data/metadata,README.md,description of the metadata files,CC-BY-4.0
+data/metadata,campaigns.csv,"measurement campaign log: date, fluid or mixture, mean composition or in-situ purity, raw data file",CC-BY-4.0
+data/metadata,codebook.csv,"column dictionary of every data file: variable, type, values, description, unit",CC-BY-4.0
+data/metadata,daq.json,data-acquisition configuration (sampling and instruments),CC-BY-4.0
+data/metadata,file_list.csv,this list of the data files with their description and license,CC-BY-4.0
+data/metadata,sensors.json,"P&ID tag, sensor model, serial number, and calibration provenance of the principal measurement chain",CC-BY-4.0

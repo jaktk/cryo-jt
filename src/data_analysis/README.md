@@ -259,7 +259,7 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 ### Output: `jt_coefficients_summary.csv`
 
 `filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
-`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `birge_ratio`,
+`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `birge_ratio`, `u_x1`,
 `mean_rel_abs_err_perc`,
 `std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
 deviation statistics and `mean_unc_perc` are taken over the used points.
@@ -297,8 +297,8 @@ contribution).
 **Pressure range:** 0.1 MPa to 12 MPa
 
 **Measurement uncertainty** (k = 2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
-- **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
-- **Temperature (full chain, sensor + CABTR + calibration polynomial, combined in quadrature):** ±16 mK at 65 K to ±34 mK at 180 K
+- **Temperature (Cernox sensor only, calibration report of X93303):** ±12 mK at 50 K to ±29 mK at 180 K
+- **Temperature (full chain, sensor + CABTR + calibration polynomial, combined in quadrature):** ±15 mK at 65 K to ±34 mK at 180 K
 - **Pressure:** ±0.01 % of full scale (13.7 MPa), k = 2
 - **Composition:** ±0.1 mol-% (binary mixtures)
 

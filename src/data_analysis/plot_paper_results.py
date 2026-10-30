@@ -20,7 +20,7 @@ PURE_FLUID_COLS = [
 PURE_YLIMS = {
     'Nitrogen': {'mu': (0.0, 30.0),  'dev': (-5.0, 5.0)},
     'Argon':    {'mu': (3.0, 12.0),  'dev': (-5.0, 5.0)},
-    'Helium':   {'mu': (-0.9, 0),  'dev': (-80.0, 80.0)},
+    'Helium':   {'mu': (-1.0, 0),  'dev': (-80.0, 80.0)},
 }
 
 PURE_LEGEND_LOC = {'Nitrogen': 'upper right', 'Argon': 'center right',

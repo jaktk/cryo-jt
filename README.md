@@ -11,7 +11,7 @@
 
 ## Introduction
 
-This repository contains the raw data, processed data, and code used to obtain and analyse measurements of the Joule-Thomson coefficient in pure gases and mixtures at temperatures between 65 K and 180 K. It is the supporting dataset for the article submitted to the *Journal of Chemical & Engineering Data*.
+This repository contains the raw data, processed data, and code used to obtain and analyse measurements of the Joule-Thomson coefficient in pure gases and mixtures at inlet temperatures between 65 K and 180 K. It is the supporting dataset for the article submitted to the *Journal of Chemical & Engineering Data*.
 
 The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup, and the mixtures then provide the new results. The degree of the Chebyshev fit of each isenthalp is set by a chi-square test against the measurement uncertainty. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the uncorrected heat-loss and kinetic-energy biases, and a method uncertainty for the fit error from a synthetic test on equation-of-state isenthalps; the nitrogen and argon data are an independent check of it. The impact of the composition uncertainty on the Joule-Thomson coefficient is quantified for mixtures using Monte Carlo simulations.
 

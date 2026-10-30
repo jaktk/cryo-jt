@@ -140,7 +140,7 @@ def make_figure(data):
 
     # Formatting
     ax.set_xlabel(r'$|\mu_{\rm JT}^{\rm EOS}|$/(K$\cdot$MPa$^{-1}$)')
-    ax.set_ylabel(r'$|\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}| / \mu_{\rm JT}^{\rm EOS}$, $U_{\rm r}(\mu_{\rm JT})$')
+    ax.set_ylabel(r'$|\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}| / |\mu_{\rm JT}^{\rm ref}|$, $U_{\rm r}(\mu_{\rm JT})$')
     ax.set_yscale('log')
     ax.set_xlim(0, 20)
     ax.set_ylim(1e-5, 1)
@@ -148,7 +148,7 @@ def make_figure(data):
     # Fluid regions
     ax.axvspan(0, 0.5, alpha=0.08, color='C0')
     ax.axvspan(4, 8, alpha=0.06, color='C3')
-    ax.text(0.6, 0.55, 'He', color='C0', ha='left', weight='bold')
+    ax.text(0.6, 2e-5, 'He', color='C0', ha='left', weight='bold')
     ax.text(6.0, 0.55, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
 
     # Reference lines

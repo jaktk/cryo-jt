@@ -127,8 +127,9 @@ derived_data/jt_coeffs,corrections_per_point.csv,p/MPa,"numeric, continuous",NA,
 derived_data/jt_coeffs,corrections_per_point.csv,m/(g/s),"numeric, continuous",NA,mass flow rate interpolated at p from the capillary_mass_flow calculation of the isenthalp,g s^-1
 derived_data/jt_coeffs,corrections_per_point.csv,JT_meas/(K/MPa),"numeric, continuous",NA,measured Joule-Thomson coefficient at the point (from the _JT.csv),K MPa^-1
 derived_data/jt_coeffs,corrections_per_point.csv,JT_eos/(K/MPa),"numeric, continuous",NA,reference Joule-Thomson coefficient from the EOS at the point (from the _JT.csv),K MPa^-1
-derived_data/jt_coeffs,corrections_per_point.csv,dQ_per_W/(K/MPa/W),"numeric, continuous",NA,heat-loss correction per watt of heat exchange: -1 / (m c_p dp),K MPa^-1 W^-1
-derived_data/jt_coeffs,corrections_per_point.csv,dk/(K/MPa),"numeric, continuous",NA,kinetic-energy correction (u2^2 - u1^2) / (2 c_p dp),K MPa^-1
+derived_data/jt_coeffs,corrections_per_point.csv,dQ_per_W/(K/MPa/W),"numeric, continuous",NA,"correction per watt of heat gained by the fluid: -1 / (m c_p dp), with dp = p_out - p_in",K MPa^-1 W^-1
+derived_data/jt_coeffs,corrections_per_point.csv,dk/(K/MPa),"numeric, continuous",NA,"kinetic-energy correction (u2^2 - u1^2) / (2 c_p dp), with dp = p_out - p_in",K MPa^-1
+derived_data/jt_coeffs,corrections_per_point.csv,T_offset/K,"numeric, continuous",NA,"measured outlet temperature minus the EOS temperature at the outlet pressure on the isenthalp through the measured inlet state of the point",K
 derived_data/jt_coeffs,corrections_per_point.csv,dQ/(K/MPa),"numeric, continuous",NA,heat-loss correction for a constant heat exchange of 27 mW,K MPa^-1
 derived_data/jt_coeffs,corrections_per_point.csv,dQ/%,"numeric, continuous",NA,100 * |dQ| / |JT_meas|,%
 derived_data/jt_coeffs,corrections_per_point.csv,dk/%,"numeric, continuous",NA,100 * |dk| / |JT_meas|,%
@@ -138,8 +139,8 @@ derived_data/jt_coeffs,corrections_summary.csv,dQ/%,"numeric, continuous",NA,mea
 derived_data/jt_coeffs,corrections_summary.csv,dk/(K/MPa),"numeric, continuous",NA,mean |dk| over the used points of the group,K MPa^-1
 derived_data/jt_coeffs,corrections_summary.csv,dk/%,"numeric, continuous",NA,mean relative kinetic-energy correction; the delta_k value of CORRECTIONS_PERC in calculate_jt_coefficients.py,%
 derived_data/jt_coeffs,corrections_summary.csv,AAD_raw/%,"numeric, continuous",NA,mean absolute relative deviation from the EOS without corrections,%
-derived_data/jt_coeffs,corrections_summary.csv,AAD_corrected/%,"numeric, continuous",NA,mean absolute relative deviation from the EOS with the 27 mW heat-loss and kinetic-energy corrections applied,%
-derived_data/jt_coeffs,corrections_summary.csv,Q_best/mW,"numeric, continuous","[-200, 200]",constant heat exchange that minimises the squared deviation of the corrected values from the EOS,mW
+derived_data/jt_coeffs,corrections_summary.csv,AAD_corrected/%,"numeric, continuous",NA,"mean absolute relative deviation from the EOS with the corrections for a 27 mW in-leak and the kinetic energy applied (secant form, not quoted in the paper)",%
+derived_data/jt_coeffs,corrections_summary.csv,Q_best/mW,"numeric, continuous","[-200, 200]","constant heat gained by the fluid that minimises the squared deviation of the corrected values from the EOS (secant form, not quoted in the paper)",mW
 derived_data/capillary_mass_flow,FLUID_D0.365_L6_pP_TT[_XHe].csv,m/g_per_s,"numeric, continuous",NA,mass flow rate through the capillary (calculated),g s^-1
 derived_data/capillary_mass_flow,FLUID_D0.365_L6_pP_TT[_XHe].csv,p2/MPa,"numeric, continuous",NA,calculated outlet (downstream) pressure,MPa
 derived_data/capillary_mass_flow,FLUID_D0.365_L6_pP_TT[_XHe].csv,T2/K,"numeric, continuous",NA,calculated isenthalpic outlet temperature,K

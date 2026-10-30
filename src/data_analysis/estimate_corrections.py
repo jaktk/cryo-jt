@@ -3,17 +3,21 @@ Heat-loss and kinetic-energy corrections to the measured path coefficient,
 
     mu_JT = (dT/dp)_path - Q / (m c_p dp) + de_k / (c_p dp),
 
+with Q the heat gained by the fluid and dp = p_out - p_in (eq 7 of the paper).
+
 evaluated for every point used in the mu_JT evaluation.
 
 The mass flow rate m is not measured; it is interpolated at the measured outlet
 pressure from the capillary design calculations of each isenthalp
 (data/derived_data/capillary_mass_flow, D = 0.365 mm, L = 6 m). The heat
-exchange is a constant Q = 27 mW (positive when the fluid loses heat), and
+exchange is a constant in-leak Q = 27 mW, and
 de_k = (u2^2 - u1^2) / 2 with u = m / (rho A). c_p is the mean of the inlet and
 outlet values.
 
 Outputs (data/derived_data/jt_coeffs):
-  * corrections_per_point.csv  per-point corrections in K/MPa and % of |mu_JT|
+  * corrections_per_point.csv  per-point corrections in K/MPa and % of |mu_JT|,
+                               and the offset of the outlet temperature from the
+                               EOS isenthalp through the inlet state
   * corrections_summary.csv    mean |corrections| per fluid group, the values of
                                CORRECTIONS_PERC in calculate_jt_coefficients.py
 and prints the deviation from the EOS with and without the corrections, and the
@@ -28,7 +32,7 @@ from scipy import optimize
 from FluidProps import FluidProps
 from repo_root import REPO_ROOT
 
-Q_LOSS = 27e-3                      # W
+Q_IN = 27e-3                        # W, heat gained by the fluid
 AREA = np.pi * (0.365e-3)**2 / 4    # m^2, equivalent internal diameter
 
 ROOT = REPO_ROOT
@@ -93,19 +97,24 @@ def per_point_corrections():
             p1, t1, p2, t2 = q['PT101/MPa'], q['TT101/K'], q['PT102/MPa'], q['TT102/K']
             m = np.interp(p2, grid['p2/MPa'], grid['m/g_per_s']) / 1e3
             cp = np.mean([fp.get_cp(p1, t1), fp.get_cp(p2, t2)])
-            dp = (p1 - p2) * 1e6
+            dp = (p2 - p1) * 1e6   # p_out - p_in, Pa
             u1 = m / fp.get_rhomass(p1, t1) / AREA
             u2 = m / fp.get_rhomass(p2, t2) / AREA
+            # offset of the measured outlet temperature from the EOS isenthalp
+            # through the measured inlet state of the point
+            t2_eos = fp.get_T(p=p2, h=fp.get_hmass(p=p1, T=t1))
             rows.append({
                 'isenthalp': stem, 'group': group_name(fluid, x_he),
                 'p/MPa': p2, 'm/(g/s)': m * 1e3,
                 'JT_meas/(K/MPa)': r['JT_meas/(K/MPa)'], 'JT_eos/(K/MPa)': r['JT_eos/(K/MPa)'],
-                # heat-loss correction per watt of Q, K/MPa per W
+                # correction terms of eq 7, added to the path coefficient:
+                # heat term per watt of Q, and kinetic-energy term
                 'dQ_per_W/(K/MPa/W)': -1e6 / (m * cp * dp),
                 'dk/(K/MPa)': (u2**2 - u1**2) / 2 / (cp * dp) * 1e6,
+                'T_offset/K': t2 - t2_eos,
             })
     df = pd.DataFrame(rows)
-    df['dQ/(K/MPa)'] = Q_LOSS * df['dQ_per_W/(K/MPa/W)']
+    df['dQ/(K/MPa)'] = Q_IN * df['dQ_per_W/(K/MPa/W)']
     df['dQ/%'] = 100 * df['dQ/(K/MPa)'].abs() / df['JT_meas/(K/MPa)'].abs()
     df['dk/%'] = 100 * df['dk/(K/MPa)'].abs() / df['JT_meas/(K/MPa)'].abs()
     return df
@@ -130,7 +139,7 @@ def main():
         'dk/%': ('dk/%', 'mean'),
     })
     df['dev_raw'] = deviation(df, 0.0).abs()
-    df['dev_corr'] = deviation(df, Q_LOSS).abs()
+    df['dev_corr'] = deviation(df, Q_IN).abs()
     summary['AAD_raw/%'] = df.groupby('group', sort=False)['dev_raw'].mean()
     summary['AAD_corrected/%'] = df.groupby('group', sort=False)['dev_corr'].mean()
     best = {}
