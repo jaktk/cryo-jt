@@ -17,7 +17,7 @@ The measurements from this repository test the earlier-developed mixture equatio
 
 ## System description
 
-The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid or the pre-mixed binary mixture. The cylinder is connected through the pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.8 L) buffer volume that smooths out the manual adjustments of the reducer and absorbs the slow pressure decay of the supply cylinder, reducing the frequency of inlet corrections from seconds to minutes.
+The fluid path starts at a 50 L high-pressure cylinder holding the pure fluid or, in a separate cylinder of the same size, the pre-mixed binary mixture. The cylinder is connected through the pressure-reducing valve `RV004A` to a 1 U.S. gallon (3.8 L) buffer volume that smooths out the manual adjustments of the reducer and absorbs the slow pressure decay of the supply cylinder, reducing the frequency of inlet corrections from seconds to minutes.
 
 Inside the cryostat (dashed envelope in the P&ID below), a copper block with a brazed heat exchanger is mounted on the cold head of a Cryomech AL300 Gifford-McMahon cryocooler, capable of cooling the inlet flow from 300 K down to about 40 K. A 6 m helical capillary (304L stainless steel, 0.4 mm × 1 mm ID × OD, 0.365 mm equivalent ID) imposes the isenthalpic expansion. Two calibrated Lake Shore Cernox temperature sensors are placed upstream (`TT101`, T_in) and downstream (`TT102`, T_out) of the capillary, with their lead wires thermalised at the cold head. Pressure is measured at the same two stations with Mensor CPT 6100 absolute-pressure transducers (`PT101`, `PT102`; 0.01% FS, p_max = 13.7 MPa).
 
