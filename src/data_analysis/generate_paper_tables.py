@@ -96,11 +96,14 @@ def fmt_mu(r):
 
 def fmt_chi2(r):
     """Reduced chi-square of the fit, marked with an asterisk when it exceeds
-    its 0.95 quantile (no degree up to N_s - 2 passes; not well-conditioned).
-    Interpolated three-point isenthalps have no residual degree of freedom."""
+    its 0.95 quantile (no degree up to N_s - 2 passes) and with a dagger when a
+    point drifts beyond the steady-state limits; either mark means not
+    well-conditioned. Interpolated three-point isenthalps have no residual
+    degree of freedom."""
     if pd.isna(r['chi2_red']):
         return "--"
-    return f"{r['chi2_red']:.1f}" + ("" if r['chi2_pass'] else "$^{*}$")
+    mark = ("" if r['chi2_pass'] else "*") + ("" if r['steady'] else r"\dagger")
+    return f"{r['chi2_red']:.1f}" + (f"$^{{{mark}}}$" if mark else "")
 
 
 def parse_name(stem):

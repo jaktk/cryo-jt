@@ -10,8 +10,7 @@ derived isenthalp files) live next to the data they act on:
 
 - `data/raw_data/extraction_windows.json`: time stamps used by
   [`get_pT_pairs.py`](../../src/data_analysis/get_pT_pairs.py) to cut each
-  steady-state measurement window out of the raw time series. Isenthalps with
-  an `"excluded"` field are not used in the published analysis and are skipped.
+  steady-state measurement window out of the raw time series.
 - `data/derived_data/p_T_pairs/index.json`: manifest of the per-isenthalp
   CSVs, used by
   [`calculate_jt_coefficients.py`](../../src/data_analysis/calculate_jt_coefficients.py)

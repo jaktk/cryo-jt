@@ -13,8 +13,7 @@ at 1 s). For every raw column `X` the files also hold its standard deviation
 
 File names follow `<fluid>_<T_in>K_<p_in>MPa.csv`, where `T_in` and `p_in` are
 the mean inlet temperature and pressure of the isenthalp, rounded to K and
-MPa. The isenthalps marked `"excluded"` in `extraction_windows.json` are not
-used in the published analysis and are not extracted.
+MPa.
 
 [`index.json`](index.json) is the manifest read by
 `calculate_jt_coefficients.py` (file name, fluid, mean inlet temperature). It

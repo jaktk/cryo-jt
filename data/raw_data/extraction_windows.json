@@ -386,36 +386,6 @@
         "Nitrogen",
         "Helium"
       ],
-      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
-      "stamps": [
-        {
-          "date/yyyy-mm-dd": "2020-12-10",
-          "time1/hh:mm:ss": "16:52:58",
-          "time2/hh:mm:ss": "16:53:02"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-10",
-          "time1/hh:mm:ss": "16:21:03",
-          "time2/hh:mm:ss": "16:21:07"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-10",
-          "time1/hh:mm:ss": "15:56:01",
-          "time2/hh:mm:ss": "15:56:05"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-10",
-          "time1/hh:mm:ss": "15:40:12",
-          "time2/hh:mm:ss": "15:40:16"
-        }
-      ]
-    },
-    {
-      "id": 14,
-      "fluid": [
-        "Nitrogen",
-        "Helium"
-      ],
       "stamps": [
         {
           "date/yyyy-mm-dd": "2020-12-10",
@@ -435,37 +405,7 @@
       ]
     },
     {
-      "id": 15,
-      "fluid": [
-        "Nitrogen",
-        "Helium"
-      ],
-      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
-      "stamps": [
-        {
-          "date/yyyy-mm-dd": "2020-12-11",
-          "time1/hh:mm:ss": "15:48:00",
-          "time2/hh:mm:ss": "15:48:04"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-11",
-          "time1/hh:mm:ss": "15:48:00",
-          "time2/hh:mm:ss": "15:48:04"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-11",
-          "time1/hh:mm:ss": "14:46:21",
-          "time2/hh:mm:ss": "14:46:25"
-        },
-        {
-          "date/yyyy-mm-dd": "2020-12-11",
-          "time1/hh:mm:ss": "14:23:10",
-          "time2/hh:mm:ss": "14:23:14"
-        }
-      ]
-    },
-    {
-      "id": 16,
+      "id": 14,
       "fluid": [
         "Nitrogen",
         "Helium"
@@ -504,7 +444,7 @@
       ]
     },
     {
-      "id": 17,
+      "id": 15,
       "fluid": [
         "Helium",
         "Neon"
@@ -533,7 +473,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 16,
       "fluid": [
         "Helium",
         "Neon"
@@ -562,7 +502,7 @@
       ]
     },
     {
-      "id": 19,
+      "id": 17,
       "fluid": [
         "Helium",
         "Neon"
@@ -591,7 +531,7 @@
       ]
     },
     {
-      "id": 20,
+      "id": 18,
       "fluid": [
         "Helium",
         "Neon"
@@ -615,7 +555,7 @@
       ]
     },
     {
-      "id": 21,
+      "id": 19,
       "fluid": [
         "Helium",
         "Neon"
@@ -649,7 +589,7 @@
       ]
     },
     {
-      "id": 22,
+      "id": 20,
       "fluid": [
         "Helium",
         "Neon"
@@ -678,97 +618,7 @@
       ]
     },
     {
-      "id": 23,
-      "fluid": [
-        "Helium",
-        "Neon"
-      ],
-      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
-      "stamps": [
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "10:06:25",
-          "time2/hh:mm:ss": "10:06:29"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "10:21:04",
-          "time2/hh:mm:ss": "10:21:08"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "10:32:03",
-          "time2/hh:mm:ss": "10:32:07"
-        }
-      ]
-    },
-    {
-      "id": 24,
-      "fluid": [
-        "Helium",
-        "Neon"
-      ],
-      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
-      "stamps": [
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "15:21:14",
-          "time2/hh:mm:ss": "15:21:18"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "15:39:30",
-          "time2/hh:mm:ss": "15:39:34"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "15:55:08",
-          "time2/hh:mm:ss": "15:55:12"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "16:05:17",
-          "time2/hh:mm:ss": "16:05:21"
-        }
-      ]
-    },
-    {
-      "id": 25,
-      "fluid": [
-        "Helium",
-        "Neon"
-      ],
-      "excluded": "inlet conditions not stable or isenthalp incomplete; not used in the published analysis",
-      "stamps": [
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "14:09:14",
-          "time2/hh:mm:ss": "14:09:18"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "14:22:38",
-          "time2/hh:mm:ss": "14:22:42"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "14:31:36",
-          "time2/hh:mm:ss": "14:31:40"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "14:47:24",
-          "time2/hh:mm:ss": "14:47:28"
-        },
-        {
-          "date/yyyy-mm-dd": "2021-01-28",
-          "time1/hh:mm:ss": "15:01:11",
-          "time2/hh:mm:ss": "15:01:15"
-        }
-      ]
-    },
-    {
-      "id": 26,
+      "id": 21,
       "fluid": [
         "Helium",
         "Neon"
@@ -802,7 +652,7 @@
       ]
     },
     {
-      "id": 27,
+      "id": 22,
       "fluid": [
         "Helium",
         "Neon"

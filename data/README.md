@@ -10,4 +10,4 @@ All data for the project. Top-level layout:
 | [`literature/`](literature) | Historical Joule-Thomson measurements digitised for the comparison figure. |
 | [`capillary_design/`](capillary_design) | Pressure-drop design calculation for the abandoned 10 m capillary geometry. |
 | [`metadata/`](metadata) | Descriptive metadata: column dictionary, file manifest, sensor provenance, campaign log, DAQ stack. |
-| `all_measurements.csv` | One raw sample per steady-state measurement point (126 points over 27 isenthalps, numbered in column `no`), compiled as an overview. It is not a concatenation of the raw time series and is not read by the pipeline; its isenthalp numbering and time stamps do not all match `raw_data/extraction_windows.json`. |
+| `all_measurements.csv` | One raw sample per steady-state measurement point (106 points over 22 isenthalps, numbered in column `no`), compiled as an overview. It is not a concatenation of the raw time series and is not read by the pipeline; its isenthalp numbering and time stamps do not all match `raw_data/extraction_windows.json`. |

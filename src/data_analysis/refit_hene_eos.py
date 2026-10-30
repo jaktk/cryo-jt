@@ -6,8 +6,8 @@ the reducing parameters betaT, gammaT, betaV, gammaV and the weight F of the
 departure function) are refitted to the measured mu_JT of the He-Ne points
 used in the paper, weighted by their standard uncertainty U/2. The shape of the
 departure function is kept. Two variants are fitted, each to all He-Ne points
-and to the well-conditioned isenthalps only (N_s >= 4 and chi-square test
-passed):
+and to the well-conditioned isenthalps only (N_s >= 4, chi-square test
+passed, all points steady; column well_conditioned of the summary):
 
   * free: the five parameters within BOUNDS;
   * phase envelope held: bubble points of the published model on a grid of
@@ -49,7 +49,7 @@ def load_points():
     for _, meta in summary.iterrows():
         df = pd.read_csv(os.path.join(JT_DIR, meta['filename'].replace('.csv', '_JT.csv')))
         df = df[df['used'] == True]
-        well_conditioned = meta['n_points'] >= 4 and meta['chi2_pass'] == True
+        well_conditioned = bool(meta['well_conditioned'])
         for _, r in df.iterrows():
             rows.append({'x1': meta['x1'], 'p': r['p/MPa'], 'T': r['T/K'],
                          'mu': r['JT_meas/(K/MPa)'], 'U': r['JT_UNC/(K/MPa)'],

@@ -6,15 +6,14 @@ from repo_root import REPO_ROOT
 
 
 git_root = REPO_ROOT
+DRIFT_INTERVAL = 60  # s before each window over which the drift of the outlet state is fitted (measurement_uncertainty.DRIFT_INTERVAL)
+DRIFT_COLUMNS = ["PT102/MPa", "TT102/K"]
 
 with open(os.path.join(git_root, "data", "raw_data", "extraction_windows.json")) as f:
     data = json.load(f)
 
 written = {}
 for isenthalp_stamps in data["isenthalps"]:
-    if "excluded" in isenthalp_stamps:
-        print(f"Skipping isenthalp {isenthalp_stamps['id']} ({isenthalp_stamps['excluded']}).")
-        continue
     print(f"Extracting points from isenthalp {isenthalp_stamps['id']}...", end=" ")
     _stamp = ""
     measurement_isenthalp = pd.DataFrame()
@@ -40,6 +39,14 @@ for isenthalp_stamps in data["isenthalps"]:
                 mean_mp[col] = [mp[col].mean()]
                 mean_mp[f"{col}_STD"] = [mp[col].std(skipna=True)]
                 mean_mp[f"{col}_EXP_UNC"] = [2.0 * mean_mp[f"{col}_STD"][0] / np.sqrt(len(mp[col]))]
+        # drift of the outlet state: slope (per s) of a straight line fitted
+        # over the DRIFT_INTERVAL seconds before the window
+        seconds = pd.to_timedelta(df['time/hh:mm:ss']).dt.total_seconds()
+        start = pd.to_timedelta(stamp["time1/hh:mm:ss"]).total_seconds()
+        before = df.loc[(seconds >= start - DRIFT_INTERVAL) & (seconds < start)]
+        t_before = seconds.loc[before.index]
+        for col in DRIFT_COLUMNS:
+            mean_mp[f"{col}_DRIFT"] = [np.polyfit(t_before, before[col], 1)[0]]
         measurement_isenthalp = pd.concat([measurement_isenthalp,
                                            pd.DataFrame.from_dict(mean_mp)])
     measurement_isenthalp.reset_index(drop=True, inplace=True)

@@ -58,8 +58,9 @@ Cuts each steady-state window listed in
 `data/raw_data/extraction_windows.json` out of the raw time series and
 averages it (5 samples at 1 s). For every column `X` it writes the mean, the
 standard deviation `X_STD`, and the expanded uncertainty of the mean
-`X_EXP_UNC` = 2 `X_STD`/√N (k = 2). Isenthalps with an `"excluded"` field
-(13, 15, 23, 24, 25: inlet conditions not stable or isenthalp incomplete) are skipped. The
+`X_EXP_UNC` = 2 `X_STD`/√N (k = 2), and for the outlet pressure and
+temperature the drift `X_DRIFT` (slope per second of a straight line fitted
+over the 60 s before the window). The
 output name is `<fluid>_<T_in>K_<p_in>MPa.csv` from the rounded mean inlet
 conditions; the script raises an error if two isenthalps map to the same name.
 
@@ -70,7 +71,8 @@ Main script for the Joule-Thomson coefficients.
 1. **Measurement uncertainties** (expanded, k = 2, from
    [`measurement_uncertainty.py`](measurement_uncertainty.py)): `p_UNC` and
    `T_UNC` combine in quadrature the statistical uncertainty of the window
-   mean (`*_EXP_UNC`, scaled by t₀.₉₇₅,₄/2 = 1.39 for the 5-sample window)
+   mean (`*_EXP_UNC`, scaled by t₀.₉₇₅,₄/2 = 1.39 for the 5-sample window),
+   a drift term (`*_DRIFT` × 60 s / √3, for points that had not settled),
    and the sensor chain: 0.01 % of 13.7 MPa (k = 2) for pressure; for TT102
    the Cernox calibration (uncertainty table of the X93303 calibration report,
    CX-1050 column), the CABTR module, and the calibration polynomial, in
@@ -98,8 +100,11 @@ Main script for the Joule-Thomson coefficients.
    compositions of the isenthalp), the
    uncorrected heat-loss and kinetic-energy biases (rectangular, u = δ/√3,
    from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the method
-   uncertainty u_m = 0.65 % (k = 1) are added in quadrature and expanded with
-   k = 2.
+   uncertainty u_m = 0.65 % (k = 1), and the long-term stability of the
+   Cernox sensor (6 × 10⁻⁴ of μ_JT / √3) are added in quadrature and expanded
+   with k = 2. The summary flags `steady` (every point drifts by at most
+   10 mK/min and 10 kPa/min before its window) and `well_conditioned`
+   (N ≥ 4, χ² test passed, and steady).
 7. **Comparison with the EOS**: μ_JT from REFPROP at each measured (p, T) and
    the relative absolute deviation, referred to the EOS value for pure fluids
    and to the measured value for mixtures.
@@ -277,7 +282,7 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 ### Output: `jt_coefficients_summary.csv`
 
 `filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
-`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `birge_ratio`, `u_x1`,
+`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `steady`, `well_conditioned`, `birge_ratio`, `u_x1`,
 `mean_rel_abs_err_perc`,
 `std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
 deviation statistics and `mean_unc_perc` are taken over the used points.
@@ -411,20 +416,20 @@ python src/data_analysis/extract_fit_coefficients.py
 ## Data quality
 
 **Fitting:**
-- The selected degrees are 1 to 5. Nine fits pass the χ² test, 11 do not
+- The selected degrees are 2 to 4. Eleven fits pass the χ² test, 9 do not
   (they take the degree with the lowest χ²_ν), and the two three-point
-  isenthalps are interpolated.
+  isenthalps are interpolated. Six isenthalps are well-conditioned.
 - The weights account for the measurement uncertainties.
 
 **Mean relative absolute deviation from the EOS (used points):**
 - Nitrogen and argon: 0.3 % to 2.2 %
-- Helium-4: 16 % to 52 %
-- Helium-neon: 3.1 % to 8.9 %
+- Helium-4: 16 % to 53 %
+- Helium-neon: 3.1 % to 19 %
 - Helium-nitrogen: 0.7 % to 11 %
 
 The mean relative expanded uncertainty (`mean_unc_perc`) is 1.6 % to 2.5 %
 for nitrogen and argon, 2.0 % for dilute He-N2 (5.0 % for the He-N2
-isenthalp with about 50 % helium), 6.4 % to 13 % for He-Ne, and 32 % to 70 %
+isenthalp with about 50 % helium), 6.5 % to 9.6 % for He-Ne, and 32 % to 68 %
 for helium-4; the larger values belong to fits that fail the χ² test, whose
 Monte Carlo part is scaled by the Birge ratio. See
 `jt_coefficients_summary.csv` for the values per isenthalp.

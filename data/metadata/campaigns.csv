@@ -16,4 +16,4 @@ date,fluid,is_mixture,x1,x2,mean_purity,raw_data_file,notes
 2021-01-27,He-Ne,TRUE,0.3181,0.6819,,raw_data/2021-01-27.csv,
 2021-01-28,He-Ne,TRUE,0.4171,0.5829,,raw_data/2021-01-28.csv,no analysed isenthalp; composition is the day mean of valid analyser frames
 2021-03-03,He-Ne,TRUE,0.2136,0.7864,,raw_data/2021-03-03.csv,
-2021-03-04,N2,FALSE,,,0.9987,raw_data/2021-03-04.csv,used for thermal-hysteresis check (isenthalp measured in both directions)
+2021-03-04,N2,FALSE,,,0.9988,raw_data/2021-03-04.csv,used for thermal-hysteresis check (isenthalp measured in both directions)

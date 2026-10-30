@@ -68,6 +68,7 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
 - `JT_UNC/(K/MPa)` combines in quadrature the Monte Carlo standard
   uncertainty, the composition term, the uncorrected heat-loss and kinetic-energy biases (treated as
   rectangular, u = δ/√3, with δ from `corrections_summary.csv`), and the
+  long-term stability of the Cernox sensor (6 × 10⁻⁴ of μ_JT / √3), the
   relative method uncertainty u_m = 0.65 % (k = 1, the fit error from the
   synthetic test of `validate_degree_criterion.py`), and expands the result
   with k = 2.

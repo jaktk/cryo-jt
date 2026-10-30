@@ -99,7 +99,7 @@ The components installed on the test bench, with their P&ID tag, function, and m
 
 ## Raw data
 
-`data/raw_data` contains the acquisition time series (sampled at 1 s), one CSV file per measurement day, for the pure fluids (nitrogen, argon, helium-4) and the mixtures (helium-neon, helium-nitrogen). Each time series holds the pressures, temperatures, and, for mixtures, compositions from which the steady-state points of each isenthalp are taken. `data/raw_data/extraction_windows.json` lists the time windows of those steady-state points; the isenthalps marked `"excluded"` in it are not used in the published analysis.
+`data/raw_data` contains the acquisition time series (sampled at 1 s), one CSV file per measurement day, for the pure fluids (nitrogen, argon, helium-4) and the mixtures (helium-neon, helium-nitrogen). Each time series holds the pressures, temperatures, and, for mixtures, compositions from which the steady-state points of each isenthalp are taken. `data/raw_data/extraction_windows.json` lists the time windows of those steady-state points.
 
 The column headers carry the unit, e.g. `PT102/MPa` or `date/yyyy-mm-dd`; the full column dictionary is in [`data/metadata/codebook.csv`](data/metadata/codebook.csv).
 
@@ -145,7 +145,7 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 | 2021-01-27 | ${\rm He - Ne}$  | -              | 0.3181/0.6819             |
 | 2021-01-28 | ${\rm He - Ne}$  | -              | 0.4171/0.5829             |
 | 2021-03-03 | ${\rm He - Ne}$  | -              | 0.2136/0.7864             |
-| 2021-03-04 | ${\rm N_2}$      | 0.9987         | -                         |
+| 2021-03-04 | ${\rm N_2}$      | 0.9988         | -                         |
 
 $^{a}$ The gas-analyser output was frozen at one value all day, so no valid purity frames exist. Mixture compositions are the mean analyser readings (x1/x2 of the raw data, rejecting readings with |x1 + x2 - 1| ≥ 0.02) over the steady-state windows of the analysed isenthalps of the day; 2021-01-28 has no analysed isenthalp and gives the day mean of the valid readings. The purities are day means over the valid analyser frames ([`src/data_analysis/analyze_purity.py`](src/data_analysis/analyze_purity.py)).
 

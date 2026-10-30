@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from repo_root import REPO_ROOT
 from chebyshev_fit import select_degree
-from measurement_uncertainty import K_TARGET, point_uncertainties
+from measurement_uncertainty import DRIFT_INTERVAL, K_TARGET, point_uncertainties
 
 RAW_DIR = os.path.join(REPO_ROOT, 'data', 'raw_data')
 JT_DIR = os.path.join(REPO_ROOT, 'data', 'derived_data', 'jt_coeffs')
@@ -26,8 +26,8 @@ COLUMNS = ['PT102/MPa', 'PT101/MPa', 'TT101/K', 'TT102/K']
 
 
 def average_windows(stamps):
-    """ Mean, standard deviation and expanded uncertainty of the mean (k = 2)
-    over each window, as in get_pT_pairs.py. """
+    """ Mean, standard deviation, expanded uncertainty of the mean (k = 2) and
+    drift over each window, as in get_pT_pairs.py. """
     rows = []
     for stamp in stamps:
         df = pd.read_csv(os.path.join(RAW_DIR, f"{stamp['date/yyyy-mm-dd']}.csv"))
@@ -38,6 +38,11 @@ def average_windows(stamps):
             row[col] = mp[col].mean()
             row[f'{col}_STD'] = mp[col].std()
             row[f'{col}_EXP_UNC'] = 2.0 * row[f'{col}_STD'] / np.sqrt(len(mp))
+        seconds = pd.to_timedelta(df['time/hh:mm:ss']).dt.total_seconds()
+        start = pd.to_timedelta(stamp['time1/hh:mm:ss']).total_seconds()
+        before = df.loc[(seconds >= start - DRIFT_INTERVAL) & (seconds < start)]
+        for col in ('PT102/MPa', 'TT102/K'):
+            row[f'{col}_DRIFT'] = np.polyfit(seconds.loc[before.index], before[col], 1)[0]
         rows.append(row)
     return pd.DataFrame(rows).sort_values('PT102/MPa').reset_index(drop=True)
 

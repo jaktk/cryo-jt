@@ -252,3 +252,7 @@ derived_data/jt_coeffs,hysteresis_check.csv,JT_up/(K/MPa),"numeric, continuous",
 derived_data/jt_coeffs,hysteresis_check.csv,used,boolean,True; False,False for the end points,NA
 derived_data/jt_coeffs,hysteresis_check.csv,dT/mK,"numeric, continuous",NA,T_up - T_down,mK
 derived_data/jt_coeffs,hysteresis_check.csv,dJT_rel_perc,"numeric, continuous",NA,relative difference of the two mu_JT,%
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,PT102/MPa_DRIFT,"numeric, continuous",NA,slope of PT102 fitted over the 60 s before the averaging window,MPa s^-1
+derived_data/p_T_pairs,Fluid_TK_PMPa.csv,TT102/K_DRIFT,"numeric, continuous",NA,slope of TT102 fitted over the 60 s before the averaging window,K s^-1
+derived_data/jt_coeffs,jt_coefficients_summary.csv,steady,boolean,True; False,"true if every point drifts by at most 10 mK/min in TT102 and 10 kPa/min in PT102 over the minute before its window",NA
+derived_data/jt_coeffs,jt_coefficients_summary.csv,well_conditioned,boolean,True; False,"true if n_points >= 4, chi2_pass is true and steady is true",NA

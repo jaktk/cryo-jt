@@ -111,12 +111,13 @@ def fit_rule(rule, p, T, u_p, u_T):
     raise ValueError(rule)
 
 
-def load_isenthalp(filename, fluid):
-    """ Measured points and standard (k = 1) uncertainties, as in calculate_jt_coefficients.py. """
+def load_isenthalp(filename, fluid, drift=True):
+    """ Measured points and standard (k = 1) uncertainties, as in
+    calculate_jt_coefficients.py; drift=False leaves out the drift term. """
     df = pd.read_csv(os.path.join(PT_DIR, filename))
     p = df['PT102/MPa'].values.astype(float)
     T = df['TT102/K'].values.astype(float)
-    p_unc, t_unc = point_uncertainties(df)
+    p_unc, t_unc = point_uncertainties(df, drift=drift)
     u_p, u_T = p_unc / K_TARGET, t_unc / K_TARGET
     fp = FluidProps(tuple(fluid.split('-')) if '-' in fluid else fluid)
     if '-' in fluid:
@@ -224,11 +225,14 @@ def main():
     for _, meta in summary.iterrows():
         fname, fluid = meta['filename'], meta['fluid']
         p, T, u_p, u_T, p_in, T_in, fp, interior = load_isenthalp(fname, fluid)
+        # The drift term describes measured points that had not settled; the
+        # synthetic points are settled, so their noise leaves it out.
+        _, _, u_p0, u_T0, _, _, _, _ = load_isenthalp(fname, fluid, drift=False)
         h_in = fp.get_hmass(p=p_in, T=T_in)
         two_phase[fname[:-4]] = enters_two_phase(fp, h_in, p.min(), p.max())
         T_eos = np.array([fp.get_T(p=pi, h=h_in) for pi in p])
         mu_true = np.array([fp.get_JT_coefficient(p=pi, T=Ti) for pi, Ti in zip(p, T_eos)])
-        u_mc = {n: mc_uncertainty(p, T_eos, u_p, u_T, n, rng) / K_TARGET / np.abs(mu_true)
+        u_mc = {n: mc_uncertainty(p, T_eos, u_p0, u_T0, n, rng) / K_TARGET / np.abs(mu_true)
                 for n in range(1, min(MAX_DEGREE, len(p) - 1) + 1)}
 
         # Measured data: degree and interior deviation from the EOS for each
@@ -245,10 +249,10 @@ def main():
 
         # Synthetic data on the EOS isenthalp
         for _ in range(N_REAL):
-            p_s = p + rng.normal(0, u_p)
-            T_s = T_eos + rng.normal(0, u_T)
+            p_s = p + rng.normal(0, u_p0)
+            T_s = T_eos + rng.normal(0, u_T0)
             for rule in RULES:
-                poly, birge = fit_rule(rule, p_s, T_s, u_p, u_T)
+                poly, birge = fit_rule(rule, p_s, T_s, u_p0, u_T0)
                 n = poly.degree()
                 err = (poly.deriv()(p) - mu_true) / np.abs(mu_true)
                 for i in np.where(interior)[0]:

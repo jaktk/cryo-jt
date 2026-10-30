@@ -14,10 +14,7 @@ raw time series, one CSV per isenthalpic line. File names follow
 `Fluid_TK_PMPa.csv`, where `T` is the mean inlet temperature and `P` the
 mean inlet pressure, both rounded (e.g. `Nitrogen_160K_6MPa.csv`). These are
 the inputs to the Joule-Thomson coefficient extraction. See
-[`p_T_pairs/README.md`](p_T_pairs/README.md). Of the 27 isenthalps in
-`data/raw_data/extraction_windows.json`, five (13, 15, 23, 24, 25) are marked
-`"excluded"` because their inlet conditions were not stable or the isenthalp
-was not completed; the remaining 22 are analysed.
+[`p_T_pairs/README.md`](p_T_pairs/README.md).
 
 ## `purity/`
 

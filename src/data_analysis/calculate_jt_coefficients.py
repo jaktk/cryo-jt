@@ -5,7 +5,7 @@ import pandas as pd
 from scipy import interpolate
 from FluidProps import FluidProps
 from chebyshev_fit import chebyshev_fit_weights, fit_chebyshev, select_degree
-from measurement_uncertainty import K_TARGET, K_SOURCE, point_uncertainties
+from measurement_uncertainty import K_TARGET, K_SOURCE, CERNOX_STABILITY_REL, is_steady, point_uncertainties
 from repo_root import REPO_ROOT
 
 # Coverage factors (measurement_uncertainty.py): the sensor, acquisition, and
@@ -20,10 +20,10 @@ N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 # u = delta/sqrt(3), and added in quadrature to the Monte Carlo uncertainty.
 # He-N2 is split by composition (see systematic_rel_std_uncertainty).
 CORRECTIONS_PERC = {
-    'Nitrogen': (0.782, 0.027),
-    'Argon': (1.002, 0.032),
-    'Helium': (26.552, 2.311),
-    'Helium-Neon': (5.338, 0.316),
+    'Nitrogen': (0.781, 0.027),
+    'Argon': (1.003, 0.032),
+    'Helium': (26.559, 2.304),
+    'Helium-Neon': (5.422, 0.321),
     'Nitrogen-Helium-0.14': (1.194, 0.125),
     'Nitrogen-Helium-0.50': (4.115, 0.332),
 }
@@ -364,10 +364,13 @@ class JTCoefficientCalculator(object):
                 x_he = 1.0 - composition
             u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
             u_method = U_METHOD_REL * np.abs(jt_measured)
+            # long-term stability of the outlet thermometer: a calibration
+            # shift proportional to T scales the slope (measurement_uncertainty.py)
+            u_stability = CERNOX_STABILITY_REL / np.sqrt(3) * np.abs(jt_measured)
             jt_uncertainty_x = (self._composition_uncertainty(pressures, temperatures, fluid_props, composition, u_x)
                                 if is_mixture else np.zeros_like(pressures))
             jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + (jt_uncertainty_x / K_TARGET)**2
-                                                + u_sys**2 + u_method**2)
+                                                + u_sys**2 + u_method**2 + u_stability**2)
             
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
@@ -400,6 +403,8 @@ class JTCoefficientCalculator(object):
                 'chi2_crit': fit.chi2_crit,
                 'chi2_pass': fit.passed,
                 's_T/mK': 1e3 * fit.s_T,
+                'steady': bool(is_steady(df).all()),
+                'well_conditioned': bool(len(pressures) >= 4 and fit.passed and is_steady(df).all()),
                 'birge_ratio': birge,
                 'u_x1': u_x,
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
@@ -477,6 +482,8 @@ class JTCoefficientCalculator(object):
                 'chi2_crit': result['chi2_crit'],
                 'chi2_pass': result['chi2_pass'],
                 's_T/mK': result['s_T/mK'],
+                'steady': result['steady'],
+                'well_conditioned': result['well_conditioned'],
                 'birge_ratio': result['birge_ratio'],
                 'u_x1': result['u_x1'],
                 'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc'],

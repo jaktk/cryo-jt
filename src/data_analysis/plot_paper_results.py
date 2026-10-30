@@ -27,7 +27,7 @@ PURE_LEGEND_LOC = {'Nitrogen': 'upper right', 'Argon': 'center right',
                    'Helium': 'lower right'}
 
 MIXTURE_LIMS = {
-    'HeNe': {'mu': (0.0, 5.0),  'dev': (-20.0, 20.0), 'x': (0.0, 10.0)},
+    'HeNe': {'mu': (0.0, 5.0),  'dev': (-30.0, 30.0), 'x': (0.0, 10.0)},
     'HeN2': {'mu': (0.0, 12.0), 'dev': (-5.0, 20.0), 'x': (0.0, 10.0)},
 }
 
