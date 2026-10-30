@@ -1,6 +1,6 @@
 # Literature data
 
-[`literature_measurements.csv`](literature_measurements.csv) — compilation of
+[`literature_measurements.csv`](literature_measurements.csv): compilation of
 historical Joule-Thomson coefficient measurements from the literature
 (Bier *et al.* 1974, King & Potter 1962, Roebuck & Osterberg 1933/1934/1935,
 Roebuck 1926, Smith 1970) together with the present-work measurements

@@ -15,9 +15,9 @@ Run after calculate_jt_coefficients.py.
 import os
 import numpy as np
 import pandas as pd
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 
-JT_DIR = os.path.join(get_git_root(os.getcwd()), "data", "derived_data", "jt_coeffs")
+JT_DIR = os.path.join(REPO_ROOT, "data", "derived_data", "jt_coeffs")
 SUMMARY = os.path.join(JT_DIR, "jt_coefficients_summary.csv")
 
 # Display order of the isenthalps in each table, by derived-data filename stem.
@@ -80,7 +80,10 @@ def decimals(x, sig=2):
 def fmt_mu(r):
     """mu_JT^meas, U(mu_JT), and mu_JT^EOS, rounded so that the values carry
     at most one digit more than the uncertainty (U to two significant
-    figures, the mu_JT values to the same decimal place)."""
+    figures, the mu_JT values to the same decimal place). The isenthalp end
+    points are fitted but not used for mu_JT, so their cells stay empty."""
+    if not r['used']:
+        return "", "", ""
     U = r['JT_UNC/(K/MPa)']
     d = decimals(U)
     return (f"{r['JT_meas/(K/MPa)']:.{d}f}", sig2(U),

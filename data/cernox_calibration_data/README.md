@@ -12,7 +12,7 @@ serial number.
 The TT101 / TT102 ↔ serial mapping is also recorded in
 [`../metadata/sensors.json`](../metadata/sensors.json).
 
-Per-sensor file types (one of each in every subdirectory):
+Per-sensor file types (one of each in every subdirectory, except that only `X115143` has a `.curve` file):
 
 | Extension | Content |
 | --- | --- |

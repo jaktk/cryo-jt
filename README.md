@@ -5,15 +5,15 @@
 
 **Contributors**
 
-- **Jakub Tkaczuk** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423) &mdash; *design, data collection & analysis, writing*
-- **Nicolas Luchier** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-5852-4726](https://orcid.org/0000-0002-5852-4726) &mdash; *supervision, review*
-- **François Millet** &mdash; [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-1240-0138](https://orcid.org/0000-0002-1240-0138) &mdash; *supervision*
+- **Jakub Tkaczuk**, [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0001-7997-9423](https://orcid.org/0000-0001-7997-9423), *design, data collection & analysis, writing*
+- **Nicolas Luchier**, [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-5852-4726](https://orcid.org/0000-0002-5852-4726), *supervision, review*
+- **François Millet**, [![ORCID](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) 0000-0002-1240-0138](https://orcid.org/0000-0002-1240-0138), *supervision*
 
 ## Introduction
 
 This repository contains the raw data, processed data, and code used to obtain and analyse measurements of the Joule-Thomson coefficient in pure gases and mixtures at temperatures between 65 K and 180 K. It is the supporting dataset for the article submitted to the *Journal of Chemical & Engineering Data*.
 
-The measurements from this repository validate the earlier-developed equations of state in the single-phase region. Indirect measurements are first acquired for pure fluids, allowing for the experiment validation and then for mixtures, providing new results to the study. The expanded relative standard uncertainty is calculated along with the Monte Carlo analysis for the combined uncertainty. The impact of the composition uncertainty on the Joule-Thomson coefficient is quantified for mixtures using the Monte Carlo simulations.
+The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup and estimate its method uncertainty, and the mixtures then provide the new results. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the uncorrected heat-loss and kinetic-energy biases, and a method uncertainty estimated from the nitrogen and argon data. The impact of the composition uncertainty on the Joule-Thomson coefficient is quantified for mixtures using Monte Carlo simulations.
 
 ## System description
 
@@ -99,10 +99,9 @@ The components installed on the test bench, with their P&ID tag, function, and m
 
 ## Raw data
 
-`raw-data` contains raw measurement data stored in CSV files. It contains:
+`data/raw_data` contains the acquisition time series (sampled at 1 s), one CSV file per measurement day, for the pure fluids (nitrogen, argon, helium-4) and the mixtures (helium-neon, helium-nitrogen). Each time series holds the pressures, temperatures, and, for mixtures, compositions from which the steady-state points of each isenthalp are taken. `data/raw_data/extraction_windows.json` lists the time windows of those steady-state points; the isenthalps marked `"excluded"` in it are not used in the published analysis.
 
-- the pressure-temperature pairs used for indirect measurements of the Joule-Thomson coefficent in pure fluids (nitrogen, argon, helium-4);
-- the pressure-temperature-composition values used for indirect measurements of the Joule-Thomson coefficient in fluid mixtures (helium-neon, helium-nitrogen).
+The column headers carry the unit, e.g. `PT102/MPa` or `date/yyyy-mm-dd`; the full column dictionary is in [`data/metadata/codebook.csv`](data/metadata/codebook.csv).
 
 | Variable    | Unit       | Description                                                                  |
 | ----------- | ---------- | ---------------------------------------------------------------------------- |
@@ -110,14 +109,14 @@ The components installed on the test bench, with their P&ID tag, function, and m
 | Time        | hh:mm:ss   | Measurement time                                                             |
 | PT102       | MPa        | Pressure measured after the isenthalpic expansion                            |
 | PT101       | MPa        | Pressure measured before the isenthalpic expansion                           |
-| TT009       | K          | Themal shield highest temperature (point of the highest radiation heat loss) |
+| TT009       | K          | Thermal shield highest temperature (point of the highest radiation heat loss) |
 | TT010       | K          | Temperature at the outlet from the cryostat (before heater Q011)             |
 | TT008       | K          | Cold head temperature                                                        |
 | TT101       | K          | Temperature measured before the isenthalpic expansion                        |
 | RT101       | $\Omega$   | Resistance of the TT101 Cernox temperature sensor                            |
 | TT102       | K          | Temperature measured after the isenthalpic expansion                         |
 | RT102       | $\Omega$   | Resistance of the TT102 Cernox temperature sensor                            |
-| Q008        | W          | Power of the cold head heater (automaticaly regulated)                       |
+| Q008        | W          | Power of the cold head heater (automatically regulated)                       |
 | x1          | -          | 1st gas concentration (for mixture measurements)                             |
 | x2          | -          | 2nd gas concentration (for mixture measurements)                             |
 | impurity    | -          | Gas impurity defined as $1 - purity$ (for single component measurements)     |
@@ -152,32 +151,43 @@ The measurements are grouped in files by collection date. The Joule-Thomson coef
 
 `data/derived_data` contains the products computed from the raw data, documented in [`data/derived_data/README.md`](data/derived_data/README.md):
 
-- `p_T_pairs/` — steady-state pressure–temperature(–composition) points extracted from the raw time series, one file per isenthalp;
-- `jt_coeffs/` — the derived Joule-Thomson coefficients with conventional and Monte Carlo uncertainties, a `jt_coefficients_summary.csv`, and a `jt_coefficients_detailed.json`;
-- `calculated_mass_flow_rate/` — capillary-sizing design calculations.
+- `p_T_pairs/`: steady-state pressure-temperature(-composition) points extracted from the raw time series, one file per isenthalp;
+- `jt_coeffs/`: the derived Joule-Thomson coefficients with their expanded uncertainties (one file per isenthalp, `jt_coefficients_summary.csv`, and `jt_coefficients_detailed.json`), the Monte Carlo uncertainty bound, the heat-loss and kinetic-energy correction estimates, and the LaTeX tables generated for the paper and its Supporting Information;
+- `capillary_mass_flow/`: calculated mass flow rate versus outlet pressure for each measured isenthalp, used for the correction estimates;
+- `calculated_mass_flow_rate/`: capillary-sizing design calculations.
 
-Cernox temperature-sensor calibration data are in `data/cernox_calibration_data`, and experiment metadata (timestamps, p–T pairs) in `data/metadata`.
+Cernox temperature-sensor calibration data are in `data/cernox_calibration_data`. Descriptive metadata (column dictionary, file manifest, sensor provenance, campaign log, data-acquisition stack) are in `data/metadata`.
 
 ## Code
 
 The `src` directory consists of the following sub-directories:
 
-- `data_acquisition` — code running data acquisition and real-time visualization of collected data;
-- `data_analysis` — code for data wrangling and analysis of results (see [`src/data_analysis/README.md`](src/data_analysis/README.md)).
+- `data_acquisition`: code running data acquisition and real-time visualization of collected data;
+- `data_analysis`: the analysis pipeline, the LaTeX tables, and the result figures (see [`src/data_analysis/README.md`](src/data_analysis/README.md));
+- `theory_figures`: the theoretical figures computed from REFPROP and the method schematics (see [`src/theory_figures/README.md`](src/theory_figures/README.md)).
+
+The figure scripts share the style sheet `src/jced.mplstyle` and write to `img/` (see [`img/README.md`](img/README.md)).
 
 ## Reproducing the analysis
 
-Install the Python dependencies with `pip install -r requirements.txt`. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom equations of state for the mixtures are provided in `REFPROP/` and must be copied into REFPROP's `HMX.BNC` file. REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, and the `theory_figures/` scripts) cannot be run without it; the remaining scripts (`plot_paper_results.py`, `compare_theory_vs_experiment.py`, `theoretical_jt_uncertainty.py`, `plot_toc_graphic.py`, `generate_paper_tables.py`) run from the committed derived data alone. Typical entry points:
+Install the Python dependencies with `pip install -r requirements.txt`. The scripts find the repository root from their own location, so they run from a git clone or from the Zenodo archive; git is not needed. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom mixture models are provided in `REFPROP/FLUIDS/HMX.BNC` and must be merged into REFPROP's own `HMX.BNC` file (see [`REFPROP/README.md`](REFPROP/README.md)). The figure scripts use LaTeX with the packages `helvet` and `newtxsf`.
+
+REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
 
 ```bash
-python src/data_analysis/get_pT_pairs.py                 # extract p-T pairs from raw data        (REFPROP-free)
-python src/data_analysis/calculate_jt_coefficients.py    # derive mu_JT with uncertainties         (REFPROP)
-python src/data_analysis/monte_carlo_uncertainty.py      # Monte Carlo uncertainty bound           (REFPROP)
-python src/data_analysis/generate_paper_tables.py        # LaTeX bodies of the result tables        (REFPROP-free)
-python src/data_analysis/plot_paper_results.py           # per-fluid result figures                 (REFPROP-free)
+python src/data_analysis/get_pT_pairs.py                 # 1. steady-state p-T pairs from the raw data
+python src/data_analysis/calculate_jt_coefficients.py    # 2. mu_JT with uncertainties                    (REFPROP)
+python src/data_analysis/monte_carlo_uncertainty.py      # 3. Monte Carlo uncertainty bound               (REFPROP)
+python src/data_analysis/estimate_corrections.py         # 4. heat-loss and kinetic-energy corrections    (REFPROP)
+#    copy dQ/% and dk/% of corrections_summary.csv to CORRECTIONS_PERC in calculate_jt_coefficients.py
+python src/data_analysis/estimate_method_uncertainty.py  # 5. method uncertainty; copy the result to U_METHOD_REL
+# 6. if CORRECTIONS_PERC or U_METHOD_REL changed, rerun step 2
+python src/data_analysis/generate_paper_tables.py        # 7. LaTeX bodies of the result tables
+python src/data_analysis/extract_fit_coefficients.py     #    Chebyshev coefficients table of the SI
+python src/data_analysis/plot_paper_results.py           #    result figures (other figure scripts: img/README.md)
 ```
 
-The heat-loss and kinetic-energy corrections quoted in the manuscript (Table of mean corrections) are auxiliary bounding estimates and are not produced by the released scripts.
+The heat-loss and kinetic-energy corrections quoted in the manuscript are produced by `estimate_corrections.py` (`data/derived_data/jt_coeffs/corrections_summary.csv`). They are not applied to the data; they enter the uncertainty as uncorrected biases. Details of each step are in [`src/data_analysis/README.md`](src/data_analysis/README.md).
 
 ## Citation
 

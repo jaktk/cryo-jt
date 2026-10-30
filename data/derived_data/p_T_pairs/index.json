@@ -50,11 +50,6 @@
     "mean_TT101_K": 80.43454704300001
   },
   {
-    "filename": "Nitrogen-Helium_140K_5MPa.csv",
-    "fluid": "Nitrogen-Helium",
-    "mean_TT101_K": 140.002343735
-  },
-  {
     "filename": "Nitrogen-Helium_140K_8MPa.csv",
     "fluid": "Nitrogen-Helium",
     "mean_TT101_K": 140.00500794

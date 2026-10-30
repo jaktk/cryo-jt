@@ -12,7 +12,7 @@ import pandas as pd
 from numpy.polynomial.chebyshev import Chebyshev
 
 from FluidProps import FluidProps
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 from theoretical_jt_uncertainty import U_P, combined_temperature_uncertainty
 from calculate_jt_coefficients import chebyshev_fit_weights
 
@@ -292,6 +292,10 @@ def run_all(repo_root: str,
         rows.append(row)
 
     summary_df = pd.DataFrame(rows)
+    if only:
+        # a partial run must not replace the summary of the full set
+        logger.info("partial run: summary not written")
+        return summary_df
     summary_path = os.path.join(output_dir, "mc_uncertainty_summary.csv")
     summary_df.to_csv(summary_path, index=False)
     logger.info("wrote summary to %s (%d isenthalps)", summary_path, len(summary_df))
@@ -335,7 +339,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     level = logging.DEBUG if args.verbose else logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(level=level, format="%(levelname)s %(name)s: %(message)s")
 
-    repo_root = get_git_root(os.getcwd())
+    repo_root = REPO_ROOT
     output_dir = args.output_dir or os.path.join(
         repo_root, "data", "derived_data", "jt_coeffs",
     )

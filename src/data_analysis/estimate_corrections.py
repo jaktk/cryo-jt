@@ -26,12 +26,12 @@ import numpy as np
 import pandas as pd
 from scipy import optimize
 from FluidProps import FluidProps
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 
 Q_LOSS = 27e-3                      # W
 AREA = np.pi * (0.365e-3)**2 / 4    # m^2, equivalent internal diameter
 
-ROOT = get_git_root(os.getcwd())
+ROOT = REPO_ROOT
 JT_DIR = os.path.join(ROOT, 'data', 'derived_data', 'jt_coeffs')
 PT_DIR = os.path.join(ROOT, 'data', 'derived_data', 'p_T_pairs')
 MF_DIR = os.path.join(ROOT, 'data', 'derived_data', 'capillary_mass_flow')

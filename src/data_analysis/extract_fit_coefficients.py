@@ -1,7 +1,8 @@
 """
-Extract the per-isenthalp Chebyshev polynomial fit and report the equivalent
-power-series coefficients  T/K = sum_k b_k (p/MPa)^k , so that the JCED Supporting
-Information can tabulate the correlating-equation parameters (mu_JT = dT/dp).
+Extract the per-isenthalp Chebyshev polynomial fit and report its coefficients
+T/K = sum_k a_k C_k(p/MPa) and the RMS of the fit residuals, so that the JCED
+Supporting Information can tabulate the correlating-equation parameters
+(mu_JT = dT/dp).
 
 The fit reproduces calculate_jt_coefficients._fit_polynomial_weighted exactly
 (same weights, same degree-selection rule). No REFPROP needed: only the measured
@@ -16,9 +17,9 @@ import pandas as pd
 from numpy.polynomial.chebyshev import Chebyshev
 from numpy.polynomial import Polynomial
 from sklearn.metrics import r2_score
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 
-ROOT = get_git_root(os.getcwd())
+ROOT = REPO_ROOT
 PT_DIR = os.path.join(ROOT, "data", "derived_data", "p_T_pairs")
 JT_DIR = os.path.join(ROOT, "data", "derived_data", "jt_coeffs")
 
@@ -70,8 +71,7 @@ def fit_isenthalp(p, T, p_unc, t_unc, max_degree=6):
 
 
 # Process only the published isenthalps (those with a *_JT.csv produced by the
-# pipeline). This excludes degenerate/rejected sets such as Nitrogen-Helium_140K_5MPa
-# (duplicate pressure point), which never entered the paper.
+# pipeline).
 published = sorted(f.replace("_JT.csv", ".csv") for f in os.listdir(JT_DIR)
                    if f.endswith("_JT.csv"))
 
@@ -110,7 +110,11 @@ for fname in published:
         max_dev = np.max(np.abs(jt_here - jt_pub))
         max_dev_round = np.max(np.abs(jt_round - jt_pub))
 
-    rows.append({"file": fname, "N": len(p), "n": deg, "R2": r2,
+    # RMS of the temperature residuals over all N_s points; zero when the
+    # polynomial interpolates (n = N_s - 1)
+    rms_mK = 1e3 * np.sqrt(np.mean((T - poly(p)) ** 2))
+
+    rows.append({"file": fname, "N": len(p), "n": deg, "R2": r2, "rms_mK": rms_mK,
                  "a": a, "maxdev_JT": max_dev, "maxdev_round": max_dev_round})
 
 # Report
@@ -157,13 +161,15 @@ tex.append(r"  \setlength{\tabcolsep}{4pt}")
 tex.append(r"  \caption{\label{tab:si_cheb}Coefficients $a_k$ of the Chebyshev fit "
            r"$T/{\rm K} = \sum_{k=0}^{n} a_k\, C_k(p/{\rm MPa})$ (eq~\ref{eq:si_cheb}) "
            r"for each measured isenthalp, with the number of points $N_{\rm s}$ and the "
-           r"fitted degree $n$ (all fits reach $R^2 > 0.999$). The Joule-Thomson "
+           r"fitted degree $n$ (all fits reach $R^2 > 0.999$), and the root mean square "
+           r"$s_T$ of the temperature residuals (zero where the polynomial interpolates, "
+           r"$n = N_{\rm s} - 1$). The Joule-Thomson "
            r"coefficient is the analytic derivative (eq~\ref{eq:si_chebderiv}). "
            r"Empty cells denote coefficients absent at the fitted degree.}")
-tex.append(r"  \begin{tabular}{lcccD{.}{.}{3.7}D{.}{.}{2.7}D{.}{.}{1.7}D{.}{.}{1.7}}")
+tex.append(r"  \begin{tabular}{lcccrD{.}{.}{3.7}D{.}{.}{2.7}D{.}{.}{1.7}D{.}{.}{1.7}}")
 tex.append(r"    \toprule")
 tex.append(r"    fluid & $T_{\rm in}$/K & $p_{\rm in}$/MPa & ($N_{\rm s}$, $n$) & "
-           r"\multicolumn{1}{c}{$a_0$} & \multicolumn{1}{c}{$a_1$} & "
+           r"$s_T$/mK & \multicolumn{1}{c}{$a_0$} & \multicolumn{1}{c}{$a_1$} & "
            r"\multicolumn{1}{c}{$a_2$} & \multicolumn{1}{c}{$a_3$} \\")
 tex.append(r"    \midrule")
 order = ["Nitrogen_", "Argon_", "Helium_", "Helium-Neon_", "Nitrogen-Helium_"]
@@ -173,13 +179,14 @@ for r in rows_sorted:
     fluid, Tin, pin = parse(r["file"])
     a = list(r["a"]) + [None] * (4 - len(r["a"]))
     cells = ["" if ai is None else f"{ai:.7f}" for ai in a]
-    tex.append(f"    {fluid} & {Tin} & {pin} & ({r['N']}, {r['n']}) & "
+    rms = "0" if r["n"] == r["N"] - 1 else f"{r['rms_mK']:.0f}"
+    tex.append(f"    {fluid} & {Tin} & {pin} & ({r['N']}, {r['n']}) & {rms} & "
                + " & ".join(cells) + r" \\")
 tex.append(r"    \bottomrule")
 tex.append(r"  \end{tabular}")
 tex.append(r"\end{table}")
 
-out_path = os.path.join(os.path.dirname(__file__), "si_cheb_table.tex")
+out_path = os.path.join(JT_DIR, "si_cheb_table.tex")
 with open(out_path, "w") as f:
     f.write("\n".join(tex) + "\n")
 print(f"\nLaTeX table written to {out_path}")

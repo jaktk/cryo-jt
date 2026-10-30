@@ -52,18 +52,22 @@ isenthalp with the measured points, the tangent at the reference point
 
 ## Requirements
 
-These scripts require [REFPROP](https://www.nist.gov/srd/refprop) via the
-[`FluidProps`](../data_analysis/FluidProps.py) wrapper, plus
+All scripts except `plot_jt_method_schematic.py` require
+[REFPROP](https://www.nist.gov/srd/refprop) via the
+[`FluidProps`](../data_analysis/FluidProps.py) wrapper. All need
 `numpy`, `pandas`, `scipy`, and `matplotlib`. The shared style sheet uses
-`text.usetex` and therefore needs a LaTeX toolchain (`latex` + `dvipng`); to
-regenerate without LaTeX, set `text.usetex` to `False` in
-[`jced.mplstyle`](../jced.mplstyle).
+`text.usetex` with Helvetica, and therefore needs a LaTeX toolchain (`latex` +
+`dvipng`) with the packages `helvet` and `newtxsf`; to regenerate without
+LaTeX, set `text.usetex` to `False` in [`jced.mplstyle`](../jced.mplstyle)
+(the fonts will then differ from the published figures).
 
 Regenerate the full theory-figure set with:
 
 ```bash
 python src/theory_figures/plot_mu_Z_combined.py
-python src/theory_figures/plot_inversion_curves.py
+python src/theory_figures/plot_inversion_curves.py      # overwrites the hand-finished img/Tinv_mix.pdf
 python src/theory_figures/plot_literature_comparison.py
 python src/theory_figures/plot_jt_method_schematic.py
 ```
+
+Back up `img/Tinv_mix.pdf` before running `plot_inversion_curves.py`.

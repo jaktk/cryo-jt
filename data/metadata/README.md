@@ -2,29 +2,31 @@
 
 Descriptive metadata for the dataset: what each file is, what every column
 means, which sensors were used, when the data were acquired, and on what
-hardware/software. The files are static descriptions — they document the
+hardware/software. The files are static descriptions: they document the
 dataset but are not consumed by the analysis pipeline.
 
 Operational inputs to the pipeline (extraction windows and the index of
 derived isenthalp files) live next to the data they act on:
 
-- `data/raw_data/extraction_windows.json` — time stamps used by
+- `data/raw_data/extraction_windows.json`: time stamps used by
   [`get_pT_pairs.py`](../../src/data_analysis/get_pT_pairs.py) to cut each
-  steady-state measurement window out of the raw time series.
-- `data/derived_data/p_T_pairs/index.json` — manifest of the per-isenthalp
+  steady-state measurement window out of the raw time series. Isenthalps with
+  an `"excluded"` field are not used in the published analysis and are skipped.
+- `data/derived_data/p_T_pairs/index.json`: manifest of the per-isenthalp
   CSVs, used by
   [`calculate_jt_coefficients.py`](../../src/data_analysis/calculate_jt_coefficients.py)
-  to look up the fluid for each file.
+  to look up the fluid for each file. It is maintained by hand; no script
+  writes it.
 
 ## Contents
 
 | File | What it is |
 | --- | --- |
 | [`README.md`](README.md) | This file. |
-| [`codebook.csv`](codebook.csv) | Variable dictionary: per-column type, allowed values, unit, and description for every CSV produced or consumed by the pipeline. |
+| [`codebook.csv`](codebook.csv) | Variable dictionary: per-column type, allowed values, unit, and description for the raw and derived data CSVs, `all_measurements.csv`, and the capillary calculations (the literature CSV is described in `data/literature/README.md`). |
 | [`file_list.csv`](file_list.csv) | Manifest of the data files in the repository, with a one-line description and license for each. |
 | [`sensors.json`](sensors.json) | P&ID tag ↔ sensor model ↔ serial number ↔ calibration provenance for the principal measurement chain (TT101, TT102, PT101, PT102, GA016). |
-| [`campaigns.csv`](campaigns.csv) | Measurement campaign log: date, fluid or mixture, mean composition or purity, raw-data filename. |
+| [`campaigns.csv`](campaigns.csv) | Measurement campaign log: date, fluid or mixture, mean composition or purity, raw data file name. |
 | [`daq.json`](daq.json) | Data-acquisition stack: SCADA software, temperature acquisition module, transport. |
 
 ## How to use it

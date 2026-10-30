@@ -21,7 +21,7 @@ import glob
 import os
 import numpy as np
 import pandas as pd
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 from calculate_jt_coefficients import K_TARGET, systematic_rel_std_uncertainty
 
 
@@ -35,7 +35,7 @@ def eos_rel_std_uncertainty(fluid, p_mpa):
 
 
 def main():
-    root = get_git_root(os.getcwd())
+    root = REPO_ROOT
     rows = []
     for fluid in ('Nitrogen', 'Argon'):
         for f in sorted(glob.glob(os.path.join(root, 'data', 'derived_data', 'jt_coeffs', f'{fluid}_*_JT.csv'))):

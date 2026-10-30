@@ -1,0 +1,34 @@
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \caption{\label{tab:si_cheb}Coefficients $a_k$ of the Chebyshev fit $T/{\rm K} = \sum_{k=0}^{n} a_k\, C_k(p/{\rm MPa})$ (eq~\ref{eq:si_cheb}) for each measured isenthalp, with the number of points $N_{\rm s}$ and the fitted degree $n$ (all fits reach $R^2 > 0.999$), and the root mean square $s_T$ of the temperature residuals (zero where the polynomial interpolates, $n = N_{\rm s} - 1$). The Joule-Thomson coefficient is the analytic derivative (eq~\ref{eq:si_chebderiv}). Empty cells denote coefficients absent at the fitted degree.}
+  \begin{tabular}{lcccrD{.}{.}{3.7}D{.}{.}{2.7}D{.}{.}{1.7}D{.}{.}{1.7}}
+    \toprule
+    fluid & $T_{\rm in}$/K & $p_{\rm in}$/MPa & ($N_{\rm s}$, $n$) & $s_T$/mK & \multicolumn{1}{c}{$a_0$} & \multicolumn{1}{c}{$a_1$} & \multicolumn{1}{c}{$a_2$} & \multicolumn{1}{c}{$a_3$} \\
+    \midrule
+    nitrogen & 150 & 6 & (6, 2) & 538 & 85.9534783 & 18.2399228 & -0.6660808 &  \\
+    nitrogen & 160 & 12 & (8, 3) & 120 & 86.6252123 & 15.9588414 & -0.6602875 & 0.0104932 \\
+    nitrogen & 160 & 5 & (4, 2) & 29 & 120.9593094 & 10.5681388 & -0.2542283 &  \\
+    nitrogen & 160 & 6 & (5, 2) & 140 & 110.5203578 & 12.1652628 & -0.3248611 &  \\
+    nitrogen & 160 & 7 & (4, 2) & 56 & 102.7630053 & 12.8001799 & -0.3327319 &  \\
+    nitrogen & 160 & 9 & (7, 3) & 81 & 84.8449828 & 18.9544654 & -0.9259228 & 0.0189185 \\
+    argon & 180 & 12 & (6, 2) & 141 & 113.0672401 & 9.4015138 & -0.1606028 &  \\
+    argon & 180 & 5 & (4, 2) & 51 & 131.5909664 & 13.2993164 & -0.3378706 &  \\
+    helium-4 & 141 & 10 & (4, 2) & 23 & 146.6828262 & -0.6560174 & 0.0065431 &  \\
+    helium-4 & 65 & 5 & (4, 3) & 0 & 67.0513566 & 0.0609448 & -0.0855688 & 0.0071423 \\
+    helium-4 & 65 & 7 & (4, 3) & 0 & 64.5099218 & 2.6736248 & -0.3894970 & 0.0171355 \\
+    ${\rm ^4He-Ne}$ & 65 & 10 & (5, 2) & 40 & 51.6362567 & 2.1728059 & -0.0363168 &  \\
+    ${\rm ^4He-Ne}$ & 65 & 5 & (5, 2) & 50 & 55.0828305 & 2.9746274 & -0.0598691 &  \\
+    ${\rm ^4He-Ne}$ & 65 & 7 & (7, 2) & 118 & 50.8097287 & 3.2798494 & -0.0758033 &  \\
+    ${\rm ^4He-Ne}$ & 65 & 8 & (4, 2) & 6 & 58.0063664 & 1.3710359 & -0.0245348 &  \\
+    ${\rm ^4He-Ne}$ & 66 & 10 & (4, 2) & 35 & 57.8586538 & 1.2638965 & -0.0196183 &  \\
+    ${\rm ^4He-Ne}$ & 80 & 10 & (4, 3) & 0 & 62.0862165 & 8.5011730 & -0.7857045 & 0.0256973 \\
+    ${\rm ^4He-Ne}$ & 80 & 7 & (3, 1) & 6 & 76.7722371 & 0.6198798 &  &  \\
+    ${\rm ^4He-Ne}$ & 80 & 8 & (4, 2) & 31 & 73.5902138 & 1.2121189 & -0.0138157 &  \\
+    ${\rm ^4He-N_2}$ & 140 & 8 & (6, 2) & 51 & 123.5757856 & 2.8871051 & -0.0435960 &  \\
+    ${\rm ^4He-N_2}$ & 160 & 5 & (3, 2) & 0 & 133.3776763 & 6.9754426 & -0.1371840 &  \\
+    ${\rm ^4He-N_2}$ & 160 & 8 & (5, 2) & 83 & 115.7219489 & 8.7468269 & -0.2097380 &  \\
+    \bottomrule
+  \end{tabular}
+\end{table}

@@ -2,15 +2,19 @@ import os
 import numpy as np
 import pandas as pd
 import json
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 
 
-git_root = get_git_root(os.getcwd())
+git_root = REPO_ROOT
 
 with open(os.path.join(git_root, "data", "raw_data", "extraction_windows.json")) as f:
     data = json.load(f)
 
+written = {}
 for isenthalp_stamps in data["isenthalps"]:
+    if "excluded" in isenthalp_stamps:
+        print(f"Skipping isenthalp {isenthalp_stamps['id']} ({isenthalp_stamps['excluded']}).")
+        continue
     print(f"Extracting points from isenthalp {isenthalp_stamps['id']}...", end=" ")
     _stamp = ""
     measurement_isenthalp = pd.DataFrame()
@@ -48,6 +52,10 @@ for isenthalp_stamps in data["isenthalps"]:
     else:
         fluid_name = isenthalp_stamps['fluid']
     fname = f"{fluid_name}_{Tin}K_{pin}MPa.csv"
+    if fname in written:
+        raise ValueError(f"isenthalps {written[fname]} and {isenthalp_stamps['id']} "
+                         f"both map to {fname}; exclude one in extraction_windows.json")
+    written[fname] = isenthalp_stamps['id']
     
     # save selected measurements for a single isenthalp to csv
     measurement_isenthalp.to_csv(os.path.join(git_root,

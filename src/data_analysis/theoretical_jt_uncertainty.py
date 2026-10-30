@@ -229,7 +229,7 @@ def run_analysis():
     for ni, n_pts in enumerate(n_points_list):
         ax_b.plot(slopes_mc, mc_results[(n_pts, 0.0)],
                   '-', color=colors[ni], lw=1.4,
-                  label=f'$n = {n_pts}$', zorder=2)
+                  label=rf'$N_{{\rm s}} = {n_pts}$', zorder=2)
         ax_b.plot(slopes_mc, mc_results[(n_pts, 0.05)],
                   '--', color=colors[ni], lw=1.2, zorder=2)
 

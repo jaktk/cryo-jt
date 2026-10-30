@@ -18,6 +18,9 @@ def main():
         "axes.linewidth": 0.8,
         "xtick.direction": "in",
         "ytick.direction": "in",
+        # keep the page at the ACS TOC graphic size of 3.25 x 1.75 in;
+        # constrained layout fits the labels inside it
+        "savefig.bbox": "standard",
     })
     df = pd.read_csv(DATA).sort_values('p/MPa')
     p = df['p/MPa'].to_numpy()
@@ -54,7 +57,7 @@ def main():
     ax.tick_params(labelsize=7.5, pad=2)
     ax.margins(0.08)
 
-    fig.savefig(OUT, bbox_inches='tight')
+    fig.savefig(OUT)
 
 
 if __name__ == '__main__':

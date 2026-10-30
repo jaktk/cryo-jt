@@ -157,3 +157,7 @@ DS_Store
 
 REFPROP/FLUIDS/*.FLD
 REFPROP/FLUIDS/*.PPF
+
+# Local working files (not part of the dataset)
+.claude/
+all_the_mess/

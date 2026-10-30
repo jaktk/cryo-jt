@@ -1,100 +1,183 @@
 # Data Analysis
 
-This directory contains Python scripts for analyzing Joule-Thomson coefficient measurements from cryogenic fluid experiments.
+This directory contains the Python scripts that turn the raw measurements
+into Joule-Thomson coefficients with uncertainties, and that produce the
+tables and result figures of the paper.
 
 ## Overview
 
-The data analysis pipeline processes experimental pressure-temperature pairs from isenthalpic expansions to calculate Joule-Thomson coefficients with full uncertainty propagation. The methodology is based on PhD thesis Chapter 4: "Isenthalpic Joule-Thomson coefficient measurements."
+The pipeline extracts steady-state pressure-temperature pairs from the raw
+time series, fits each isenthalp with a Chebyshev polynomial, and takes
+μ_JT as its derivative. The methodology is based on PhD thesis Chapter 4:
+"Isenthalpic Joule-Thomson coefficient measurements."
 
-## Key Scripts
+The scripts locate the repository root from their own file location
+([`repo_root.py`](repo_root.py)), so they run from a git clone or from the
+unpacked Zenodo archive; git is not needed. Run them from any directory as
+`python src/data_analysis/<script>.py`.
+
+## Run order
+
+| Step | Script | REFPROP | Reads | Writes |
+| --- | --- | --- | --- | --- |
+| 1 | `get_pT_pairs.py` | no | `data/raw_data/*.csv`, `extraction_windows.json` | `p_T_pairs/*.csv` |
+| 2 | `calculate_jt_coefficients.py` | yes | `p_T_pairs/*.csv`, `p_T_pairs/index.json`, Cernox calibration | `jt_coeffs/*_JT.csv`, `jt_coefficients_summary.csv`, `jt_coefficients_detailed.json` |
+| 3 | `monte_carlo_uncertainty.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `jt_coeffs/*_MC_uncertainty.csv`, `mc_uncertainty_summary.csv` |
+| 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv` |
+| 5 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv`, `CORRECTIONS_PERC` | prints u_m |
+| 6 | `calculate_jt_coefficients.py` again, only if the constants below changed | yes | as step 2 | as step 2 |
+| 7 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
+
+Paths in the table are relative to `data/derived_data/` unless given in full.
+`p_T_pairs/index.json` is maintained by hand: `get_pT_pairs.py` does not
+write it, so add or remove its entries when the set of isenthalps changes.
+
+Two constants in `calculate_jt_coefficients.py` are hard-coded from the
+outputs of later steps:
+
+- `CORRECTIONS_PERC`: the mean relative heat-loss and kinetic-energy
+  corrections (δ_Q, δ_k in %) per fluid group, copied from the `dQ/%` and
+  `dk/%` columns of `corrections_summary.csv` (step 4).
+- `U_METHOD_REL` (0.0236): the relative method uncertainty u_m printed by
+  `estimate_method_uncertainty.py` (step 5). That script uses
+  `CORRECTIONS_PERC`, so update `CORRECTIONS_PERC` first.
+
+The two constants only affect `JT_UNC/(K/MPa)` and `mean_unc_perc`.
+`JT_meas`, `JT_eos`, and `JT_UNC_MC`, which steps 3 to 5 read, do not depend
+on them, so step 6 does not require rerunning steps 3 to 5.
+
+## Scripts
+
+### `get_pT_pairs.py`
+
+Cuts each steady-state window listed in
+`data/raw_data/extraction_windows.json` out of the raw time series and
+averages it (5 samples at 1 s). For every column `X` it writes the mean, the
+standard deviation `X_STD`, and the expanded uncertainty of the mean
+`X_EXP_UNC` = 2 `X_STD`/√N (k = 2). Isenthalps with an `"excluded"` field
+(13, 15, 23, 24, 25: not used in the published analysis) are skipped. The
+output name is `<fluid>_<T_in>K_<p_in>MPa.csv` from the rounded mean inlet
+conditions; the script raises an error if two isenthalps map to the same name.
 
 ### `calculate_jt_coefficients.py`
 
-Main script for calculating Joule-Thomson coefficients from processed experimental data.
+Main script for the Joule-Thomson coefficients.
 
-**Features:**
-- **Full uncertainty propagation** through polynomial fitting and differentiation
-- **Weighted least squares fitting** using measurement uncertainties
-- **Monte Carlo uncertainty** of the derived coefficient (Gaussian perturbations, expanded to k = 2), combined in quadrature with the uncorrected heat-loss and kinetic-energy biases (rectangular, u = δ/√3)
-- **Automatic polynomial degree selection**: lowest degree reaching R² > 0.999
-- **Comprehensive output** with individual and summary results
+1. **Measurement uncertainties** (expanded, k = 2): `p_UNC` is the larger of
+   `PT102/MPa_EXP_UNC` and the sensor floor 2 × 0.01 % of 13.7 MPa; `T_UNC` is
+   the larger of `TT102/K_EXP_UNC` and the sensor-chain uncertainty of TT102
+   (Cernox sensor, CABTR module, calibration polynomial, in quadrature).
+2. **Composition** (mixtures): gas-analyser readings with |x1 + x2 - 1| ≥ 0.02
+   are rejected and replaced by the isenthalp mean.
+3. **Fit**: weighted least-squares Chebyshev fit of T(p) at the outlet
+   (weights `1/(u_T² + (u_p·dT/dp)²)`), choosing the lowest degree (1 to 6,
+   capped at N - 1) that reaches R² > 0.999.
+4. **μ_JT**: analytic derivative of the fitted polynomial at each point.
+5. **Monte Carlo** (`JT_UNC_MC`): each point is perturbed with a Gaussian error
+   at the standard (k = 1) measurement uncertainty, refitted with the same
+   weighted Chebyshev degree, and re-differentiated over 2000 seeded
+   realisations; `JT_UNC_MC` is 2 × the sample standard deviation.
+6. **Combined uncertainty** (`JT_UNC`): the Monte Carlo standard uncertainty,
+   the uncorrected heat-loss and kinetic-energy biases (rectangular,
+   u = δ/√3, from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the
+   method uncertainty u_m = 2.36 % (k = 1) are added in quadrature and
+   expanded with k = 2.
+7. **Comparison with the EOS**: μ_JT from REFPROP at each measured (p, T) and
+   the relative absolute deviation, referred to the EOS value for pure fluids
+   and to the measured value for mixtures.
 
-**Usage:**
-```bash
-python src/data_analysis/calculate_jt_coefficients.py
-```
-
-**Input Data:**
-- `data/derived_data/p_T_pairs/*.csv` - Processed pressure-temperature pairs with uncertainties
-- `data/derived_data/p_T_pairs/index.json` - Manifest of per-isenthalp CSVs (filename, fluid, mean inlet temperature)
-
-**Output:**
-- `data/derived_data/jt_coeffs/jt_coefficients_summary.csv` - Summary results table
-- `data/derived_data/jt_coeffs/jt_coefficients_detailed.json` - Complete results with arrays
-- `data/derived_data/jt_coeffs/*_JT.csv` - Individual measurement files
-
-**Methodology:**
-
-1. **Polynomial Fitting:**
-   - Fits first-kind Chebyshev polynomials to isenthalpic p-T data
-   - Uses weighted least squares with measurement uncertainties
-     (weights `1/(u_T² + (u_p·dT/dp)²)`; weights do not affect an exact interpolation)
-   - Selects the lowest degree (1-6, capped at N_points-1) reaching R² > 0.999
-
-2. **JT Coefficient Calculation:**
-   - Computes μ_JT = dT/dp as the analytic derivative of the fitted polynomial
-
-3. **Uncertainty Analysis (Monte Carlo):**
-   - Perturbs each measured point with a **Gaussian** error whose standard
-     deviation is the **standard (k = 1)** uncertainty (expanded value / 2)
-   - Refits with the same weighted Chebyshev fit and re-differentiates, over
-     **2000** realizations (seeded for reproducibility)
-   - Reports the **expanded** uncertainty: k = 2 × the sample standard deviation (`JT_UNC_MC`)
-   - Adds the uncorrected heat-loss and kinetic-energy biases as rectangular bounds,
-     u = δ/√3, in quadrature (`JT_UNC`). The mean corrections per fluid come from
-     `estimate_corrections.py` (constant 27 mW heat exchange, mass flow from the
-     capillary model in `data/derived_data/capillary_mass_flow`)
-   - Adds a relative method uncertainty u_m = 2.4 % (k = 1) in quadrature (`JT_UNC`),
-     estimated by `estimate_method_uncertainty.py` from the scatter of the N2 and Ar
-     points about their reference EOS that the Monte Carlo, bias, and EOS terms do not explain
-   - The closed-form GUM propagation and sensor-floor bound are computed
-     separately by `theoretical_jt_uncertainty.py`
-
-4. **Validation:**
-   - Compares measured vs. theoretical JT coefficients using REFPROP
-   - Calculates relative errors and goodness-of-fit metrics
-   - Provides detailed quality assessment
-
-### `theoretical_jt_uncertainty.py`
-
-Closed-form (GUM) and Monte Carlo propagation of the sensor-limited uncertainty of $\mu_{\rm JT}$, parametrised by isenthalp slope, curvature, and number of points. Writes `img/theoretical_uncertainty_combined.{pdf,svg}` and is used in the paper as the lower bound on achievable uncertainty.
-
-### `compare_theory_vs_experiment.py`
-
-Overlays the measured $\mu_{\rm JT}$ deviations from the EOS on the sensor-floor band from `theoretical_jt_uncertainty.py`. Writes `img/theory_vs_experiment_uncertainty.pdf`.
+The lowest- and highest-pressure points of each isenthalp are fitted but get
+`used` = False and are excluded from `mean_unc_perc`, the deviation
+statistics, the figures, and the paper tables.
 
 ### `monte_carlo_uncertainty.py`
 
-Monte Carlo bound on the achievable $\mu_{\rm JT}$ uncertainty *for each actually-measured isenthalp*. Reads `data/derived_data/p_T_pairs/*.csv` and `data/derived_data/jt_coeffs/jt_coefficients_summary.csv` (for the polynomial degree), places the measured pressures on the EOS-derived isenthalp through the mean inlet condition, perturbs each point within its sensor-floor (and, for mixtures, composition) uncertainty, refits Chebyshev, and reports the per-point spread of the derived $\mu_{\rm JT}$. No hard-coded $p$, $T$, $x$ values.
+Monte Carlo bound on the achievable μ_JT uncertainty for each measured
+isenthalp. It places the measured pressures on the EOS isenthalp through the
+mean inlet condition, perturbs each point within its sensor floor (and, for
+mixtures, the composition alone within 0.1 mol-%, k = 2), refits with the
+degree from `jt_coefficients_summary.csv`, and reports the spread of the
+derived μ_JT (2000 realisations, k = 2).
 
 ```bash
-python src/data_analysis/monte_carlo_uncertainty.py             # all isenthalps
-python src/data_analysis/monte_carlo_uncertainty.py \           # one isenthalp
-    --isenthalp Helium-Neon_65K_5MPa --n-samples 2000 -v
+python src/data_analysis/monte_carlo_uncertainty.py   # all isenthalps
+# one isenthalp:
+python src/data_analysis/monte_carlo_uncertainty.py --isenthalp Helium-Neon_65K_5MPa -v
 ```
 
-Writes `data/derived_data/jt_coeffs/<stem>_MC_uncertainty.csv` per isenthalp and a combined `mc_uncertainty_summary.csv`. Requires REFPROP for the EOS lookups.
+It writes `data/derived_data/jt_coeffs/<stem>_MC_uncertainty.csv` for each
+isenthalp it runs. `mc_uncertainty_summary.csv` is written only by a full run;
+with `--isenthalp` the summary is left unchanged.
 
-### Supporting Files
+### `estimate_corrections.py`
 
-- `FluidProps.py` - REFPROP wrapper for thermodynamic property calculations
-- `get_git_root.py` - Utility for finding the repository root directory
+Heat-loss and kinetic-energy corrections for every used point, for a constant
+heat exchange of 27 mW, with the mass flow interpolated from
+`data/derived_data/capillary_mass_flow/`. Writes `corrections_per_point.csv`
+and `corrections_summary.csv`, and prints the deviation from the EOS with and
+without the corrections and the best-fit heat exchange per fluid group. The
+corrections are not applied to the data; they enter `JT_UNC` as uncorrected
+biases.
 
-## Data Structure
+### `estimate_method_uncertainty.py`
 
-### Input Data Format
+Estimates the method uncertainty from the N2 and Ar points as
+u_m² = RMS(dev)² - mean(u_MC² + u_sys² + u_EOS²), all relative and at k = 1,
+with u_EOS taken from the c_p tolerance diagrams of the reference equations of
+state. It only prints the result; copy it to `U_METHOD_REL`. It makes no
+REFPROP calls but imports `calculate_jt_coefficients.py`, so `ctREFPROP`
+must be installed.
 
-**p_T_pairs CSV files:**
+### `generate_paper_tables.py`
+
+Writes the LaTeX bodies of the result tables to
+`data/derived_data/jt_coeffs/paper_tables.tex` and prints them. The per-point
+tables give the standard (k = 1) u(p) and u(T) and the expanded U(μ_JT); μ_JT
+and U are left empty for the isenthalp end points (`used` = False).
+
+### `extract_fit_coefficients.py`
+
+Reproduces the Chebyshev fit of every isenthalp without REFPROP, checks that
+its derivative matches `JT_meas`, and writes the Supporting Information table
+of the coefficients a_k, the number of points and degree, and the RMS of the
+fit residuals s_T (mK) to `data/derived_data/jt_coeffs/si_cheb_table.tex`.
+
+### `theoretical_jt_uncertainty.py`
+
+Closed-form (GUM) and Monte Carlo propagation of the sensor-limited
+uncertainty of μ_JT, parametrised by isenthalp slope, curvature, and number
+of points. Writes `img/theoretical_uncertainty_combined.pdf`, the lower bound
+on the achievable uncertainty shown in the paper.
+
+### `compare_theory_vs_experiment.py`
+
+Overlays the measured μ_JT deviations from the EOS (used points only) on the
+sensor-floor band from `theoretical_jt_uncertainty.py`. Writes
+`img/theory_vs_experiment_uncertainty.pdf`.
+
+### `plot_paper_results.py` and `plot_toc_graphic.py`
+
+`plot_paper_results.py` writes the per-fluid result figures
+(`measurements_pures_errorbars.pdf`, `measurements_HeNe_errorbars.pdf`,
+`measurements_HeN2_errorbars.pdf`) with `JT_UNC` error bars for the used
+points. `plot_toc_graphic.py` writes the table-of-contents graphic
+`img/toc.pdf` at 3.25 in × 1.75 in.
+
+### Supporting files
+
+- `FluidProps.py`: REFPROP wrapper for thermodynamic property calculations.
+  It finds REFPROP through the `RPPREFIX` environment variable or a default
+  per-platform location.
+- `repo_root.py`: defines `REPO_ROOT`, the repository root computed from the
+  location of this file.
+
+## Data structure
+
+Full column definitions for every file are in
+[`data/metadata/codebook.csv`](../../data/metadata/codebook.csv).
+
+### Input: `p_T_pairs` CSV files
+
 ```
 PT102/MPa,PT102/MPa_STD,PT102/MPa_EXP_UNC,PT101/MPa,PT101/MPa_STD,PT101/MPa_EXP_UNC,
 TT009/K,TT009/K_STD,TT009/K_EXP_UNC,TT010/K,TT010/K_STD,TT010/K_EXP_UNC,
@@ -105,56 +188,59 @@ x1,x1_STD,x1_EXP_UNC,x2,x2_STD,x2_EXP_UNC,impurity,impurity_STD,impurity_EXP_UNC
 err(x),err(x)_STD,err(x)_EXP_UNC
 ```
 
+The `Q008/W` columns are absent where the raw data have no heater power.
+
 **Key variables:**
-- `PT102/MPa` - Downstream pressure (measurement point)
-- `TT102/K` - Downstream temperature (measurement point)  
-- `PT101/MPa` - Upstream pressure (reference condition)
-- `TT101/K` - Upstream temperature (reference condition)
-- `*_EXP_UNC` - Expanded measurement uncertainties
-- `x1`, `x2` - Mixture composition (for binary mixtures)
+- `PT102/MPa`, `TT102/K`: downstream pressure and temperature (measurement point)
+- `PT101/MPa`, `TT101/K`: upstream pressure and temperature (inlet condition)
+- `*_EXP_UNC`: expanded (k = 2) uncertainty of the window mean
+- `x1`, `x2`: mixture composition (binary mixtures)
 
-### Output Data Format
+### Output: `jt_coefficients_summary.csv`
 
-**Summary CSV columns:**
-- `filename` - Original data file name
-- `fluid` - Fluid type (e.g., "Nitrogen", "Helium-Neon")
-- `is_mixture` - Boolean indicating mixture vs. pure fluid
-- `composition` - Mole fraction of first component (mixtures only)
-- `n_points` - Number of measurement points
-- `polynomial_degree` - Optimal polynomial degree used
-- `r2_score` - Goodness of fit (R² value)
-- `mean_relative_error_percent` - Mean deviation from EOS
-- `rms_relative_error_percent` - RMS deviation from EOS
-- `mean_uncertainty_percent` - Mean measurement uncertainty
+`filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
+`polynomial_degree`, `r2_score`, `mean_rel_abs_err_perc`,
+`std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
+deviation statistics and `mean_unc_perc` are taken over the used points.
 
-**Individual measurement files:**
-- `pressure_MPa` - Measurement pressures
-- `temperature_K` - Measurement temperatures
-- `pressure_uncertainty_MPa` - Pressure measurement uncertainties
-- `temperature_uncertainty_K` - Temperature measurement uncertainties
-- `jt_measured_K_per_MPa` - Measured JT coefficients
-- `jt_theoretical_K_per_MPa` - Theoretical JT coefficients from EOS
-- `jt_uncertainty_analytical_K_per_MPa` - Analytical uncertainty propagation
-- `jt_uncertainty_mc_K_per_MPa` - Monte Carlo uncertainty estimation
-- `jt_uncertainty_K_per_MPa` - Combined uncertainty (maximum of both methods)
-- `relative_error_percent` - Relative error vs. theoretical values
+### Output: `<stem>_JT.csv`
 
-## Experimental Conditions
+| Column | Content |
+| --- | --- |
+| `p/MPa`, `T/K` | outlet pressure and temperature of the point |
+| `p_UNC/MPa`, `T_UNC/K` | expanded (k = 2) measurement uncertainties |
+| `x1` | first-component mole fraction at the point (mixtures only) |
+| `JT_meas/(K/MPa)` | measured μ_JT |
+| `JT_UNC_MC/(K/MPa)` | Monte Carlo part of the uncertainty (k = 2) |
+| `JT_UNC/(K/MPa)` | combined expanded uncertainty (k = 2) |
+| `JT_eos/(K/MPa)` | μ_JT from the EOS at the same point |
+| `mean_unc_perc` | mean of 100 `JT_UNC`/\|`JT_meas`\| over the used points (same on every row) |
+| `rel_abs_err_perc` | relative absolute deviation from the EOS |
+| `used` | False for the isenthalp end points |
+
+### Output: `<stem>_MC_uncertainty.csv`
+
+`p/MPa`, `T_eos/K`, `jt_eos/(K/MPa)`, `jt_mc_mean/(K/MPa)`,
+`jt_mc_std/(K/MPa)` (k = 1), `jt_mc_unc/(K/MPa)` (k = 2),
+`jt_mc_rel_unc_perc`, and for mixtures `jt_mc_cmp_rel_unc_perc` (composition
+contribution).
+
+## Experimental conditions
 
 **Fluids measured:**
-- **Pure fluids:** Nitrogen, Argon, Helium-4
-- **Binary mixtures:** Helium-Neon, Helium-Nitrogen
+- **Pure fluids:** nitrogen, argon, helium-4
+- **Binary mixtures:** helium-neon, helium-nitrogen
 
-**Temperature range:** 65K to 180K
+**Inlet temperature range:** 65 K to 180 K
 **Pressure range:** 0.1 MPa to 12 MPa
 
-**Measurement uncertainty** (k=2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
+**Measurement uncertainty** (k = 2, computed by `theoretical_jt_uncertainty.combined_temperature_uncertainty`, using the outlet thermometer TT102 / sensor X93303):
 - **Temperature (Cernox sensor only):** ±13 mK at 50 K to ±28 mK at 180 K
 - **Temperature (full chain, sensor + CABTR + calibration polynomial, combined in quadrature):** ±16 mK at 65 K to ±34 mK at 180 K
-- **Pressure:** ±0.01% of full scale (13.7 MPa)
-- **Composition:** ±0.1 mol% (binary mixtures)
+- **Pressure:** ±0.01 % of full scale (13.7 MPa)
+- **Composition:** ±0.1 mol-% (binary mixtures)
 
-## Theoretical Background
+## Theoretical background
 
 The Joule-Thomson coefficient is defined as:
 ```
@@ -163,7 +249,7 @@ The Joule-Thomson coefficient is defined as:
 
 Where:
 - T = temperature
-- p = pressure  
+- p = pressure
 - h = specific enthalpy (constant)
 - x̄ = composition vector (constant)
 
@@ -182,87 +268,78 @@ Where:
 
 ## Requirements
 
-**Python packages:**
-- `numpy` - Numerical computations
-- `pandas` - Data manipulation
-- `scipy` - Scientific computing
-- `sklearn` - R² calculation
-- `matplotlib` - Plotting (for legacy scripts)
-
-**External dependencies:**
-- **REFPROP** - Thermodynamic property calculations
-- Custom equations of state for He-Ne, He-Ar, Ne-Ar mixtures (see `REFPROP/` directory)
-- **LaTeX** (`latex` + `dvipng`) is required by the figure scripts for
-  `matplotlib`'s `text.usetex` (the Computer Modern rendering used by the
-  shared style sheet). Set `text.usetex: False` in `jced.mplstyle` to skip.
-
-A pinned dependency list is provided at the repository root in
+**Python packages:** `numpy`, `pandas`, `scipy`, `scikit-learn` (R²),
+`matplotlib`, and `ctREFPROP` (bindings to REFPROP). See
 [`requirements.txt`](../../requirements.txt).
 
-## Figure Regeneration
+**External dependencies:**
+- **REFPROP** for the scripts that evaluate the equation of state (steps 2,
+  3, 4, and the `theory_figures/` scripts except the schematic).
+- The custom mixture models for He-Ne, He-Ar, Ne-Ar, and He-N2 in
+  [`REFPROP/FLUIDS/HMX.BNC`](../../REFPROP/FLUIDS/HMX.BNC), merged into the
+  local REFPROP installation (see [`REFPROP/README.md`](../../REFPROP/README.md)).
+- **LaTeX** (`latex` + `dvipng`, with the packages `amsmath`, `helvet`, and
+  `newtxsf`) for the figure scripts: `matplotlib`'s `text.usetex` renders
+  text in Helvetica with sans-serif math, as set in the shared style sheet.
+  Set `text.usetex: False` in `jced.mplstyle` to skip LaTeX (the fonts will
+  then differ from the published figures).
+
+## Figure regeneration
 
 All paper figures are generated by the scripts below and written to the
 repository [`img/`](../../img) directory. The scripts share a single
-declarative matplotlib style sheet, [`jced.mplstyle`](../jced.mplstyle), which is
-loaded explicitly with `plt.style.use(...)`; each script then sets its own
-figure-specific layout. There is no shared style function.
+matplotlib style sheet, [`jced.mplstyle`](../jced.mplstyle), loaded with
+`plt.style.use(...)`; each script then sets its own figure-specific layout.
+Figures are drawn at their printed size.
 
-| Script | Output(s) in `img/` |
+| Script | Output(s) |
 | --- | --- |
-| [`plot_paper_results.py`](plot_paper_results.py) | `measurements_pures_errorbars.pdf`, `measurements_HeNe_errorbars.pdf`, `measurements_HeN2_errorbars.pdf` |
-| [`theoretical_jt_uncertainty.py`](theoretical_jt_uncertainty.py) | `theoretical_uncertainty_combined.pdf` |
-| [`compare_theory_vs_experiment.py`](compare_theory_vs_experiment.py) | `theory_vs_experiment_uncertainty.pdf` |
-| [`plot_toc_graphic.py`](plot_toc_graphic.py) | `toc.pdf` |
-| [`generate_paper_tables.py`](generate_paper_tables.py) | `data/derived_data/jt_coeffs/paper_tables.tex` (LaTeX bodies of the result tables) |
+| [`plot_paper_results.py`](plot_paper_results.py) | `img/measurements_pures_errorbars.pdf`, `img/measurements_HeNe_errorbars.pdf`, `img/measurements_HeN2_errorbars.pdf` |
+| [`theoretical_jt_uncertainty.py`](theoretical_jt_uncertainty.py) | `img/theoretical_uncertainty_combined.pdf` |
+| [`compare_theory_vs_experiment.py`](compare_theory_vs_experiment.py) | `img/theory_vs_experiment_uncertainty.pdf` |
+| [`plot_toc_graphic.py`](plot_toc_graphic.py) | `img/toc.pdf` |
+| [`generate_paper_tables.py`](generate_paper_tables.py) | `data/derived_data/jt_coeffs/paper_tables.tex` |
+| [`extract_fit_coefficients.py`](extract_fit_coefficients.py) | `data/derived_data/jt_coeffs/si_cheb_table.tex` |
 
-`plot_paper_results.py`, `compare_theory_vs_experiment.py`, and
-`plot_toc_graphic.py` read the derived JT CSVs in
-[`data/derived_data/jt_coeffs/`](../../data/derived_data/jt_coeffs) and do not
-require REFPROP. `theoretical_jt_uncertainty.py` propagates the equipment
-uncertainties analytically and by Monte Carlo and also does not require
-REFPROP. The full data-reduction pipeline (`calculate_jt_coefficients.py`)
-does require REFPROP.
-
-Regenerate the full figure set with:
+These scripts read the committed derived data and do not require REFPROP.
+The theory figures are listed in
+[`../theory_figures/README.md`](../theory_figures/README.md) and in
+[`img/README.md`](../../img/README.md).
 
 ```bash
 python src/data_analysis/plot_paper_results.py
 python src/data_analysis/compare_theory_vs_experiment.py
 python src/data_analysis/theoretical_jt_uncertainty.py
 python src/data_analysis/plot_toc_graphic.py
+python src/data_analysis/generate_paper_tables.py
+python src/data_analysis/extract_fit_coefficients.py
 ```
 
-## Error Handling
+## Error handling
 
-The analysis includes robust error handling for:
-- **Missing data files** - Graceful skipping with warnings
-- **Insufficient data points** - Minimum 3 points required for fitting
-- **Numerical instabilities** - Regularization and fallback methods
-- **EOS calculation failures** - NaN handling and error reporting
-- **Uncertainty propagation errors** - Fallback to simplified estimates
+- Files listed in `index.json` but missing on disk are skipped with a warning.
+- Isenthalps with fewer than 3 points are skipped.
+- Failed Monte Carlo refits are dropped (and counted in
+  `monte_carlo_uncertainty.py`); in the composition Monte Carlo, realisations
+  whose EOS μ_JT is non-finite or more than 5 times off the nominal value are
+  also dropped.
+- EOS failures at a point give NaN for `JT_eos`.
+- `get_pT_pairs.py` stops with an error if two isenthalps map to the same
+  output file name.
 
-## Data Quality Metrics
+## Data quality
 
-**Fitting quality:**
-- R² > 0.999 reached by every retained fit
-- Polynomial degree: lowest degree (1-6) reaching R² > 0.999
-- Weighted fitting accounts for measurement uncertainties
+**Fitting:**
+- Every fit reaches R² > 0.999; the selected degrees are 1 to 3.
+- The weights account for the measurement uncertainties.
 
-**Measurement accuracy:**
-- Typical relative errors: 1-5% vs. EOS predictions
-- Best measurements: <1% relative error
-- Uncertainty analysis validates measurement quality
+**Mean relative absolute deviation from the EOS (used points):**
+- Nitrogen and argon: 0.6 % to 3.7 %
+- Helium-4: 16 % to 22 %
+- Helium-neon: 1.2 % to 33 %
+- Helium-nitrogen: 0.7 % to 11 %
 
-## Publication Notes
-
-This analysis forms the foundation for:
-- PhD thesis Chapter 4: "Isenthalpic Joule-Thomson coefficient measurements"
-- Planned journal publication on He-Ne mixture measurements
-- Validation of equations of state for cryogenic applications
-- Data repository for reproducible research
-
-The methodology represents a significant advancement in JT coefficient measurements through:
-- Modern cryogenic instrumentation
-- Rigorous uncertainty analysis
-- Comprehensive data validation
-- Open-source analysis tools
+The mean relative expanded uncertainty (`mean_unc_perc`) is about 5 % for
+nitrogen, argon, and dilute He-N2 (6.7 % for the He-N2 isenthalp with about
+50 % helium), 8 % to 10 % for He-Ne, and 25 % to 26 % for helium-4. See
+`jt_coefficients_summary.csv` for the values per isenthalp.

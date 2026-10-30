@@ -24,7 +24,7 @@ FLUID_STYLE = {
     'Argon':          {'label': 'Ar',           'color': '#FF7F0E', 'marker': 's'},
     'Helium':         {'label': 'He',           'color': '#1F77B4', 'marker': '^'},
     'Helium-Neon':    {'label': 'He-Ne',        'color': '#2CA02C', 'marker': 'D'},
-    'Nitrogen-Helium':{'label': r'N$_2$-He',    'color': '#9467BD', 'marker': 'v'},
+    'Nitrogen-Helium':{'label': r'He-N$_2$',    'color': '#9467BD', 'marker': 'v'},
 }
 
 

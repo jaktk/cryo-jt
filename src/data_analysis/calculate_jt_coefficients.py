@@ -6,7 +6,7 @@ from scipy import optimize, interpolate
 from numpy.polynomial.chebyshev import Chebyshev
 from sklearn.metrics import r2_score
 from FluidProps import FluidProps
-from get_git_root import get_git_root
+from repo_root import REPO_ROOT
 
 # Coverage factors. The sensor, acquisition, and calibration specifications are
 # expanded at K_SOURCE; the analysis reports everything at K_TARGET (95 %).
@@ -69,7 +69,7 @@ class CernoxCal(object):
         self.dat = self._set_dat()
 
     def _set_coefficients(self):
-        fpath = os.path.join(get_git_root(os.getcwd()),
+        fpath = os.path.join(REPO_ROOT,
                              'data',
                              'cernox_calibration_data',
                              self.serNum,
@@ -100,7 +100,7 @@ class CernoxCal(object):
         return c_dict
 
     def _set_tbl(self):
-        fpath = os.path.join(get_git_root(os.getcwd()),
+        fpath = os.path.join(REPO_ROOT,
                              'data',
                              'cernox_calibration_data',
                              self.serNum,
@@ -108,7 +108,7 @@ class CernoxCal(object):
         return pd.read_csv(fpath, sep=r'\s+', header=[0,1])
 
     def _set_dat(self):
-        fpath = os.path.join(get_git_root(os.getcwd()),
+        fpath = os.path.join(REPO_ROOT,
                              'data',
                              'cernox_calibration_data',
                              self.serNum,
@@ -204,7 +204,7 @@ class TempUncertainty(object):
 
 class JTCoefficientCalculator(object):
     def __init__(self):
-        self.git_root = get_git_root(os.getcwd())
+        self.git_root = REPO_ROOT
         self.data_dir = os.path.join(self.git_root,
                                      'data',
                                      'derived_data',
