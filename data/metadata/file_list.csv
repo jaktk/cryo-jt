@@ -38,3 +38,6 @@ data/metadata,codebook.csv,"column dictionary of every data file: variable, type
 data/metadata,daq.json,data-acquisition configuration (sampling and instruments),CC-BY-4.0
 data/metadata,file_list.csv,this list of the data files with their description and license,CC-BY-4.0
 data/metadata,sensors.json,"P&ID tag, sensor model, serial number, and calibration provenance of the principal measurement chain",CC-BY-4.0
+data/derived_data/jt_coeffs,heat_exchange_fit.csv,"fit of the outlet-temperature offsets as an inlet-thermometer offset plus a constant heat exchange (diagnostic), written by estimate_corrections.py",CC-BY-4.0
+data/derived_data/jt_coeffs,fit_diagnostics.csv,"diagnostics of the Chebyshev fits (degree rule with uncorrelated uncertainty, EOS-only residuals), written by diagnose_fits.py",CC-BY-4.0
+data/derived_data/jt_coeffs,hysteresis_check.csv,"comparison of the nitrogen 150 K/6 MPa isenthalp measured with decreasing and increasing outlet pressure, written by hysteresis_check.py",CC-BY-4.0

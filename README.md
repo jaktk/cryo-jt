@@ -174,7 +174,7 @@ The figure scripts share the style sheet `src/jced.mplstyle` and write to `img/`
 
 Install the Python dependencies with `pip install -r requirements.txt`. The scripts find the repository root from their own location, so they run from a git clone or from the Zenodo archive; git is not needed. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom mixture models are provided in `REFPROP/FLUIDS/HMX.BNC` and must be merged into REFPROP's own `HMX.BNC` file (see [`REFPROP/README.md`](REFPROP/README.md)). The figure scripts use LaTeX with the packages `helvet` and `newtxsf`.
 
-REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, `validate_degree_criterion.py`, `refit_hene_eos.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
+REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, `validate_degree_criterion.py`, `diagnose_fits.py`, `refit_hene_eos.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
 
 ```bash
 python src/data_analysis/get_pT_pairs.py                 # 1. steady-state p-T pairs from the raw data
@@ -185,6 +185,8 @@ python src/data_analysis/estimate_corrections.py         # 4. heat-loss and kine
 python src/data_analysis/validate_degree_criterion.py   # 5. synthetic test; copy u_m to U_METHOD_REL     (REFPROP)
 # 6. if CORRECTIONS_PERC or U_METHOD_REL changed, rerun step 2
 python src/data_analysis/estimate_method_uncertainty.py  # 7. cross-check of u_m with the N2 and Ar data
+python src/data_analysis/diagnose_fits.py               #    fit diagnostics for the SI                     (REFPROP)
+python src/data_analysis/hysteresis_check.py            #    hysteresis check (nitrogen 150 K/6 MPa)
 python src/data_analysis/refit_hene_eos.py               # 8. refit of the He-Ne EOS parameters to mu_JT     (REFPROP)
 python src/data_analysis/analyze_purity.py               # 9. in-situ purity of the pure fluids
 python src/data_analysis/generate_paper_tables.py        # 10. LaTeX bodies of the result tables

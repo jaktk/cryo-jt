@@ -22,6 +22,9 @@ The full column dictionary is in
 | `corrections_summary.csv` | `estimate_corrections.py` | Mean corrections per fluid group (He-N2 split by composition), deviation from the EOS with and without the corrections, and the best-fit heat exchange. Source of `CORRECTIONS_PERC` in `calculate_jt_coefficients.py`. |
 | `paper_tables.tex` | `generate_paper_tables.py` | LaTeX bodies of the result tables of the paper. |
 | `si_cheb_table.tex` | `extract_fit_coefficients.py` | LaTeX table of the Chebyshev fit coefficients (in the scaled pressure), the pressure range, $\chi^2_\nu$, and the RMS of the fit residuals $s_T$ for the Supporting Information. |
+| `heat_exchange_fit.csv` | `estimate_corrections.py` | Per isenthalp, a fit of the outlet-temperature offsets from the EOS isenthalp as an inlet-thermometer offset plus a constant heat exchange (diagnostic, not used in U). |
+| `fit_diagnostics.csv` | `diagnose_fits.py` | Degree rule with only the uncorrelated uncertainty, and the residual RMS of the EOS isenthalp at the selected degree (diagnostics for the SI). |
+| `hysteresis_check.csv` | `hysteresis_check.py` | Nitrogen 150 K/6 MPa measured with decreasing and increasing outlet pressure: outlet temperatures and μ_JT of both fits. |
 | `hene_eos_refit.csv` | `refit_hene_eos.py` | Refit of the He-Ne EOS parameters to the measured $\mu_{\rm JT}$: parameters, AAD, points outside U, and the change of the bubble points and densities. |
 | `degree_validation.csv` | `validate_degree_criterion.py` | Synthetic test, one row per isenthalp and degree rule (`chi2`, `r2`, `ftest`): degrees selected, bias, scatter, and RMS of the relative error of $\mu_{\rm JT}$ against the exact EOS slope, and the coverage of the uncertainty. |
 | `degree_pooled.csv` | `validate_degree_criterion.py` | The synthetic test pooled per fluid group and rule. |
@@ -59,7 +62,7 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
   the χ² test, it is scaled by the Birge ratio √χ²_ν (`birge_ratio` in the
   summary).
 - `JT_UNC_X/(K/MPa)` is the composition part for mixtures (k = 2):
-  |∂μ_JT/∂x1| u(x1), with the sensitivity from the EOS at the measured state
+  2 |∂μ_JT/∂x1| u(x1), with the sensitivity from the EOS at the measured state
   and u(x1) the larger of 0.0005 and the standard deviation of the point
   compositions of the isenthalp (`u_x1` in the summary); zero for pure fluids.
 - `JT_UNC/(K/MPa)` combines in quadrature the Monte Carlo standard

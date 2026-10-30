@@ -23,10 +23,11 @@ unpacked Zenodo archive; git is not needed. Run them from any directory as
 | 1 | `get_pT_pairs.py` | no | `data/raw_data/*.csv`, `extraction_windows.json` | `p_T_pairs/*.csv` |
 | 2 | `calculate_jt_coefficients.py` | yes | `p_T_pairs/*.csv`, `p_T_pairs/index.json`, Cernox calibration | `jt_coeffs/*_JT.csv`, `jt_coefficients_summary.csv`, `jt_coefficients_detailed.json` |
 | 3 | `monte_carlo_uncertainty.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `jt_coeffs/*_MC_uncertainty.csv`, `mc_uncertainty_summary.csv` |
-| 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv` |
+| 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv`, `heat_exchange_fit.csv` |
 | 5 | `validate_degree_criterion.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `degree_validation.csv`, `degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`; prints u_m |
 | 6 | `calculate_jt_coefficients.py` again, only if the constants below changed | yes | as step 2 | as step 2 |
 | 7 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv` | prints the cross-check of u_m |
+| 7b | `diagnose_fits.py`, `hysteresis_check.py` | yes / no | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv`, `data/raw_data/2021-03-04.csv` | `fit_diagnostics.csv`, `hysteresis_check.csv` |
 | 8 | `refit_hene_eos.py` | yes | He-Ne `*_JT.csv`, `jt_coefficients_summary.csv` | `hene_eos_refit.csv` |
 | 9 | `analyze_purity.py` | no | `data/metadata/campaigns.csv`, `data/raw_data/*.csv` | `purity/purity_per_day.csv`, `purity/purity_per_gas.csv`, `purity/si_purity_tables.tex` |
 | 10 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
@@ -91,7 +92,7 @@ Main script for the Joule-Thomson coefficients.
    the Birge ratio √χ²_ν (`birge_ratio` in the summary) where the fit fails
    the χ² test.
 6. **Combined uncertainty** (`JT_UNC`): the Monte Carlo standard uncertainty,
-   for mixtures the composition term `JT_UNC_X` (|∂μ_JT/∂x1| u(x1) with the
+   for mixtures the composition term `JT_UNC_X` (2 |∂μ_JT/∂x1| u(x1) at k = 2, with the
    sensitivity from the EOS at the measured state; u(x1), `u_x1` in the
    summary, is the larger of 0.0005 and the standard deviation of the point
    compositions of the isenthalp), the
@@ -134,7 +135,10 @@ heat exchange of 27 mW, with the mass flow interpolated from
 and `corrections_summary.csv`, and prints the deviation from the EOS with and
 without the corrections and the best-fit heat exchange per fluid group. The
 corrections are not applied to the data; they enter `JT_UNC` as uncorrected
-biases.
+biases. It also fits the offsets of the outlet temperatures from the EOS
+isenthalp through each point's inlet state as an inlet-thermometer offset plus
+a constant heat exchange (`heat_exchange_fit.csv`); this is a diagnostic and
+is not used in U.
 
 ### `validate_degree_criterion.py`
 
@@ -153,6 +157,20 @@ to the measured data (degree and AAD per isenthalp, for the sensitivity
 statement in the SI). Writes `degree_validation.csv`,
 `degree_sensitivity.csv`, `degree_pooled.csv`, and `si_degree_tables.tex`.
 Takes a few minutes.
+
+### `diagnose_fits.py`
+
+Diagnostics of the fits quoted in SI Section S4 (`fit_diagnostics.csv`): the
+χ² degree rule repeated with only the uncorrelated part of the uncertainty
+(window statistics and CABTR), and the residual RMS of the EOS isenthalp
+fitted at the selected degree.
+
+### `hysteresis_check.py`
+
+Compares the published nitrogen isenthalp at 150 K/6 MPa (decreasing outlet
+pressure) with the return run at increasing pressure recorded the same day
+(`hysteresis_check` stamps in `extraction_windows.json`): outlet
+temperatures and μ_JT of the two fits (`hysteresis_check.csv`).
 
 ### `refit_hene_eos.py`
 

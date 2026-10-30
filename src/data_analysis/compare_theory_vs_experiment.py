@@ -147,9 +147,9 @@ def make_figure(data):
 
     # Fluid regions
     ax.axvspan(0, 0.5, alpha=0.08, color='C0')
-    ax.axvspan(4, 8, alpha=0.06, color='C3')
+    ax.axvspan(2, 17, alpha=0.06, color='C3')
     ax.text(0.6, 2e-5, 'He', color='C0', ha='left', weight='bold')
-    ax.text(6.0, 0.55, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
+    ax.text(9.5, 0.55, r'N$_2$, Ar', color='C3', ha='center', weight='bold')
 
     # Reference lines
     ax.axhline(0.05, color='0.5', ls=':', lw=0.7)

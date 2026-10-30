@@ -20,8 +20,21 @@ Outputs (data/derived_data/jt_coeffs):
                                EOS isenthalp through the inlet state
   * corrections_summary.csv    mean |corrections| per fluid group, the values of
                                CORRECTIONS_PERC in calculate_jt_coefficients.py
+  * heat_exchange_fit.csv      per isenthalp, a fit of the outlet-temperature
+                               offsets (diagnostic, not used in U, see below)
 and prints the deviation from the EOS with and without the corrections, and the
 heat exchange that best fits each fluid group.
+
+Heat-exchange diagnostic. For every point of an isenthalp, the measured outlet
+temperature minus the EOS temperature on the isenthalp through the measured
+inlet state is fitted as
+    delta * c_p,in / c_p,out + Q / (m c_p,out),
+an offset delta of the inlet thermometer TT101 and a constant heat Q gained by
+the fluid. TT102 sits in a copper block downstream of the capillary, where the
+gas has slowed down, so it reads close to the stagnation temperature and the
+kinetic-energy term of the capillary exit is not part of the fit. The fit
+reports delta, Q, the RMS of its residuals, and the AAD of mu_JT after removing
+the slope of the fitted terms.
 
 Run after calculate_jt_coefficients.py.
 """
@@ -120,6 +133,44 @@ def per_point_corrections():
     return df
 
 
+def heat_exchange_fit():
+    """ Per-isenthalp fit of the outlet-temperature offsets (module docstring). """
+    summary = pd.read_csv(os.path.join(JT_DIR, 'jt_coefficients_summary.csv')).set_index('filename')
+    rows = []
+    for stem, grid_file in GRIDS.items():
+        fluid = stem.split('_')[0]
+        pt = pd.read_csv(os.path.join(PT_DIR, f'{stem}.csv')).sort_values('PT102/MPa').reset_index(drop=True)
+        jt = pd.read_csv(os.path.join(JT_DIR, f'{stem}_JT.csv')).sort_values('p/MPa').reset_index(drop=True)
+        grid = pd.read_csv(os.path.join(MF_DIR, grid_file)).sort_values('p2/MPa')
+        fp = FluidProps(FLUIDS[fluid])
+        if fluid in ('Helium-Neon', 'Nitrogen-Helium'):
+            fp.set_composition_from_1st_fraction(summary.loc[f'{stem}.csv', 'x1'])
+        p1, t1 = pt['PT101/MPa'].values, pt['TT101/K'].values
+        p2, t2 = pt['PT102/MPa'].values, pt['TT102/K'].values
+        m = np.interp(p2, grid['p2/MPa'], grid['m/g_per_s']) / 1e3
+        cp_in = np.array([fp.get_cp(a, b) for a, b in zip(p1, t1)])
+        cp_out = np.array([fp.get_cp(a, b) for a, b in zip(p2, t2)])
+        t2_eos = np.array([fp.get_T(p=b, h=fp.get_hmass(p=a, T=c)) for a, b, c in zip(p1, p2, t1)])
+        y = t2 - t2_eos
+        A = np.column_stack([cp_in / cp_out, 1.0 / (m * cp_out)])
+        (delta, q), *_ = np.linalg.lstsq(A, y, rcond=None)
+        fitted = A @ np.array([delta, q])
+        # slope of the fitted offset terms along the isenthalp (K/MPa)
+        bias = np.gradient(fitted, p2)
+        used = jt['used'].values
+        mu, mu_eos = jt['JT_meas/(K/MPa)'].values, jt['JT_eos/(K/MPa)'].values
+        mu_fit = mu - bias
+        mixture = '-' in fluid
+        rows.append({
+            'isenthalp': stem, 'n_points': len(p2),
+            'delta/K': delta, 'Q/mW': 1e3 * q,
+            'rms/mK': 1e3 * np.sqrt(np.mean((y - fitted)**2)),
+            'AAD_perc': 100 * np.mean(np.abs((mu - mu_eos) / (mu if mixture else mu_eos))[used]),
+            'AAD_fit_removed_perc': 100 * np.mean(np.abs((mu_fit - mu_eos) / (mu_fit if mixture else mu_eos))[used]),
+        })
+    return pd.DataFrame(rows)
+
+
 def deviation(df, q):
     """ Relative deviation in % from the EOS, referenced like the AAD of the paper. """
     mu = df['JT_meas/(K/MPa)'] + q * df['dQ_per_W/(K/MPa/W)'] + (df['dk/(K/MPa)'] if q else 0)
@@ -153,6 +204,10 @@ def main():
     summary.to_csv(os.path.join(JT_DIR, 'corrections_summary.csv'))
     pd.set_option('display.width', 160)
     print(summary.round(3))
+
+    fit = heat_exchange_fit()
+    fit.to_csv(os.path.join(JT_DIR, 'heat_exchange_fit.csv'), index=False)
+    print(fit.round(3).to_string(index=False))
 
 
 if __name__ == '__main__':

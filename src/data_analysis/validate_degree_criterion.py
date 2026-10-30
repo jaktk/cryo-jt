@@ -163,7 +163,7 @@ def required_u_m(err, u_mc, goal=COVERAGE_GOAL):
 SI_GROUPS = [('N2/Ar', r'nitrogen, argon'), ('mixtures', 'mixtures'),
              ('He', 'helium-4'), ('all', 'all')]
 SI_FLUIDS = {'Nitrogen': 'nitrogen', 'Argon': 'argon', 'Helium': 'helium-4',
-             'Helium-Neon': r'${\rm ^4He-Ne}$', 'Nitrogen-Helium': r'${\rm ^4He-N_2}$'}
+             'Helium-Neon': r'\textsuperscript{4}He--Ne', 'Nitrogen-Helium': r'\textsuperscript{4}He--N\textsubscript{2}'}
 SI_ORDER = ['Nitrogen', 'Argon', 'Helium', 'Helium-Neon', 'Nitrogen-Helium']
 
 

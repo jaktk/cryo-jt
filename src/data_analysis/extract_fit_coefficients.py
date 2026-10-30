@@ -89,7 +89,7 @@ def main():
 
     # ---- emit LaTeX table for the Supporting Information ----
     label = {"Argon": "argon", "Helium": "helium-4", "Nitrogen": "nitrogen",
-             "Helium-Neon": r"${\rm ^4He-Ne}$", "Nitrogen-Helium": r"${\rm ^4He-N_2}$"}
+             "Helium-Neon": r"\textsuperscript{4}He--Ne", "Nitrogen-Helium": r"\textsuperscript{4}He--N\textsubscript{2}"}
 
     def parse(fname):
         parts = fname[:-4].split("_")

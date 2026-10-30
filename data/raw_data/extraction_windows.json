@@ -845,5 +845,41 @@
         }
       ]
     }
-  ]
+  ],
+  "hysteresis_check": {
+    "note": "nitrogen at 150 K/6 MPa measured with decreasing outlet pressure (isenthalp 6) and then with increasing outlet pressure (stamps below, sharing the lowest point); analysed by src/data_analysis/hysteresis_check.py",
+    "downward_isenthalp_id": 6,
+    "upward_stamps": [
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "14:13:37",
+        "time2/hh:mm:ss": "14:13:41"
+      },
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "14:50:41",
+        "time2/hh:mm:ss": "14:50:45"
+      },
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "15:14:52",
+        "time2/hh:mm:ss": "15:14:56"
+      },
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "15:24:47",
+        "time2/hh:mm:ss": "15:24:51"
+      },
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "15:43:20",
+        "time2/hh:mm:ss": "15:43:24"
+      },
+      {
+        "date/yyyy-mm-dd": "2021-03-04",
+        "time1/hh:mm:ss": "16:02:35",
+        "time2/hh:mm:ss": "16:02:39"
+      }
+    ]
+  }
 }

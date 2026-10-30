@@ -224,3 +224,31 @@ derived_data/purity,purity_per_gas.csv,purity,"numeric, continuous","[0, 1]",mea
 derived_data/purity,purity_per_gas.csv,frames,"numeric, integer",NA,number of valid frames,count
 derived_data/purity,purity_per_gas.csv,days,"numeric, integer",NA,number of days with valid frames,count
 derived_data/purity,purity_per_gas.csv,U_k2,"numeric, continuous",NA,expanded uncertainty (k=2): twice the standard deviation of the per-frame purity,mol/mol
+derived_data/jt_coeffs,heat_exchange_fit.csv,isenthalp,categorical,stem of a p_T_pairs file,isenthalp,NA
+derived_data/jt_coeffs,heat_exchange_fit.csv,n_points,"numeric, integer",NA,number of points fitted,count
+derived_data/jt_coeffs,heat_exchange_fit.csv,delta/K,"numeric, continuous",NA,fitted offset of the inlet thermometer TT101 (outlet offset delta * c_p_in / c_p_out),K
+derived_data/jt_coeffs,heat_exchange_fit.csv,Q/mW,"numeric, continuous",NA,fitted constant heat gained by the fluid along the capillary (outlet offset Q / (m c_p_out)),mW
+derived_data/jt_coeffs,heat_exchange_fit.csv,rms/mK,"numeric, continuous",NA,RMS of the residuals of the two-term fit of the outlet-temperature offsets,mK
+derived_data/jt_coeffs,heat_exchange_fit.csv,AAD_perc,"numeric, continuous",NA,AAD of mu_JT over the used points as in the paper,%
+derived_data/jt_coeffs,heat_exchange_fit.csv,AAD_fit_removed_perc,"numeric, continuous",NA,AAD after subtracting the slope of the fitted offset terms from mu_JT (diagnostic),%
+derived_data/jt_coeffs,fit_diagnostics.csv,isenthalp,categorical,stem of a p_T_pairs file,isenthalp,NA
+derived_data/jt_coeffs,fit_diagnostics.csv,n_points,"numeric, integer",NA,number of points,count
+derived_data/jt_coeffs,fit_diagnostics.csv,degree,"numeric, integer","[1, 6]",degree selected by the pipeline,count
+derived_data/jt_coeffs,fit_diagnostics.csv,chi2_red,"numeric, continuous",NA,reduced chi-square of the pipeline fit,dimensionless
+derived_data/jt_coeffs,fit_diagnostics.csv,chi2_pass,boolean,True; False,chi-square test passed (empty for interpolated three-point isenthalps),NA
+derived_data/jt_coeffs,fit_diagnostics.csv,degree_uncorr,"numeric, integer","[1, 6]",degree selected with only the uncorrelated uncertainty (window statistics and CABTR),count
+derived_data/jt_coeffs,fit_diagnostics.csv,chi2_red_uncorr,"numeric, continuous",NA,reduced chi-square with only the uncorrelated uncertainty,dimensionless
+derived_data/jt_coeffs,fit_diagnostics.csv,chi2_pass_uncorr,boolean,True; False,chi-square test passed with only the uncorrelated uncertainty,NA
+derived_data/jt_coeffs,fit_diagnostics.csv,s_T/mK,"numeric, continuous",NA,RMS of the temperature residuals of the pipeline fit,mK
+derived_data/jt_coeffs,fit_diagnostics.csv,s_T_eos/mK,"numeric, continuous",NA,RMS of the residuals of the EOS isenthalp through the mean inlet state fitted at the selected degree,mK
+derived_data/jt_coeffs,hysteresis_check.csv,p_down/MPa,"numeric, continuous",NA,outlet pressure of the run with decreasing pressure,MPa
+derived_data/jt_coeffs,hysteresis_check.csv,p_up/MPa,"numeric, continuous",NA,outlet pressure of the run with increasing pressure,MPa
+derived_data/jt_coeffs,hysteresis_check.csv,T_down/K,"numeric, continuous",NA,outlet temperature of the run with decreasing pressure,K
+derived_data/jt_coeffs,hysteresis_check.csv,T_up/K,"numeric, continuous",NA,outlet temperature of the run with increasing pressure,K
+derived_data/jt_coeffs,hysteresis_check.csv,T_in_down/K,"numeric, continuous",NA,inlet temperature of the run with decreasing pressure,K
+derived_data/jt_coeffs,hysteresis_check.csv,T_in_up/K,"numeric, continuous",NA,inlet temperature of the run with increasing pressure,K
+derived_data/jt_coeffs,hysteresis_check.csv,JT_down/(K/MPa),"numeric, continuous",NA,mu_JT of the fit of the downward run at p_down,K MPa^-1
+derived_data/jt_coeffs,hysteresis_check.csv,JT_up/(K/MPa),"numeric, continuous",NA,mu_JT of the fit of the upward run at p_down,K MPa^-1
+derived_data/jt_coeffs,hysteresis_check.csv,used,boolean,True; False,False for the end points,NA
+derived_data/jt_coeffs,hysteresis_check.csv,dT/mK,"numeric, continuous",NA,T_up - T_down,mK
+derived_data/jt_coeffs,hysteresis_check.csv,dJT_rel_perc,"numeric, continuous",NA,relative difference of the two mu_JT,%

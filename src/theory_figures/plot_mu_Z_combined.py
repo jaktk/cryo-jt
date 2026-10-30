@@ -11,7 +11,7 @@ from FluidProps import FluidProps
 
 STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 
-PRESSURES_MPa = np.arange(0, 21, 4)
+PRESSURES_MPa = np.array([0.1, 4, 8, 12, 16, 20])  # isobars; 0.1 MPa instead of 0, where Z is undefined
 FLUIDS = [('helium', '-'), ('neon', '-.')]
 
 YLIM_MU = (-4, 4)

@@ -83,7 +83,7 @@ def plot_small():
     _point(ax, p1, (r'$p_1$', r'$T_1$'))
     _point(ax, p_r, (r'$p_{\mathrm{r}}$', r'$T_{\mathrm{r}}$'), color=RED)
     ax.plot([p2, p1], [T_iso(p2), T_iso(p1)], 'k-', lw=1.1)
-    x0 = p2 - 0.13
+    x0 = p2 - 0.20
     y0, s = _tangent(ax, p_r, x0, p1 - 0.04)
     ax.plot([x0, x0 + 0.24], [y0, y0], color=RED, lw=1.1)
     _angle(ax, x0, y0, s, 0.09, RED, r'$\alpha$')

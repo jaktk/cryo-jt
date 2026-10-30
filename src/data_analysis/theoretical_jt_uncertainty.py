@@ -195,7 +195,7 @@ def run_analysis():
     ax_a.set_ylabel(r'$U_{\rm r}(\mu_{\rm JT})$ ($k = 2$)')
     ax_a.set_title('(a) conventional')
     ax_a.set_yscale('log')
-    ax_a.set_ylim(4e-4, 1)
+    ax_a.set_ylim(1e-4, 1)
     ax_a.set_xlim(0, 15)
     ax_a.set_xticks([0, 5, 10, 15])
     ax_a.legend(loc='upper right', frameon=True,

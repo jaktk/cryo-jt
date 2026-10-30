@@ -196,9 +196,9 @@ def mix_summary_table():
         x_he = x1 if he_is_first else 1.0 - x1
         x_he = NOMINAL_XHE.get(stem, x_he)  # use nominal label where defined
         if he_is_first:
-            mix = "${\\rm ^4He-Ne}$"
+            mix = r"\textsuperscript{4}He--Ne"
         else:
-            mix = "${\\rm ^4He-N_2}$"
+            mix = r"\textsuperscript{4}He--N\textsubscript{2}"
         rows.append(f"    {mix} & {x_he:.2f} & {1-x_he:.2f} & {t} & {p} & "
                     f"{int(r['n_points'])} & {int(r['polynomial_degree'])} & {fmt_chi2(r)} & "
                     f"{n_used} & {sig2(u_mean)} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
