@@ -90,6 +90,15 @@ def fmt_mu(r):
             f"{r['JT_eos/(K/MPa)']:.{d}f}")
 
 
+def fmt_chi2(r):
+    """Reduced chi-square of the fit, marked with an asterisk when it exceeds
+    its 0.95 quantile (no degree up to N_s - 2 passes; not well-conditioned).
+    Interpolated three-point isenthalps have no residual degree of freedom."""
+    if pd.isna(r['chi2_red']):
+        return "--"
+    return f"{r['chi2_red']:.1f}" + ("" if r['chi2_pass'] else "$^{*}$")
+
+
 def parse_name(stem):
     """`Nitrogen_150K_6MPa` -> (fluid, Tin, pin)."""
     fluid, t, p = stem.split("_")
@@ -166,7 +175,7 @@ def pure_summary_table():
         r = summ.loc[f"{stem}.csv"]
         n_used, u_mean = used_stats(stem)
         rows.append(f"    {PURE_DISPLAY[fluid]} & {t} & {p} & {int(r['n_points'])} & "
-                    f"{int(r['polynomial_degree'])} & {n_used} & {sig2(u_mean)} & "
+                    f"{int(r['polynomial_degree'])} & {fmt_chi2(r)} & {n_used} & {sig2(u_mean)} & "
                     f"{r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 
@@ -187,7 +196,7 @@ def mix_summary_table():
         else:
             mix = "${\\rm ^4He-N_2}$"
         rows.append(f"    {mix} & {x_he:.2f} & {1-x_he:.2f} & {t} & {p} & "
-                    f"{int(r['n_points'])} & {int(r['polynomial_degree'])} & "
+                    f"{int(r['n_points'])} & {int(r['polynomial_degree'])} & {fmt_chi2(r)} & "
                     f"{n_used} & {sig2(u_mean)} & {r['mean_rel_abs_err_perc']:.1f} \\\\")
     return "\n".join(rows)
 

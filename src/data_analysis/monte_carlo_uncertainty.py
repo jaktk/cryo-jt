@@ -9,12 +9,11 @@ from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
-from numpy.polynomial.chebyshev import Chebyshev
 
 from FluidProps import FluidProps
 from repo_root import REPO_ROOT
 from theoretical_jt_uncertainty import U_P, combined_temperature_uncertainty
-from calculate_jt_coefficients import chebyshev_fit_weights
+from chebyshev_fit import chebyshev_fit_weights, fit_chebyshev
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +75,7 @@ def monte_carlo_bound(inputs: IsenthalpInputs,
         p_pert = p_meas + rng.normal(0.0, sigma_p)
         T_pert = T_eos + rng.normal(0.0, sigma_T)
         try:
-            fit = Chebyshev.fit(p_pert, T_pert, deg, w=weights)
+            fit = fit_chebyshev(p_pert, T_pert, deg, weights)
             deriv = fit.deriv(m=1)
             jt_samples[k, :] = deriv(p_meas)
         except (np.linalg.LinAlgError, ValueError):

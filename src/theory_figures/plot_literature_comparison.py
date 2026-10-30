@@ -13,11 +13,12 @@ from FluidProps import FluidProps
 
 STYLE = os.path.join(os.path.dirname(__file__), '..', 'jced.mplstyle')
 DATA = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'literature', 'literature_measurements.csv')
+JT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'derived_data', 'jt_coeffs')
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'img')
 
 AUTHOR_COLORS = {
     'Roebuck':              '#009E73',  # green
-    'Tkaczuk':              '#CC79A7',  # magenta
+    'this work':            '#CC79A7',  # magenta
     'Smith':                '#D55E00',  # red-orange
     '(King, Potter)':       '#0072B2',  # blue
     '(Bier,Ernst,Maurer)':  '#E69F00',  # orange
@@ -63,6 +64,35 @@ def relative_error(group):
     return rel * 100.0
 
 
+# Fluid names of the pipeline output (jt_coefficients_summary.csv) in the
+# naming of the literature file
+PIPELINE_FLUIDS = {
+    'Nitrogen': 'nitrogen',
+    'Argon': 'argon',
+    'Helium': 'helium',
+    'Helium-Neon': 'helium-neon',
+    'Nitrogen-Helium': 'helium-nitrogen',
+}
+
+
+def this_work():
+    """ The mu_JT points of this work used in the paper (interior points of
+    every isenthalp), from the pipeline output, with their relative deviation
+    from the EOS in %. """
+    summary = pd.read_csv(os.path.join(JT_DIR, 'jt_coefficients_summary.csv'))
+    frames = []
+    for filename, fluid in zip(summary['filename'], summary['fluid']):
+        df = pd.read_csv(os.path.join(JT_DIR, filename.replace('.csv', '_JT.csv')))
+        df = df[df['used'] == True]
+        mu_eos = df['JT_eos/(K/MPa)']
+        frames.append(pd.DataFrame({
+            'fluid': PIPELINE_FLUIDS[fluid],
+            'T/K': df['T/K'],
+            'err': (mu_eos - df['JT_meas/(K/MPa)']) / mu_eos * 100.0,
+        }))
+    return pd.concat(frames, ignore_index=True)
+
+
 def main():
     plt.style.use(STYLE)
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -76,15 +106,19 @@ def main():
     seen_fluids = set()
     legend_handles = []
 
+    groups = []
     for (author, fluid), group in df.groupby(['authors', 'fluid'], sort=False):
         try:
-            err = relative_error(group)
+            groups.append((author, fluid, group['T/K'], relative_error(group)))
         except Exception as e:
             print(f"  skip {author} / {fluid}: {e}")
-            continue
+    for fluid, group in this_work().groupby('fluid', sort=False):
+        groups.append(('this work', fluid, group['T/K'], group['err']))
+
+    for author, fluid, temperature, err in groups:
         color = AUTHOR_COLORS.get(author, '0.4')
         marker = FLUID_MARKERS.get(fluid, 'x')
-        ax.scatter(group['T/K'], err,
+        ax.scatter(temperature, err,
                    c=color, edgecolor='k', linewidths=0.5,
                    s=22, alpha=0.85, marker=marker,
                    zorder=0 if author == 'Roebuck' else 1)

@@ -21,7 +21,11 @@ The full column dictionary is in
 | `corrections_per_point.csv` | `estimate_corrections.py` | Heat-loss (constant 27 mW) and kinetic-energy corrections for every used point, in K/MPa and in % of $\lvert\mu_{\rm JT}\rvert$. |
 | `corrections_summary.csv` | `estimate_corrections.py` | Mean corrections per fluid group (He-N2 split by composition), deviation from the EOS with and without the corrections, and the best-fit heat exchange. Source of `CORRECTIONS_PERC` in `calculate_jt_coefficients.py`. |
 | `paper_tables.tex` | `generate_paper_tables.py` | LaTeX bodies of the result tables of the paper. |
-| `si_cheb_table.tex` | `extract_fit_coefficients.py` | LaTeX table of the Chebyshev fit coefficients and the RMS of the fit residuals $s_T$ for the Supporting Information. |
+| `si_cheb_table.tex` | `extract_fit_coefficients.py` | LaTeX table of the Chebyshev fit coefficients (in the scaled pressure), the pressure range, $\chi^2_\nu$, and the RMS of the fit residuals $s_T$ for the Supporting Information. |
+| `degree_validation.csv` | `validate_degree_criterion.py` | Synthetic test, one row per isenthalp and degree rule (`chi2`, `r2`, `ftest`): degrees selected, bias, scatter, and RMS of the relative error of $\mu_{\rm JT}$ against the exact EOS slope, and the coverage of the uncertainty. |
+| `degree_pooled.csv` | `validate_degree_criterion.py` | The synthetic test pooled per fluid group and rule. |
+| `degree_sensitivity.csv` | `validate_degree_criterion.py` | The three degree rules applied to the measured data: degree and AAD per isenthalp. |
+| `si_degree_tables.tex` | `validate_degree_criterion.py` | LaTeX tables of the synthetic test and the sensitivity for the Supporting Information. |
 
 All scripts are in [`../../../src/data_analysis/`](../../../src/data_analysis).
 
@@ -48,13 +52,14 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
   the steady-state window and the sensor-chain uncertainty.
 - `JT_UNC_MC/(K/MPa)` is the Monte Carlo part: each point is perturbed with a
   Gaussian error at the standard (k = 1) measurement uncertainty, the data are
-  refitted with the same weighted Chebyshev polynomial, and the spread of the
+  refitted with the same weighted Chebyshev polynomial (same degree), and the spread of the
   derivative over 2000 realisations is expanded with k = 2.
 - `JT_UNC/(K/MPa)` combines in quadrature the Monte Carlo standard
   uncertainty, the uncorrected heat-loss and kinetic-energy biases (treated as
   rectangular, u = δ/√3, with δ from `corrections_summary.csv`), and the
-  relative method uncertainty u_m = 2.36 % (k = 1, from
-  `estimate_method_uncertainty.py`), and expands the result with k = 2.
+  relative method uncertainty u_m = 1.40 % (k = 1, the fit error from the
+  synthetic test of `validate_degree_criterion.py`), and expands the result
+  with k = 2.
 - `mean_unc_perc` is the mean of 100 `JT_UNC`/|`JT_meas`| over the used
   points of the isenthalp; it is repeated on every row of the `*_JT.csv` file
   and also given in the summary.

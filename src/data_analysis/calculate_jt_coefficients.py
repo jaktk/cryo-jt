@@ -3,9 +3,8 @@ import json
 import numpy as np
 import pandas as pd
 from scipy import optimize, interpolate
-from numpy.polynomial.chebyshev import Chebyshev
-from sklearn.metrics import r2_score
 from FluidProps import FluidProps
+from chebyshev_fit import chebyshev_fit_weights, fit_chebyshev, select_degree
 from repo_root import REPO_ROOT
 
 # Coverage factors. The sensor, acquisition, and calibration specifications are
@@ -21,12 +20,12 @@ N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 # u = delta/sqrt(3), and added in quadrature to the Monte Carlo uncertainty.
 # He-N2 is split by composition (see systematic_rel_std_uncertainty).
 CORRECTIONS_PERC = {
-    'Nitrogen': (0.780, 0.027),
-    'Argon': (0.995, 0.031),
-    'Helium': (20.982, 1.687),
-    'Helium-Neon': (5.396, 0.320),
-    'Nitrogen-Helium-0.14': (1.198, 0.125),
-    'Nitrogen-Helium-0.50': (4.117, 0.334),
+    'Nitrogen': (0.783, 0.027),
+    'Argon': (1.003, 0.032),
+    'Helium': (26.548, 2.310),
+    'Helium-Neon': (5.298, 0.314),
+    'Nitrogen-Helium-0.14': (1.194, 0.125),
+    'Nitrogen-Helium-0.50': (4.115, 0.332),
 }
 HEN2_SPLIT_XHE = 0.3  # He-N2 isenthalps below this x_He use the 0.14 values, above the 0.50 ones
 
@@ -40,23 +39,12 @@ def systematic_rel_std_uncertainty(fluid, x_he=None):
     return np.sqrt(d_q**2 + d_k**2) / np.sqrt(3) / 100
 
 
-# Relative standard (k = 1) method uncertainty of mu_JT: the scatter of the N2 and
-# Ar validation points about their reference EOS not explained by the Monte Carlo,
-# bias, and EOS terms (estimate_method_uncertainty.py). Applied to all fluids.
-U_METHOD_REL = 0.0236
-
-
-def chebyshev_fit_weights(pressures, temperatures, p_uncertainties, t_uncertainties):
-    """
-    Weights for the Chebyshev least-squares fit. The pressure uncertainty is
-    folded into an equivalent temperature uncertainty through the local slope
-    dT/dp, so that weight = 1 / (u_T^2 + (u_p * dT/dp)^2). Returns normalised
-    weights (sum to one)."""
-    order = np.argsort(pressures)
-    slope = np.empty_like(temperatures, dtype=float)
-    slope[order] = np.gradient(temperatures[order], pressures[order])
-    weights = 1.0 / (t_uncertainties**2 + (p_uncertainties * slope)**2)
-    return weights / np.sum(weights)
+# Relative standard (k = 1) method uncertainty of mu_JT: the fit and
+# differentiation error that the fixed-degree Monte Carlo does not capture, set
+# so that the expanded uncertainty covers the exact slope at 95 % in the
+# synthetic validation (validate_degree_criterion.py). Applied to all fluids;
+# estimate_method_uncertainty.py checks it against the N2 and Ar data.
+U_METHOD_REL = 0.0140
 
 
 class CernoxCal(object):
@@ -241,54 +229,6 @@ class JTCoefficientCalculator(object):
             mixture = False
         return fluid_type, mixture
     
-    def _fit_polynomial_weighted(self,
-                                 pressures,
-                                 temperatures,
-                                 p_uncertainties,
-                                 t_uncertainties,
-                                 max_degree=6):
-        """
-        Fit optimal Chebyshev polynomial to p-T data with weighted least squares.
-        Uses measurement uncertainties to weight the fitting process.
-        """
-        n_points = len(pressures)
-        max_degree = min(max_degree, n_points - 1)
-
-        # Weights from the measurement uncertainties (pressure folded into an
-        # equivalent temperature uncertainty through the local slope dT/dp).
-        weights = chebyshev_fit_weights(pressures, temperatures,
-                                        p_uncertainties, t_uncertainties)
-
-        best_degree = 1
-        best_r2 = -np.inf
-        best_fit = None
-        
-        for degree in range(1, max_degree + 1):
-            try:
-                # Fit weighted Chebyshev polynomial
-                poly_fit = Chebyshev.fit(pressures, temperatures, degree, w=weights)
-                poly = Chebyshev(poly_fit.convert().coef)
-                
-                # Calculate R^2
-                fitted_temps = poly(pressures)
-                r2 = r2_score(temperatures, fitted_temps)
-                
-                # Store best fit
-                if r2 > best_r2:
-                    best_r2 = r2
-                    best_degree = degree
-                    best_fit = poly
-        
-                # Break if R^2 > 0.999
-                if r2 > 0.999:
-                    break
-                    
-            except Exception as e:
-                print(f"Error fitting degree {degree}: {e}")
-                continue
-        
-        return best_fit, best_degree, best_r2
-    
     def _calculate_jt_coefficients(self, pressures, polynomial):
         """ Calculate JT coefficients at measurement points with polynomial derivative """
         poly_deriv = polynomial.deriv(m=1) # Get derivative of polynomial (this gives dT/dp)
@@ -345,8 +285,7 @@ class JTCoefficientCalculator(object):
             # over-determined: for an exact interpolation (degree == n - 1) the
             # weights cannot change the interpolant and only destabilise the
             # weighted Vandermonde, so an unweighted refit is used there.
-            weights = (chebyshev_fit_weights(pressures, temperatures,
-                                             p_uncertainties, t_uncertainties)
+            weights = (chebyshev_fit_weights(pressures, temperatures, p_sigma, t_sigma)
                        if degree < len(pressures) - 1 else None)
 
             jt_samples = []
@@ -359,9 +298,7 @@ class JTCoefficientCalculator(object):
 
                 # Refit with the same weighted Chebyshev fit as the central value
                 try:
-                    poly_fit = Chebyshev.fit(p_sample, t_sample,
-                                             degree, w=weights)
-                    poly_sample = Chebyshev(poly_fit.convert().coef)
+                    poly_sample = fit_chebyshev(p_sample, t_sample, degree, weights)
 
                     # Calculate JT coefficients
                     poly_deriv = poly_sample.deriv(m=1)
@@ -437,13 +374,12 @@ class JTCoefficientCalculator(object):
                 else:
                     print(f"  Warning: No composition data found for mixture {filename}")
             
-            # Fit polynomial to data with uncertainties
-            poly, degree, r2 = self._fit_polynomial_weighted(pressures, temperatures, p_uncertainties, t_uncertainties)
-            
-            if poly is None:
-                print(f"  Failed to fit polynomial")
-                return None
-            
+            # Weighted Chebyshev fit, degree from the chi-square rule on the
+            # standard (k = 1) uncertainties (chebyshev_fit.select_degree)
+            fit = select_degree(pressures, temperatures,
+                                p_uncertainties / K_TARGET, t_uncertainties / K_TARGET)
+            poly, degree = fit.polynomial, fit.degree
+
             # Calculate JT coefficients with full uncertainty propagation
             jt_measured = self._calculate_jt_coefficients(pressures, poly)
             
@@ -489,7 +425,10 @@ class JTCoefficientCalculator(object):
                 'x2': None if not is_mixture else (1 - composition),
                 'n_points': len(pressures),
                 'polynomial_degree': degree,
-                'r2_score': r2,
+                'chi2_red': fit.chi2_red,
+                'chi2_crit': fit.chi2_crit,
+                'chi2_pass': fit.passed,
+                's_T/mK': 1e3 * fit.s_T,
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
                 'p/MPa': pressures,
                 'T/K': temperatures,
@@ -508,7 +447,8 @@ class JTCoefficientCalculator(object):
                 'mean_unc_perc': np.nanmean(unc_interior)
             }
             
-            print(f"  Success: {len(pressures)} points, degree={degree}, R²={r2:.6f}")
+            print(f"  Success: {len(pressures)} points, degree={degree}, "
+                  f"chi2_red={fit.chi2_red:.2f} (crit {fit.chi2_crit:.2f}), s_T={1e3 * fit.s_T:.1f} mK")
             print(f"  Mean relative error (interior): {np.nanmean(rel_err_interior):.2f}%")
             print(f"  Mean uncertainty (interior): {np.nanmean(unc_interior):.2f}%")
             
@@ -559,7 +499,10 @@ class JTCoefficientCalculator(object):
                 'TT101_mean/K': result['TT101_mean/K'],
                 'n_points': result['n_points'],
                 'polynomial_degree': result['polynomial_degree'],
-                'r2_score': result['r2_score'],
+                'chi2_red': result['chi2_red'],
+                'chi2_crit': result['chi2_crit'],
+                'chi2_pass': result['chi2_pass'],
+                's_T/mK': result['s_T/mK'],
                 'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc'],
                 'std_rel_abs_err_perc': result['std_rel_abs_err_perc'],
                 'rms_rel_abs_err_perc': result['rms_rel_abs_err_perc'],

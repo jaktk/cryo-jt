@@ -12,7 +12,11 @@ data/derived_data/jt_coeffs,mc_uncertainty_summary.csv,one row per isenthalp: me
 data/derived_data/jt_coeffs,corrections_per_point.csv,"heat-loss and kinetic-energy corrections for every used point, written by estimate_corrections.py",CC-BY-4.0
 data/derived_data/jt_coeffs,corrections_summary.csv,"mean heat-loss and kinetic-energy corrections per fluid group, written by estimate_corrections.py",CC-BY-4.0
 data/derived_data/jt_coeffs,paper_tables.tex,"LaTeX bodies of the result tables of the paper, written by generate_paper_tables.py",CC-BY-4.0
-data/derived_data/jt_coeffs,si_cheb_table.tex,"LaTeX table of the Chebyshev fit coefficients and residual RMS for the Supporting Information, written by extract_fit_coefficients.py",CC-BY-4.0
+data/derived_data/jt_coeffs,si_cheb_table.tex,"LaTeX table of the Chebyshev fit coefficients, pressure range, reduced chi-square, and residual RMS for the Supporting Information, written by extract_fit_coefficients.py",CC-BY-4.0
+data/derived_data/jt_coeffs,degree_validation.csv,"synthetic test of the polynomial degree rules, one row per isenthalp and rule, written by validate_degree_criterion.py",CC-BY-4.0
+data/derived_data/jt_coeffs,degree_pooled.csv,"synthetic test of the polynomial degree rules pooled per fluid group, written by validate_degree_criterion.py",CC-BY-4.0
+data/derived_data/jt_coeffs,degree_sensitivity.csv,"degree and deviation from the EOS of each measured isenthalp under the three degree rules, written by validate_degree_criterion.py",CC-BY-4.0
+data/derived_data/jt_coeffs,si_degree_tables.tex,"LaTeX tables of the synthetic test and the degree sensitivity for the Supporting Information, written by validate_degree_criterion.py",CC-BY-4.0
 data/derived_data/capillary_mass_flow,FLUID_D0.365_L6_pP_TT[_XHe].csv,"capillary pressure-drop calculation of mass flow rate versus outlet pressure for one measured isenthalp, read by estimate_corrections.py",CC-BY-4.0
 data/derived_data/calculated_mass_flow_rate,Fluid_DX_LY_xX_pP_TT.csv,design calculation of the downstream pressure as a function of mass flow rate for the chosen capillary geometry and inlet condition (used to size the capillary and plan the campaigns),CC-BY-4.0
 data/capillary_design,D0.4_L10_x0.501_p13_T80.csv,supplementary design calculation for the longer 10 m capillary that was abandoned because of a flow singularity in one section,CC-BY-4.0

@@ -1,28 +1,34 @@
 """
-Estimate the relative method uncertainty of mu_JT from the pure-fluid validation.
+Cross-check of the method uncertainty u_m against the pure-fluid validation.
 
-The N2 and Ar points scatter around their reference equations of state
-(Span et al. 2000; Tegeler et al. 1999) by more than the sensor-level Monte
-Carlo uncertainty. The excess is attributed to systematic effects that the
-Monte Carlo does not model (flow-dependent heat exchange, inlet-thermometer
-offset, differentiation of few-point isenthalps). It is estimated as
+u_m (U_METHOD_REL in calculate_jt_coefficients.py) is set by the synthetic
+validation in validate_degree_criterion.py, without the measured deviations.
+This script checks it against the N2 and Ar points, whose deviations from their
+reference equations of state (Span et al. 2000; Tegeler et al. 1999) are
+compared with the modelled uncertainty terms. The excess not explained by the
+Monte Carlo, bias, and EOS terms,
 
-    u_method^2 = RMS(dev)^2 - mean(u_MC^2 + u_sys^2 + u_EOS^2)
+    u_excess^2 = RMS(dev)^2 - mean(u_MC^2 + u_sys^2 + u_EOS^2),
 
-with all terms relative and at k = 1. Neither EOS publication states an
-uncertainty for mu_JT; u_EOS is taken from their isobaric heat capacity
-tolerance diagrams (Span et al. Fig. 41, Tegeler et al. Fig. 44), since
-mu_JT = (T (dv/dT)_p - v) / c_p.
+with all terms relative and at k = 1, should not exceed u_m. Neither EOS
+publication states an uncertainty for mu_JT; u_EOS is taken from their isobaric
+heat capacity tolerance diagrams (Span et al. Fig. 41, Tegeler et al. Fig. 44),
+since mu_JT = (T (dv/dT)_p - v) / c_p.
 
-Run after calculate_jt_coefficients.py; the result is the constant
-U_METHOD_REL used there.
+The script also counts the N2 and Ar points within the expanded uncertainty
+and bootstraps u_excess over the isenthalps.
+
+Run after calculate_jt_coefficients.py with the final constants.
 """
 import glob
 import os
 import numpy as np
 import pandas as pd
 from repo_root import REPO_ROOT
-from calculate_jt_coefficients import K_TARGET, systematic_rel_std_uncertainty
+from calculate_jt_coefficients import K_TARGET, U_METHOD_REL, systematic_rel_std_uncertainty
+
+N_BOOTSTRAP = 4000
+SEED = 20210101
 
 
 def eos_rel_std_uncertainty(fluid, p_mpa):
@@ -34,6 +40,12 @@ def eos_rel_std_uncertainty(fluid, p_mpa):
     raise ValueError(fluid)
 
 
+def excess(d):
+    """ Signed sqrt of RMS(dev)^2 minus the mean modelled variance (negative if over-explained). """
+    v = np.mean(d['dev']**2) - np.mean(d['u_mc']**2 + d['u_sys']**2 + d['u_eos']**2)
+    return np.sign(v) * np.sqrt(abs(v))
+
+
 def main():
     root = REPO_ROOT
     rows = []
@@ -43,22 +55,38 @@ def main():
             df = df[df['used'] == True]
             mu_eos = df['JT_eos/(K/MPa)'].values
             mu = df['JT_meas/(K/MPa)'].values
-            dev = (mu - mu_eos) / mu_eos
-            u_mc = df['JT_UNC_MC/(K/MPa)'].values / K_TARGET / np.abs(mu)
-            u_sys = systematic_rel_std_uncertainty(fluid)
-            u_eos = np.array([eos_rel_std_uncertainty(fluid, p) for p in df['p/MPa'].values])
-            rows.append(pd.DataFrame({'dev': dev, 'u_mc': u_mc, 'u_sys': u_sys, 'u_eos': u_eos}))
-    d = pd.concat(rows)
+            rows.append(pd.DataFrame({
+                'isenthalp': os.path.basename(f)[:-len('_JT.csv')],
+                'dev': (mu - mu_eos) / mu_eos,
+                'u_mc': df['JT_UNC_MC/(K/MPa)'].values / K_TARGET / np.abs(mu),
+                'u_sys': systematic_rel_std_uncertainty(fluid),
+                'u_eos': [eos_rel_std_uncertainty(fluid, p) for p in df['p/MPa'].values],
+                'U_rel': df['JT_UNC/(K/MPa)'].values / np.abs(mu),
+            }))
+    d = pd.concat(rows, ignore_index=True)
     rms = np.sqrt(np.mean(d['dev']**2))
     explained = np.mean(d['u_mc']**2 + d['u_sys']**2 + d['u_eos']**2)
-    u_method = np.sqrt(rms**2 - explained)
     print(f"N2 + Ar points: {len(d)}")
     print(f"mean relative deviation: {100 * d['dev'].mean():+.2f} %")
     print(f"RMS relative deviation:  {100 * rms:.2f} %")
     print(f"RMS of modelled terms:   {100 * np.sqrt(explained):.2f} % "
           f"(MC {100 * np.sqrt(np.mean(d['u_mc']**2)):.2f}, bias {100 * np.sqrt(np.mean(d['u_sys']**2)):.2f}, "
           f"EOS {100 * np.sqrt(np.mean(d['u_eos']**2)):.2f})")
-    print(f"u_method (k = 1):        {100 * u_method:.2f} %")
+    print(f"unexplained excess (k = 1): {100 * excess(d):+.2f} %  (negative: over-explained)")
+
+    rng = np.random.default_rng(SEED)
+    isenthalps = d['isenthalp'].unique()
+    boot = np.array([excess(pd.concat([d[d['isenthalp'] == i]
+                                       for i in rng.choice(isenthalps, len(isenthalps))]))
+                     for _ in range(N_BOOTSTRAP)])
+    lo, hi = np.percentile(boot, [5, 95])
+    print(f"bootstrap over isenthalps: 90 % interval ({100 * lo:+.2f} to {100 * hi:+.2f}) %, "
+          f"excess <= 0 in {100 * np.mean(boot <= 0):.0f} % of resamples")
+
+    within = np.abs(d['dev']) <= d['U_rel']
+    print(f"u_m used (U_METHOD_REL, k = 1): {100 * U_METHOD_REL:.2f} %")
+    print(f"points within U (k = 2): {within.sum()} of {len(d)}; "
+          f"mean U_r {100 * d['U_rel'].mean():.2f} %")
 
 
 if __name__ == '__main__':

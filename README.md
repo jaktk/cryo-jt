@@ -13,7 +13,7 @@
 
 This repository contains the raw data, processed data, and code used to obtain and analyse measurements of the Joule-Thomson coefficient in pure gases and mixtures at temperatures between 65 K and 180 K. It is the supporting dataset for the article submitted to the *Journal of Chemical & Engineering Data*.
 
-The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup and estimate its method uncertainty, and the mixtures then provide the new results. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the uncorrected heat-loss and kinetic-energy biases, and a method uncertainty estimated from the nitrogen and argon data. The impact of the composition uncertainty on the Joule-Thomson coefficient is quantified for mixtures using Monte Carlo simulations.
+The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup, and the mixtures then provide the new results. The degree of the Chebyshev fit of each isenthalp is set by a chi-square test against the measurement uncertainty. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the uncorrected heat-loss and kinetic-energy biases, and a method uncertainty for the fit error from a synthetic test on equation-of-state isenthalps; the nitrogen and argon data are an independent check of it. The impact of the composition uncertainty on the Joule-Thomson coefficient is quantified for mixtures using Monte Carlo simulations.
 
 ## System description
 
@@ -172,7 +172,7 @@ The figure scripts share the style sheet `src/jced.mplstyle` and write to `img/`
 
 Install the Python dependencies with `pip install -r requirements.txt`. The scripts find the repository root from their own location, so they run from a git clone or from the Zenodo archive; git is not needed. The reference thermodynamic properties require [REFPROP](https://www.nist.gov/srd/refprop) (accessed through the `ctREFPROP` bindings); the custom mixture models are provided in `REFPROP/FLUIDS/HMX.BNC` and must be merged into REFPROP's own `HMX.BNC` file (see [`REFPROP/README.md`](REFPROP/README.md)). The figure scripts use LaTeX with the packages `helvet` and `newtxsf`.
 
-REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
+REFPROP is licensed separately, so the scripts that evaluate the equation of state (`calculate_jt_coefficients.py`, `monte_carlo_uncertainty.py`, `estimate_corrections.py`, `validate_degree_criterion.py`, and the `theory_figures/` scripts except `plot_jt_method_schematic.py`) cannot be run without it. The remaining scripts run from the committed data alone. The run order is:
 
 ```bash
 python src/data_analysis/get_pT_pairs.py                 # 1. steady-state p-T pairs from the raw data
@@ -180,9 +180,10 @@ python src/data_analysis/calculate_jt_coefficients.py    # 2. mu_JT with uncerta
 python src/data_analysis/monte_carlo_uncertainty.py      # 3. Monte Carlo uncertainty bound               (REFPROP)
 python src/data_analysis/estimate_corrections.py         # 4. heat-loss and kinetic-energy corrections    (REFPROP)
 #    copy dQ/% and dk/% of corrections_summary.csv to CORRECTIONS_PERC in calculate_jt_coefficients.py
-python src/data_analysis/estimate_method_uncertainty.py  # 5. method uncertainty; copy the result to U_METHOD_REL
+python src/data_analysis/validate_degree_criterion.py   # 5. synthetic test; copy u_m to U_METHOD_REL     (REFPROP)
 # 6. if CORRECTIONS_PERC or U_METHOD_REL changed, rerun step 2
-python src/data_analysis/generate_paper_tables.py        # 7. LaTeX bodies of the result tables
+python src/data_analysis/estimate_method_uncertainty.py  # 7. cross-check of u_m with the N2 and Ar data
+python src/data_analysis/generate_paper_tables.py        # 8. LaTeX bodies of the result tables
 python src/data_analysis/extract_fit_coefficients.py     #    Chebyshev coefficients table of the SI
 python src/data_analysis/plot_paper_results.py           #    result figures (other figure scripts: img/README.md)
 ```

@@ -73,8 +73,11 @@ derived_data/jt_coeffs,jt_coefficients_summary.csv,x1,"numeric, continuous","[0,
 derived_data/jt_coeffs,jt_coefficients_summary.csv,x2,"numeric, continuous","[0, 1]",mean mole fraction of the second mixture component (empty for pure fluids),dimensionless
 derived_data/jt_coeffs,jt_coefficients_summary.csv,TT101_mean/K,"numeric, continuous",NA,mean inlet temperature for the isenthalp (from p_T_pairs/index.json),K
 derived_data/jt_coeffs,jt_coefficients_summary.csv,n_points,"numeric, integer",NA,"number of (p, T) points fitted in the isenthalp",count
-derived_data/jt_coeffs,jt_coefficients_summary.csv,polynomial_degree,"numeric, integer","[1, 6]",degree of the Chebyshev polynomial used for the fit,count
-derived_data/jt_coeffs,jt_coefficients_summary.csv,r2_score,"numeric, continuous","[0, 1]","coefficient of determination of the Chebyshev fit to the (p, T) data",dimensionless
+derived_data/jt_coeffs,jt_coefficients_summary.csv,polynomial_degree,"numeric, integer","[1, 6]","degree of the Chebyshev polynomial used for the fit: the lowest degree up to n_points - 2 that passes the chi-square test (2 for the interpolated three-point isenthalps)",count
+derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_red,"numeric, continuous",NA,"reduced chi-square of the weighted Chebyshev fit, chi2/nu with nu = n_points - polynomial_degree - 1, using the standard (k=1) uncertainties; empty for the interpolated three-point isenthalps",dimensionless
+derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_crit,"numeric, continuous",NA,0.95 quantile of chi2_nu/nu for the fit (the degree passes if chi2_red <= chi2_crit); empty for the interpolated three-point isenthalps,dimensionless
+derived_data/jt_coeffs,jt_coefficients_summary.csv,chi2_pass,boolean,True; False,"true if the selected degree passes the chi-square test; false if no degree up to n_points - 2 passes (not well-conditioned); empty for the interpolated three-point isenthalps",NA
+derived_data/jt_coeffs,jt_coefficients_summary.csv,s_T/mK,"numeric, continuous",NA,root mean square of the temperature residuals of the fit (zero for an interpolation),mK
 derived_data/jt_coeffs,jt_coefficients_summary.csv,mean_rel_abs_err_perc,"numeric, continuous",NA,mean of rel_abs_err_perc over the used points (the AAD reported in the paper),%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,std_rel_abs_err_perc,"numeric, continuous",NA,standard deviation of rel_abs_err_perc over the used points,%
 derived_data/jt_coeffs,jt_coefficients_summary.csv,rms_rel_abs_err_perc,"numeric, continuous",NA,root mean square of rel_abs_err_perc over the used points,%
@@ -127,3 +130,47 @@ derived_data/calculated_mass_flow_rate,Fluid_DX_LY_xX_pP_TT.csv,T2/K,"numeric, c
 capillary_design,D0.4_L10_x0.501_p13_T80.csv,mf/g_per_s,"numeric, continuous",NA,mass flow rate through the capillary (calculated),g s^-1
 capillary_design,D0.4_L10_x0.501_p13_T80.csv,p2/MPa,"numeric, continuous",NA,calculated outlet (downstream) pressure,MPa
 capillary_design,D0.4_L10_x0.501_p13_T80.csv,T2/K,"numeric, continuous",NA,calculated isenthalpic outlet temperature,K
+derived_data/jt_coeffs,degree_validation.csv,isenthalp,categorical,stem of a p_T_pairs file,isenthalp of the synthetic test,NA
+derived_data/jt_coeffs,degree_validation.csv,rule,categorical,chi2; r2; ftest,"degree rule: chi2 = rule used by the pipeline (chebyshev_fit.py); r2 = earlier R^2 > 0.999 rule; ftest = nested F-test",NA
+derived_data/jt_coeffs,degree_validation.csv,n_points,"numeric, integer",NA,number of points of the isenthalp,count
+derived_data/jt_coeffs,degree_validation.csv,degree_mode,"numeric, integer","[1, 6]",most frequent degree selected over the realisations,count
+derived_data/jt_coeffs,degree_validation.csv,degree_mode_frac,"numeric, continuous","[0, 1]",fraction of realisations that selected degree_mode,dimensionless
+derived_data/jt_coeffs,degree_validation.csv,degree_min,"numeric, integer","[1, 6]",lowest degree selected,count
+derived_data/jt_coeffs,degree_validation.csv,degree_max,"numeric, integer","[1, 6]",highest degree selected,count
+derived_data/jt_coeffs,degree_validation.csv,bias_perc,"numeric, continuous",NA,mean relative error of mu_JT against the exact EOS slope over the interior points and realisations,%
+derived_data/jt_coeffs,degree_validation.csv,sd_perc,"numeric, continuous",NA,standard deviation of the relative error,%
+derived_data/jt_coeffs,degree_validation.csv,rms_perc,"numeric, continuous",NA,root mean square of the relative error,%
+derived_data/jt_coeffs,degree_validation.csv,coverage_mc,"numeric, continuous","[0, 1]",fraction of points whose error lies within the fixed-degree Monte Carlo expanded uncertainty (k=2),dimensionless
+derived_data/jt_coeffs,degree_validation.csv,coverage_mc_um,"numeric, continuous","[0, 1]",fraction of points whose error lies within 2 sqrt(u_MC^2 + (u_m mu_JT)^2) with the u_m printed by validate_degree_criterion.py,dimensionless
+derived_data/jt_coeffs,degree_pooled.csv,group,categorical,N2/Ar; mixtures; He; all,fluid group over which the synthetic test is pooled,NA
+derived_data/jt_coeffs,degree_pooled.csv,rule,categorical,chi2; r2; ftest,"degree rule: chi2 = rule used by the pipeline (chebyshev_fit.py); r2 = earlier R^2 > 0.999 rule; ftest = nested F-test",NA
+derived_data/jt_coeffs,degree_pooled.csv,degree_mode,"numeric, integer","[1, 6]",most frequent degree selected over the realisations,count
+derived_data/jt_coeffs,degree_pooled.csv,degree_mode_frac,"numeric, continuous","[0, 1]",fraction of realisations that selected degree_mode,dimensionless
+derived_data/jt_coeffs,degree_pooled.csv,degree_min,"numeric, integer","[1, 6]",lowest degree selected,count
+derived_data/jt_coeffs,degree_pooled.csv,degree_max,"numeric, integer","[1, 6]",highest degree selected,count
+derived_data/jt_coeffs,degree_pooled.csv,bias_perc,"numeric, continuous",NA,mean relative error of mu_JT against the exact EOS slope over the interior points and realisations,%
+derived_data/jt_coeffs,degree_pooled.csv,sd_perc,"numeric, continuous",NA,standard deviation of the relative error,%
+derived_data/jt_coeffs,degree_pooled.csv,rms_perc,"numeric, continuous",NA,root mean square of the relative error,%
+derived_data/jt_coeffs,degree_pooled.csv,coverage_mc,"numeric, continuous","[0, 1]",fraction of points whose error lies within the fixed-degree Monte Carlo expanded uncertainty (k=2),dimensionless
+derived_data/jt_coeffs,degree_pooled.csv,coverage_mc_um,"numeric, continuous","[0, 1]",fraction of points whose error lies within 2 sqrt(u_MC^2 + (u_m mu_JT)^2) with the u_m printed by validate_degree_criterion.py,dimensionless
+derived_data/jt_coeffs,degree_sensitivity.csv,isenthalp,categorical,stem of a p_T_pairs file,measured isenthalp,NA
+derived_data/jt_coeffs,degree_sensitivity.csv,fluid,categorical,Nitrogen; Argon; Helium; Helium-Neon; Nitrogen-Helium,fluid or mixture label,NA
+derived_data/jt_coeffs,degree_sensitivity.csv,rule,categorical,chi2; r2; ftest,degree rule (as in degree_validation.csv),NA
+derived_data/jt_coeffs,degree_sensitivity.csv,n_points,"numeric, integer",NA,number of points of the isenthalp,count
+derived_data/jt_coeffs,degree_sensitivity.csv,degree,"numeric, integer","[1, 6]",degree selected by the rule on the measured data,count
+derived_data/jt_coeffs,degree_sensitivity.csv,AAD_perc,"numeric, continuous",NA,"average absolute deviation of mu_JT from the EOS over the used points, referred to the EOS for pure fluids and to the measurement for mixtures",%
+literature,literature_measurements.csv,authors,categorical,NA,first author(s) of the literature source,NA
+literature,literature_measurements.csv,year,"numeric, integer",NA,publication year,NA
+literature,literature_measurements.csv,fluid,categorical,propylene; n-butane; nitrogen; argon; air; helium,fluid of the measurement,NA
+literature,literature_measurements.csv,p/psia,"numeric, continuous",NA,pressure as published (one of the pressure columns is filled),psia
+literature,literature_measurements.csv,p/atm,"numeric, continuous",NA,pressure as published,atm
+literature,literature_measurements.csv,p/MPa,"numeric, continuous",NA,pressure,MPa
+literature,literature_measurements.csv,T/degC,"numeric, continuous",NA,temperature as published (one of the temperature columns is filled),degC
+literature,literature_measurements.csv,T/F,"numeric, continuous",NA,temperature as published,F
+literature,literature_measurements.csv,T/K,"numeric, continuous",NA,temperature,K
+literature,literature_measurements.csv,x1,"numeric, continuous","[0, 1]",mole fraction of the first component (mixtures; no mixture rows since version 1.3.2),dimensionless
+literature,literature_measurements.csv,x2,"numeric, continuous","[0, 1]",mole fraction of the second component,dimensionless
+literature,literature_measurements.csv,uJT_meas/(K/MPa),"numeric, continuous",NA,published Joule-Thomson coefficient (one of the three uJT columns is filled),K MPa^-1
+literature,literature_measurements.csv,uJT_meas/(F/psi),"numeric, continuous",NA,published Joule-Thomson coefficient,F psi^-1
+literature,literature_measurements.csv,uJT_meas/(degC/atm),"numeric, continuous",NA,published Joule-Thomson coefficient,degC atm^-1
+literature,literature_measurements.csv,rel_err,"numeric, continuous",NA,"relative deviation from the EOS as a fraction; empty in all rows since version 1.3.2 (it was filled only for the removed Tkaczuk rows), so the figure script computes the deviation from the EOS",dimensionless

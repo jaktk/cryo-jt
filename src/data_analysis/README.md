@@ -24,9 +24,10 @@ unpacked Zenodo archive; git is not needed. Run them from any directory as
 | 2 | `calculate_jt_coefficients.py` | yes | `p_T_pairs/*.csv`, `p_T_pairs/index.json`, Cernox calibration | `jt_coeffs/*_JT.csv`, `jt_coefficients_summary.csv`, `jt_coefficients_detailed.json` |
 | 3 | `monte_carlo_uncertainty.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `jt_coeffs/*_MC_uncertainty.csv`, `mc_uncertainty_summary.csv` |
 | 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv` |
-| 5 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv`, `CORRECTIONS_PERC` | prints u_m |
+| 5 | `validate_degree_criterion.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `degree_validation.csv`, `degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`; prints u_m |
 | 6 | `calculate_jt_coefficients.py` again, only if the constants below changed | yes | as step 2 | as step 2 |
-| 7 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
+| 7 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv` | prints the cross-check of u_m |
+| 8 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
 
 Paths in the table are relative to `data/derived_data/` unless given in full.
 `p_T_pairs/index.json` is maintained by hand: `get_pT_pairs.py` does not
@@ -38,13 +39,13 @@ outputs of later steps:
 - `CORRECTIONS_PERC`: the mean relative heat-loss and kinetic-energy
   corrections (δ_Q, δ_k in %) per fluid group, copied from the `dQ/%` and
   `dk/%` columns of `corrections_summary.csv` (step 4).
-- `U_METHOD_REL` (0.0236): the relative method uncertainty u_m printed by
-  `estimate_method_uncertainty.py` (step 5). That script uses
-  `CORRECTIONS_PERC`, so update `CORRECTIONS_PERC` first.
+- `U_METHOD_REL` (0.0140): the relative method uncertainty u_m printed by
+  `validate_degree_criterion.py` (step 5), from the synthetic test only.
 
 The two constants only affect `JT_UNC/(K/MPa)` and `mean_unc_perc`.
 `JT_meas`, `JT_eos`, and `JT_UNC_MC`, which steps 3 to 5 read, do not depend
-on them, so step 6 does not require rerunning steps 3 to 5.
+on them, so step 6 does not require rerunning steps 3 to 5. Step 7 reads
+`JT_UNC`, so it runs after step 6.
 
 ## Scripts
 
@@ -69,9 +70,13 @@ Main script for the Joule-Thomson coefficients.
    (Cernox sensor, CABTR module, calibration polynomial, in quadrature).
 2. **Composition** (mixtures): gas-analyser readings with |x1 + x2 - 1| ≥ 0.02
    are rejected and replaced by the isenthalp mean.
-3. **Fit**: weighted least-squares Chebyshev fit of T(p) at the outlet
-   (weights `1/(u_T² + (u_p·dT/dp)²)`), choosing the lowest degree (1 to 6,
-   capped at N - 1) that reaches R² > 0.999.
+3. **Fit**: weighted least-squares Chebyshev fit of T(p) at the outlet that
+   minimises χ² = Σ (T - T_fit)²/u_eff², with u_eff² = u_T² + (u_p·dT/dp)² at
+   k = 1. The degree is the lowest (1 to 6, at most N - 2) whose reduced
+   χ²_ν lies below the 0.95 quantile of χ²_ν/ν (ν = N - n - 1); if none
+   passes, the cap N - 2 is used and `chi2_pass` is False. Three-point
+   isenthalps are interpolated with n = 2. The rule is in
+   [`chebyshev_fit.py`](chebyshev_fit.py), shared by all scripts that fit.
 4. **μ_JT**: analytic derivative of the fitted polynomial at each point.
 5. **Monte Carlo** (`JT_UNC_MC`): each point is perturbed with a Gaussian error
    at the standard (k = 1) measurement uncertainty, refitted with the same
@@ -80,7 +85,7 @@ Main script for the Joule-Thomson coefficients.
 6. **Combined uncertainty** (`JT_UNC`): the Monte Carlo standard uncertainty,
    the uncorrected heat-loss and kinetic-energy biases (rectangular,
    u = δ/√3, from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the
-   method uncertainty u_m = 2.36 % (k = 1) are added in quadrature and
+   method uncertainty u_m = 1.40 % (k = 1) are added in quadrature and
    expanded with k = 2.
 7. **Comparison with the EOS**: μ_JT from REFPROP at each measured (p, T) and
    the relative absolute deviation, referred to the EOS value for pure fluids
@@ -119,14 +124,30 @@ without the corrections and the best-fit heat exchange per fluid group. The
 corrections are not applied to the data; they enter `JT_UNC` as uncorrected
 biases.
 
+### `validate_degree_criterion.py`
+
+Synthetic test of the degree rule. For every isenthalp it places the measured
+pressures on the EOS isenthalp through the mean inlet state, adds Gaussian
+noise at the standard measurement uncertainties (1000 seeded realisations),
+applies three degree rules (the χ² rule of `chebyshev_fit.py`, the earlier
+R² > 0.999 rule, and a nested F-test), and compares μ_JT at the interior
+points with the exact EOS slope. The method uncertainty u_m is the smallest
+value for which 2 √(u_MC² + u_m²) covers the exact slope for 95 % of the
+interior points under the χ² rule; copy it to `U_METHOD_REL`. The measured
+deviations from the EOS are not used. The script also applies the three rules
+to the measured data (degree and AAD per isenthalp, for the sensitivity
+statement in the SI). Writes `degree_validation.csv`,
+`degree_sensitivity.csv`, `degree_pooled.csv`, and `si_degree_tables.tex`.
+Takes about 10 minutes.
+
 ### `estimate_method_uncertainty.py`
 
-Estimates the method uncertainty from the N2 and Ar points as
-u_m² = RMS(dev)² - mean(u_MC² + u_sys² + u_EOS²), all relative and at k = 1,
+Cross-check of u_m against the N2 and Ar points: the excess
+u_ex² = RMS(dev)² - mean(u_MC² + u_sys² + u_EOS²), all relative and at k = 1,
 with u_EOS taken from the c_p tolerance diagrams of the reference equations of
-state. It only prints the result; copy it to `U_METHOD_REL`. It makes no
-REFPROP calls but imports `calculate_jt_coefficients.py`, so `ctREFPROP`
-must be installed.
+state, a bootstrap of u_ex over the isenthalps, and the number of points
+within `JT_UNC`. It only prints. It makes no REFPROP calls but imports
+`calculate_jt_coefficients.py`, so `ctREFPROP` must be installed.
 
 ### `generate_paper_tables.py`
 
@@ -138,9 +159,12 @@ and U are left empty for the isenthalp end points (`used` = False).
 ### `extract_fit_coefficients.py`
 
 Reproduces the Chebyshev fit of every isenthalp without REFPROP, checks that
-its derivative matches `JT_meas`, and writes the Supporting Information table
-of the coefficients a_k, the number of points and degree, and the RMS of the
-fit residuals s_T (mK) to `data/derived_data/jt_coeffs/si_cheb_table.tex`.
+the derivative of the printed coefficients matches `JT_meas`, and writes the
+Supporting Information table to
+`data/derived_data/jt_coeffs/si_cheb_table.tex`: the coefficients a_k in the
+scaled pressure x = (2p - p_max - p_min)/(p_max - p_min), the pressure range,
+the number of points and degree, χ²_ν, and the RMS of the fit residuals s_T
+(mK).
 
 ### `theoretical_jt_uncertainty.py`
 
@@ -168,6 +192,8 @@ points. `plot_toc_graphic.py` writes the table-of-contents graphic
 - `FluidProps.py`: REFPROP wrapper for thermodynamic property calculations.
   It finds REFPROP through the `RPPREFIX` environment variable or a default
   per-platform location.
+- `chebyshev_fit.py`: the weighted Chebyshev fit, its weights, and the χ²
+  degree rule, shared by the scripts above. No REFPROP needed.
 - `repo_root.py`: defines `REPO_ROOT`, the repository root computed from the
   location of this file.
 
@@ -199,7 +225,8 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 ### Output: `jt_coefficients_summary.csv`
 
 `filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
-`polynomial_degree`, `r2_score`, `mean_rel_abs_err_perc`,
+`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`,
+`mean_rel_abs_err_perc`,
 `std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
 deviation statistics and `mean_unc_perc` are taken over the used points.
 
@@ -268,13 +295,14 @@ Where:
 
 ## Requirements
 
-**Python packages:** `numpy`, `pandas`, `scipy`, `scikit-learn` (R²),
+**Python packages:** `numpy`, `pandas`, `scipy`, `scikit-learn` (R² of the
+earlier degree rule, in `validate_degree_criterion.py`),
 `matplotlib`, and `ctREFPROP` (bindings to REFPROP). See
 [`requirements.txt`](../../requirements.txt).
 
 **External dependencies:**
 - **REFPROP** for the scripts that evaluate the equation of state (steps 2,
-  3, 4, and the `theory_figures/` scripts except the schematic).
+  3, 4, 5, and the `theory_figures/` scripts except the schematic).
 - The custom mixture models for He-Ne, He-Ar, Ne-Ar, and He-N2 in
   [`REFPROP/FLUIDS/HMX.BNC`](../../REFPROP/FLUIDS/HMX.BNC), merged into the
   local REFPROP installation (see [`REFPROP/README.md`](../../REFPROP/README.md)).
@@ -330,16 +358,17 @@ python src/data_analysis/extract_fit_coefficients.py
 ## Data quality
 
 **Fitting:**
-- Every fit reaches R² > 0.999; the selected degrees are 1 to 3.
+- The selected degrees are 2 to 5. Nine fits pass the χ² test, 11 do not
+  at the cap N - 2, and the two three-point isenthalps are interpolated.
 - The weights account for the measurement uncertainties.
 
 **Mean relative absolute deviation from the EOS (used points):**
-- Nitrogen and argon: 0.6 % to 3.7 %
-- Helium-4: 16 % to 22 %
-- Helium-neon: 1.2 % to 33 %
+- Nitrogen and argon: 0.3 % to 2.2 %
+- Helium-4: 16 % to 52 %
+- Helium-neon: 3.1 % to 13 %
 - Helium-nitrogen: 0.7 % to 11 %
 
-The mean relative expanded uncertainty (`mean_unc_perc`) is about 5 % for
-nitrogen, argon, and dilute He-N2 (6.7 % for the He-N2 isenthalp with about
-50 % helium), 8 % to 10 % for He-Ne, and 25 % to 26 % for helium-4. See
+The mean relative expanded uncertainty (`mean_unc_perc`) is about 3 % for
+nitrogen, argon, and dilute He-N2 (5.6 % for the He-N2 isenthalp with about
+50 % helium), 6.8 % to 7.4 % for He-Ne, and 31 % to 32 % for helium-4. See
 `jt_coefficients_summary.csv` for the values per isenthalp.
