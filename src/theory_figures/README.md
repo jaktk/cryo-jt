@@ -31,8 +31,8 @@ targeted by the measurements of this work shaded for reference. Writes
 μ_JT(p, T) = 0 in [0.05, 45] MPa.
 
 The `img/Tinv_mix.pdf` used in the paper is finished by hand in Inkscape
-(spurious low-temperature branches removed) from `img/Tinv_mix.svg`.
-Running the script overwrites it with the unedited plot.
+(spurious low-temperature branches removed). Running the script overwrites
+it with the unedited plot.
 
 ### `plot_literature_comparison.py`
 
