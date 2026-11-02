@@ -81,7 +81,7 @@ def plot_small():
     p_r = -np.log(secant * (1 - np.exp(-K_CURV)) / (0.80 * K_CURV)) / K_CURV
     _point(ax, p2, (r'$p_2$', r'$T_2$'))
     _point(ax, p1, (r'$p_1$', r'$T_1$'))
-    _point(ax, p_r, (r'$p_{\mathrm{r}}$', r'$T_{\mathrm{r}}$'), color=RED)
+    _point(ax, p_r, (r'$p^{*}$', r'$T^{*}$'), color=RED)
     ax.plot([p2, p1], [T_iso(p2), T_iso(p1)], 'k-', lw=1.1)
     x0 = p2 - 0.20
     y0, s = _tangent(ax, p_r, x0, p1 - 0.04)
@@ -99,7 +99,7 @@ def plot_large():
     for p, lab in [(0.22, '4'), (0.38, '3'), (0.62, '2'), (0.86, '1')]:
         _point(ax, p, (rf'$p_{lab}$', rf'$T_{lab}$'))
     p_r = 0.45
-    _point(ax, p_r, (r'$p_{\mathrm{r}}$', r'$T_{\mathrm{r}}$'), color=RED)
+    _point(ax, p_r, (r'$p^{*}$', r'$T^{*}$'), color=RED)
     x0 = 0.26
     y0, s = _tangent(ax, p_r, x0, 0.66)
     ax.plot([x0, x0 + 0.26], [y0, y0], color=RED, lw=1.1)

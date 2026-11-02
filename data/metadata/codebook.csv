@@ -204,7 +204,7 @@ literature,literature_measurements.csv,x2,"numeric, continuous","[0, 1]",mole fr
 literature,literature_measurements.csv,uJT_meas/(K/MPa),"numeric, continuous",NA,published Joule-Thomson coefficient (one of the three uJT columns is filled),K MPa^-1
 literature,literature_measurements.csv,uJT_meas/(F/psi),"numeric, continuous",NA,published Joule-Thomson coefficient,F psi^-1
 literature,literature_measurements.csv,uJT_meas/(degC/atm),"numeric, continuous",NA,published Joule-Thomson coefficient,degC atm^-1
-literature,literature_measurements.csv,rel_err,"numeric, continuous",NA,"relative deviation from the EOS as a fraction; empty in all rows since version 1.3.2 (it was filled only for the removed Tkaczuk rows), so the figure script computes the deviation from the EOS",dimensionless
+literature,literature_measurements.csv,rel_err,"numeric, continuous",NA,"relative deviation from the EOS as a fraction, (measured - EOS)/EOS; empty in all rows since version 1.3.2 (it was filled only for the removed Tkaczuk rows), so the figure script computes the deviation from the EOS",dimensionless
 derived_data/jt_coeffs,hene_eos_refit.csv,fit,categorical,"published; all, free; all, phase envelope held; well-conditioned, free; well-conditioned, phase envelope held","He-Ne EOS parameter set: the published model, or a refit to all He-Ne points or to the well-conditioned isenthalps, free or with the phase envelope of the published model held",NA
 derived_data/jt_coeffs,hene_eos_refit.csv,betaT,"numeric, continuous",NA,reducing parameter beta_T of the He-Ne model,dimensionless
 derived_data/jt_coeffs,hene_eos_refit.csv,gammaT,"numeric, continuous",NA,reducing parameter gamma_T,dimensionless

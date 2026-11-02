@@ -60,7 +60,7 @@ def relative_error(group):
                         for p, T in zip(group['p/MPa'], group['T/K'])])
     rel = group['rel_err']
     if rel.isnull().all():
-        return (mu_calc - group['uJT_meas/(K/MPa)']) / mu_calc * 100.0
+        return (group['uJT_meas/(K/MPa)'] - mu_calc) / mu_calc * 100.0
     return rel * 100.0
 
 
@@ -78,17 +78,19 @@ PIPELINE_FLUIDS = {
 def this_work():
     """ The mu_JT points of this work used in the paper (interior points of
     every isenthalp), from the pipeline output, with their relative deviation
-    from the EOS in %. """
+    from the EOS in %, referenced as in the result figures: to the EOS for the
+    pure fluids and to the measured value for the mixtures. """
     summary = pd.read_csv(os.path.join(JT_DIR, 'jt_coefficients_summary.csv'))
     frames = []
     for filename, fluid in zip(summary['filename'], summary['fluid']):
         df = pd.read_csv(os.path.join(JT_DIR, filename.replace('.csv', '_JT.csv')))
         df = df[df['used'] == True]
-        mu_eos = df['JT_eos/(K/MPa)']
+        mu_eos, mu_meas = df['JT_eos/(K/MPa)'], df['JT_meas/(K/MPa)']
+        ref = mu_meas if '-' in fluid else mu_eos
         frames.append(pd.DataFrame({
             'fluid': PIPELINE_FLUIDS[fluid],
             'T/K': df['T/K'],
-            'err': (mu_eos - df['JT_meas/(K/MPa)']) / mu_eos * 100.0,
+            'err': (mu_meas - mu_eos) / ref * 100.0,
         }))
     return pd.concat(frames, ignore_index=True)
 
@@ -145,7 +147,7 @@ def main():
     ax.yaxis.set_major_formatter(FixedFormatter([r'$-10^3$', r'$-10^2$', r'$-10^1$', r'$-10^0$', '0',
                                                  r'$10^0$', r'$10^1$', r'$10^2$', r'$10^3$']))
     ax.set_xlabel(r'$T$/K')
-    ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$')
+    ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm meas} - \mu_{\rm JT}^{\rm EOS}) / \mu_{\rm JT}^{\rm ref} \times 100$')
     legend = ax.legend(handles=legend_handles,
                        loc='upper center', ncol=3,
                        frameon=True, edgecolor='black', facecolor='white',
