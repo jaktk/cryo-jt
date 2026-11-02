@@ -5,6 +5,7 @@ import pandas as pd
 from scipy import interpolate
 from FluidProps import FluidProps
 from chebyshev_fit import chebyshev_fit_weights, fit_chebyshev, select_degree
+from heat_exchange import heat_bias
 from measurement_uncertainty import K_TARGET, K_SOURCE, CERNOX_STABILITY_REL, is_steady, point_uncertainties
 from repo_root import REPO_ROOT
 
@@ -13,38 +14,49 @@ from repo_root import REPO_ROOT
 # everything at K_TARGET (95 %).
 N_MC_SAMPLES = 2000  # Monte Carlo realisations for the per-point uncertainty
 
-# Mean relative heat-loss and kinetic-energy corrections (delta_Q, delta_k) in %
-# of |mu_JT| for a constant heat exchange of 27 mW (estimate_corrections.py,
-# corrections_summary.csv). The corrections are not applied; each is treated as
-# the half-width of a rectangular distribution of an uncorrected bias,
-# u = delta/sqrt(3), and added in quadrature to the Monte Carlo uncertainty.
-# He-N2 is split by composition (see systematic_rel_std_uncertainty).
-CORRECTIONS_PERC = {
-    'Nitrogen': (0.781, 0.027),
-    'Argon': (1.003, 0.032),
-    'Helium': (26.559, 2.304),
-    'Helium-Neon': (5.422, 0.321),
-    'Nitrogen-Helium-0.14': (1.194, 0.125),
-    'Nitrogen-Helium-0.50': (4.115, 0.332),
+# Mean relative kinetic-energy correction delta_k in % of |mu_JT|
+# (estimate_corrections.py, corrections_summary.csv). It is not applied; it is
+# treated as the half-width of a rectangular distribution of an uncorrected
+# bias, u = delta_k/sqrt(3). The heat exchange is modelled per point
+# (heat_exchange.py). He-N2 is split by composition (see kinetic_rel_std_uncertainty).
+KINETIC_PERC = {
+    'Nitrogen': 0.027,
+    'Argon': 0.032,
+    'Helium': 2.304,
+    'Helium-Neon': 0.321,
+    'Nitrogen-Helium-0.14': 0.125,
+    'Nitrogen-Helium-0.50': 0.332,
 }
 HEN2_SPLIT_XHE = 0.3  # He-N2 isenthalps below this x_He use the 0.14 values, above the 0.50 ones
 
 
-def systematic_rel_std_uncertainty(fluid, x_he=None):
-    """ Relative standard (k = 1) uncertainty from the uncorrected heat-loss and
-    kinetic-energy biases, as a fraction of mu_JT. """
+def kinetic_rel_std_uncertainty(fluid, x_he=None):
+    """ Relative standard (k = 1) uncertainty from the uncorrected
+    kinetic-energy bias, as a fraction of mu_JT. """
     if fluid == 'Nitrogen-Helium':
         fluid = 'Nitrogen-Helium-0.14' if x_he < HEN2_SPLIT_XHE else 'Nitrogen-Helium-0.50'
-    d_q, d_k = CORRECTIONS_PERC[fluid]
-    return np.sqrt(d_q**2 + d_k**2) / np.sqrt(3) / 100
+    return KINETIC_PERC[fluid] / np.sqrt(3) / 100
 
 
 # Relative standard (k = 1) method uncertainty of mu_JT: the fit and
 # differentiation error that the fixed-degree Monte Carlo does not capture, set
 # so that the expanded uncertainty covers the exact slope at 95 % in the
-# synthetic validation (validate_degree_criterion.py). Applied to all fluids;
-# estimate_method_uncertainty.py checks it against the N2 and Ar data.
+# synthetic validation (validate_degree_criterion.py). U_METHOD_REL is the
+# pooled value; an isenthalp whose synthetic coverage falls short with it gets
+# the larger value of method_uncertainty.csv. estimate_method_uncertainty.py
+# checks it against the N2 and Ar data.
 U_METHOD_REL = 0.0065
+METHOD_FILE = os.path.join(REPO_ROOT, 'data', 'derived_data', 'jt_coeffs', 'method_uncertainty.csv')
+
+# Purity of the pure fluids: the in-situ readings of GA016 (analyze_purity.py)
+# with the contaminant assumed below. The change of the EOS mu_JT at the
+# measured state when the impurity 1 - purity is added is treated as the
+# half-width of a rectangular distribution. The supplier purities (1 ppm for
+# helium-4, 10 ppm for the others) change mu_JT by less than 1e-4.
+PURITY_FILE = os.path.join(REPO_ROOT, 'data', 'derived_data', 'purity', 'purity_per_gas.csv')
+PURITY_GAS = {'Nitrogen': 'nitrogen', 'Argon': 'argon', 'Helium': 'helium-4'}
+CONTAMINANT = {'Nitrogen': 'Oxygen', 'Argon': 'Nitrogen', 'Helium': 'Nitrogen'}
+
 
 # Expanded (k = 2) uncertainty of the gas analyser GA016, mole fraction. The
 # composition uncertainty of an isenthalp is the larger of U_X_K2 / K_SOURCE and
@@ -164,6 +176,9 @@ class JTCoefficientCalculator(object):
                                        'jt_coeffs')
         os.makedirs(self.output_dir, exist_ok=True)
         self.metadata = self._load_metadata()
+        self.method_uncertainty = ({} if not os.path.exists(METHOD_FILE) else
+                                   pd.read_csv(METHOD_FILE).set_index('isenthalp')['u_m'].to_dict())
+        self.purity = pd.read_csv(PURITY_FILE).set_index('gas')['purity'].to_dict()
         
     def _load_metadata(self):
         with open(self.metadata_file, 'r') as f:
@@ -219,6 +234,41 @@ class JTCoefficientCalculator(object):
         fluid_props.set_composition_from_1st_fraction(composition)
         sensitivity = (mu_plus - mu_minus) / (2 * X_STEP)
         return K_TARGET * np.abs(sensitivity) * u_x
+
+    def _composition_trend_bias(self, df, fluid_props, x1_per_point, composition, degree, weights):
+        """ Bias of mu_JT (K/MPa) if the composition varied along the isenthalp
+        as read: the slope of the EOS isenthalp through the mean inlet state with
+        the point compositions, minus that with the mean composition, both fitted
+        like the data. """
+        p = df['PT102/MPa'].to_numpy(float)
+        p_in, t_in = df['PT101/MPa'].mean(), df['TT101/K'].mean()
+        def outlet_temperatures(x):
+            out = []
+            for pi, xi in zip(p, x):
+                fluid_props.set_composition_from_1st_fraction(xi)
+                out.append(fluid_props.get_T(p=pi, h=fluid_props.get_hmass(p=p_in, T=t_in)))
+            return np.array(out)
+        t_var = outlet_temperatures(x1_per_point)
+        t_const = outlet_temperatures(np.full_like(p, composition))
+        fluid_props.set_composition_from_1st_fraction(composition)
+        return np.abs(fit_chebyshev(p, t_var - t_const, degree, weights).deriv()(p))
+
+    def _purity_bias(self, fluid, pressures, temperatures, jt_measured):
+        """ Change of mu_JT (K/MPa) from the impurity 1 - purity of a pure fluid
+        (PURITY_FILE, CONTAMINANT), scaled to the measured value. Where REFPROP
+        cannot flash the dilute mixture, the largest relative change of the
+        other points of the isenthalp is used. """
+        impurity = 1.0 - self.purity[PURITY_GAS[fluid]]
+        pure, mix = FluidProps(fluid), FluidProps((fluid, CONTAMINANT[fluid]))
+        mix.set_composition_from_1st_fraction(1.0 - impurity)
+        rel = np.full(len(pressures), np.nan)
+        for i, (p, t) in enumerate(zip(pressures, temperatures)):
+            out = mix.RP.REFPROPdll(mix.fluid, 'PT', 'JT', mix.MASS_BASE_SI, 0, 0, p * 1e6, t, mix.z)
+            if out.ierr == 0:
+                mu0 = pure.get_JT_coefficient(p, t)
+                rel[i] = (out.Output[0] * 1e6 - mu0) / mu0
+        rel = np.where(np.isnan(rel), np.nanmax(np.abs(rel)), np.abs(rel))
+        return rel * np.abs(jt_measured)
 
     def _monte_carlo_uncertainty(self,
                                  pressures,
@@ -356,21 +406,39 @@ class JTCoefficientCalculator(object):
                 pressures, temperatures, p_uncertainties, t_uncertainties, poly
             )
 
-            # Add the uncorrected heat-loss and kinetic-energy biases and the
-            # method uncertainty in quadrature
+            # Uncorrected biases, each as the half-width of a rectangular
+            # distribution: the modelled heat exchange (local slope bias,
+            # heat_exchange.py) and the kinetic-energy term
             fluid_key = fluid_type if isinstance(fluid_type, str) else '-'.join(fluid_type)
             x_he = None
             if fluid_key == 'Nitrogen-Helium':
                 x_he = 1.0 - composition
-            u_sys = systematic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
-            u_method = U_METHOD_REL * np.abs(jt_measured)
+            stem = filename[:-4]
+            weights = chebyshev_fit_weights(pressures, temperatures,
+                                            p_uncertainties / K_TARGET, t_uncertainties / K_TARGET)
+            bias_q, q_heat = heat_bias(stem, df, fluid_props, degree, weights)
+            u_heat = np.abs(bias_q) / np.sqrt(3)
+            u_kinetic = kinetic_rel_std_uncertainty(fluid_key, x_he) * np.abs(jt_measured)
+            jt_uncertainty_q = K_TARGET * np.sqrt(u_heat**2 + u_kinetic**2)
+            u_m = self.method_uncertainty.get(stem, U_METHOD_REL)
+            u_method = u_m * np.abs(jt_measured)
             # long-term stability of the outlet thermometer: a calibration
             # shift proportional to T scales the slope (measurement_uncertainty.py)
             u_stability = CERNOX_STABILITY_REL / np.sqrt(3) * np.abs(jt_measured)
-            jt_uncertainty_x = (self._composition_uncertainty(pressures, temperatures, fluid_props, composition, u_x)
-                                if is_mixture else np.zeros_like(pressures))
+            if is_mixture:
+                jt_uncertainty_x = K_TARGET * np.sqrt(
+                    (self._composition_uncertainty(pressures, temperatures, fluid_props, composition, u_x) / K_TARGET)**2
+                    + (self._composition_trend_bias(df, fluid_props, x1_per_point, composition, degree, weights)
+                       / np.sqrt(3))**2)
+                jt_uncertainty_pur = np.zeros_like(pressures)
+            else:
+                jt_uncertainty_x = np.zeros_like(pressures)
+                jt_uncertainty_pur = K_TARGET * self._purity_bias(fluid_key, pressures, temperatures,
+                                                                  jt_measured) / np.sqrt(3)
             jt_uncertainty = K_TARGET * np.sqrt((jt_uncertainty_mc / K_TARGET)**2 + (jt_uncertainty_x / K_TARGET)**2
-                                                + u_sys**2 + u_method**2 + u_stability**2)
+                                                + (jt_uncertainty_q / K_TARGET)**2
+                                                + (jt_uncertainty_pur / K_TARGET)**2
+                                                + u_method**2 + u_stability**2)
             
             # Calculate theoretical JT coefficients
             jt_theoretical = self._calculate_theoretical_jt(pressures, temperatures, fluid_props, composition)
@@ -407,6 +475,9 @@ class JTCoefficientCalculator(object):
                 'well_conditioned': bool(len(pressures) >= 4 and fit.passed and is_steady(df).all()),
                 'birge_ratio': birge,
                 'u_x1': u_x,
+                'u_m': u_m,
+                'Q_min/mW': 1e3 * q_heat.min(),
+                'Q_max/mW': 1e3 * q_heat.max(),
                 'TT101_mean/K': metadata.get('mean_TT101_K', np.nan),
                 'p/MPa': pressures,
                 'T/K': temperatures,
@@ -417,6 +488,8 @@ class JTCoefficientCalculator(object):
                 'JT_eos/(K/MPa)': jt_theoretical,
                 'JT_UNC_MC/(K/MPa)': jt_uncertainty_mc,
                 'JT_UNC_X/(K/MPa)': jt_uncertainty_x,
+                'JT_UNC_Q/(K/MPa)': jt_uncertainty_q,
+                'JT_UNC_PUR/(K/MPa)': jt_uncertainty_pur,
                 'JT_UNC/(K/MPa)': jt_uncertainty,
                 'used': interior_mask,
                 'rel_abs_err_perc': relative_abs_error,
@@ -486,6 +559,9 @@ class JTCoefficientCalculator(object):
                 'well_conditioned': result['well_conditioned'],
                 'birge_ratio': result['birge_ratio'],
                 'u_x1': result['u_x1'],
+                'u_m': result['u_m'],
+                'Q_min/mW': result['Q_min/mW'],
+                'Q_max/mW': result['Q_max/mW'],
                 'mean_rel_abs_err_perc': result['mean_rel_abs_err_perc'],
                 'std_rel_abs_err_perc': result['std_rel_abs_err_perc'],
                 'rms_rel_abs_err_perc': result['rms_rel_abs_err_perc'],
@@ -525,6 +601,8 @@ class JTCoefficientCalculator(object):
                 'JT_meas/(K/MPa)': result['JT_meas/(K/MPa)'],
                 'JT_UNC_MC/(K/MPa)': result['JT_UNC_MC/(K/MPa)'],
                 'JT_UNC_X/(K/MPa)': result['JT_UNC_X/(K/MPa)'],
+                'JT_UNC_Q/(K/MPa)': result['JT_UNC_Q/(K/MPa)'],
+                'JT_UNC_PUR/(K/MPa)': result['JT_UNC_PUR/(K/MPa)'],
                 'JT_UNC/(K/MPa)': result['JT_UNC/(K/MPa)'],
                 'JT_eos/(K/MPa)': result['JT_eos/(K/MPa)'],
                 'mean_unc_perc': result['mean_unc_perc'],

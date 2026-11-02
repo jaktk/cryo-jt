@@ -22,7 +22,10 @@ the pipeline and, under the chi2 rule, scaled by the Birge ratio sqrt(chi2_red)
 of the realisation where no degree passes the test, as in the pipeline. The method uncertainty u_m is the smallest relative standard
 uncertainty for which U = 2 sqrt(B^2 u_MC^2 + u_m^2) (B the Birge ratio) covers the exact slope at
 COVERAGE_GOAL of all interior points under the chi2 rule. It covers the fit and
-differentiation error that the fixed-degree Monte Carlo misses. The measured
+differentiation error that the fixed-degree Monte Carlo misses. Where this
+pooled value covers less than COVERAGE_GOAL of the points of one isenthalp
+(capped low-degree fits on curved isenthalps), that isenthalp gets the smaller
+u_m that reaches COVERAGE_GOAL on its own points (method_uncertainty.csv). The measured
 deviations from the EOS are not used, so the N2 and Ar data remain an
 independent test of U.
 
@@ -37,6 +40,7 @@ Outputs (data/derived_data/jt_coeffs):
                             measured data
   * degree_pooled.csv       pooled synthetic results per fluid group and rule
   * si_degree_tables.tex    the two tables of SI Section S4
+  * method_uncertainty.csv  u_m per isenthalp, used by calculate_jt_coefficients.py
 and prints the pooled results and u_m (the constant U_METHOD_REL in
 calculate_jt_coefficients.py).
 
@@ -266,6 +270,12 @@ def main():
     pts = all_pts[~all_pts['isenthalp'].map(two_phase)].copy()
     chi2 = pts[pts['rule'] == 'chi2']
     u_m = required_u_m(chi2['err'].values, chi2['u_mc'].values)
+    # per isenthalp: the pooled value, or more where it covers less than
+    # COVERAGE_GOAL of the isenthalp's points (pooled value for the two-phase ones)
+    u_m_iso = {iso: round(float(u_m if two_phase[iso] else max(u_m, required_u_m(g['err'].values, g['u_mc'].values))), 4)
+               for iso, g in all_pts[all_pts['rule'] == 'chi2'].groupby('isenthalp')}
+    pd.DataFrame({'isenthalp': list(u_m_iso), 'u_m': list(u_m_iso.values())}).to_csv(
+        os.path.join(JT_DIR, 'method_uncertainty.csv'), index=False)
 
     def summarise(g):
         U = K_TARGET * np.sqrt(g['u_mc']**2 + u_m**2)
@@ -288,6 +298,12 @@ def main():
     per_iso.insert(2, 'n_points', per_iso['isenthalp'].map(
         {f[:-4]: n for f, n in zip(summary['filename'], summary['n_points'])}))
     per_iso.insert(3, 'two_phase', per_iso['isenthalp'].map(two_phase))
+    # coverage on each isenthalp with its own u_m (chi2 rule)
+    own = {iso: np.mean(np.abs(g['err']) <= K_TARGET * np.sqrt(g['u_mc']**2 + u_m_iso[iso]**2))
+           for iso, g in all_pts[all_pts['rule'] == 'chi2'].groupby('isenthalp')}
+    is_chi2 = per_iso['rule'] == 'chi2'
+    per_iso.loc[is_chi2, 'u_m'] = per_iso.loc[is_chi2, 'isenthalp'].map(u_m_iso)
+    per_iso.loc[is_chi2, 'coverage_mc_um_iso'] = per_iso.loc[is_chi2, 'isenthalp'].map(own)
     per_iso.to_csv(os.path.join(JT_DIR, 'degree_validation.csv'), index=False)
     pd.DataFrame(sens_rows).to_csv(os.path.join(JT_DIR, 'degree_sensitivity.csv'), index=False)
 
@@ -306,6 +322,7 @@ def main():
     print('isenthalps left out (synthetic curve enters the two-phase region):',
           [k for k, v in two_phase.items() if v])
     print(f'\nu_m (k = 1) for {COVERAGE_GOAL:.0%} coverage under the chi2 rule: {u_m:.4f}')
+    print('isenthalps with a larger u_m:', {k: v for k, v in u_m_iso.items() if v > u_m})
 
 
 if __name__ == '__main__':

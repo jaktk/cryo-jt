@@ -13,7 +13,7 @@
 
 This repository contains the raw data, processed data, and code used to obtain and analyse measurements of the Joule-Thomson coefficient in pure gases and mixtures at inlet temperatures between 65 K and 180 K. It is the supporting dataset for the article submitted to the *Journal of Chemical & Engineering Data*.
 
-The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup, and the mixtures then provide the new results. The degree of the Chebyshev fit of each isenthalp is set by a chi-square test against the measurement uncertainty. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the composition uncertainty of the mixtures (from the EOS sensitivity), the uncorrected heat-loss and kinetic-energy biases, the long-term stability of the outlet thermometer, and a method uncertainty for the fit error from a synthetic test on equation-of-state isenthalps; the nitrogen and argon data are an independent check of it.
+The measurements from this repository test the earlier-developed mixture equations of state in the single-phase region. Pure fluids are measured first to qualify the setup, and the mixtures then provide the new results. The degree of the Chebyshev fit of each isenthalp is set by a chi-square test against the measurement uncertainty. The expanded uncertainty (k = 2) of each derived coefficient combines a Monte Carlo propagation of the sensor uncertainties, the composition uncertainty of the mixtures (from the EOS sensitivity, and the trend of the readings along an isenthalp), the uncorrected biases from the heat exchange (modelled from the measured shield and outlet temperatures) and the kinetic energy, the purity of the pure fluids from the in-situ readings, the long-term stability of the outlet thermometer, and a method uncertainty for the fit error from a synthetic test on equation-of-state isenthalps; the nitrogen and argon data are an independent check of it.
 
 ## System description
 
@@ -25,7 +25,7 @@ Inside the cryostat (dashed envelope in the P&ID below), a copper block with a b
 
 Two fine-control needle valves (`HV013`, `HV015`) are installed in parallel downstream of `PT102` to give a broad range of flow regulation. The gas analyser `GA016` (Stanford Research Systems BGA244HP) sits at the system outlet so that the speed-of-sound-based composition measurement always runs at atmospheric pressure (±0.1 mol-%).
 
-The capillary is mounted in vacuum on a glass-fibre support inside a multi-layer-insulated radiation shield thermalised at the cold head, so that the residual heat exchange with the environment is dominated by axial conduction along the tube wall.
+The capillary is mounted in vacuum on a glass-fibre support inside a multi-layer-insulated radiation shield thermalised at the cold head, The fluid still gains some heat between the two thermometers, by radiation from the shield onto the capillary and by conduction down the outlet line; it is estimated for every point from the measured shield and outlet temperatures (`src/data_analysis/heat_exchange.py`).
 
 All raw and processed data files use the P&ID tag names below for sensor identification.
 
@@ -154,7 +154,7 @@ $^{a}$ The gas-analyser output was frozen at one value all day, so no valid puri
 `data/derived_data` contains the products computed from the raw data, documented in [`data/derived_data/README.md`](data/derived_data/README.md):
 
 - `p_T_pairs/`: steady-state pressure-temperature(-composition) points extracted from the raw time series, one file per isenthalp;
-- `jt_coeffs/`: the derived Joule-Thomson coefficients with their expanded uncertainties (one file per isenthalp, `jt_coefficients_summary.csv`, and `jt_coefficients_detailed.json`), the Monte Carlo uncertainty bound, the heat-loss and kinetic-energy correction estimates, and the LaTeX tables generated for the paper and its Supporting Information;
+- `jt_coeffs/`: the derived Joule-Thomson coefficients with their expanded uncertainties (one file per isenthalp, `jt_coefficients_summary.csv`, and `jt_coefficients_detailed.json`), the Monte Carlo uncertainty bound, the heat-exchange and kinetic-energy correction estimates, and the LaTeX tables generated for the paper and its Supporting Information;
 - `capillary_mass_flow/`: calculated mass flow rate versus outlet pressure for each measured isenthalp, used for the correction estimates;
 - `calculated_mass_flow_rate/`: capillary-sizing design calculations.
 
@@ -178,23 +178,23 @@ REFPROP is licensed separately, so the scripts that evaluate the equation of sta
 
 ```bash
 python src/data_analysis/get_pT_pairs.py                 # 1. steady-state p-T pairs from the raw data
+python src/data_analysis/analyze_purity.py               #    in-situ purity of the pure fluids (read by step 2)
 python src/data_analysis/calculate_jt_coefficients.py    # 2. mu_JT with uncertainties                    (REFPROP)
 python src/data_analysis/monte_carlo_uncertainty.py      # 3. Monte Carlo uncertainty bound               (REFPROP)
-python src/data_analysis/estimate_corrections.py         # 4. heat-loss and kinetic-energy corrections    (REFPROP)
-#    copy dQ/% and dk/% of corrections_summary.csv to CORRECTIONS_PERC in calculate_jt_coefficients.py
+python src/data_analysis/estimate_corrections.py         # 4. heat-exchange and kinetic-energy corrections (REFPROP)
+#    copy dk/% of corrections_summary.csv to KINETIC_PERC in calculate_jt_coefficients.py
 python src/data_analysis/validate_degree_criterion.py   # 5. synthetic test; copy u_m to U_METHOD_REL     (REFPROP)
-# 6. if CORRECTIONS_PERC or U_METHOD_REL changed, rerun step 2
+# 6. if KINETIC_PERC, U_METHOD_REL, or method_uncertainty.csv changed, rerun step 2
 python src/data_analysis/estimate_method_uncertainty.py  # 7. cross-check of u_m with the N2 and Ar data
 python src/data_analysis/diagnose_fits.py               #    fit diagnostics for the SI                     (REFPROP)
 python src/data_analysis/hysteresis_check.py            #    hysteresis check (nitrogen 150 K/6 MPa)
 python src/data_analysis/refit_hene_eos.py               # 8. refit of the He-Ne EOS parameters to mu_JT     (REFPROP)
-python src/data_analysis/analyze_purity.py               # 9. in-situ purity of the pure fluids
 python src/data_analysis/generate_paper_tables.py        # 10. LaTeX bodies of the result tables
 python src/data_analysis/extract_fit_coefficients.py     #    Chebyshev coefficients table of the SI
 python src/data_analysis/plot_paper_results.py           #    result figures (other figure scripts: img/README.md)
 ```
 
-The heat-loss and kinetic-energy corrections quoted in the manuscript are produced by `estimate_corrections.py` (`data/derived_data/jt_coeffs/corrections_summary.csv`). They are not applied to the data; they enter the uncertainty as uncorrected biases. Details of each step are in [`src/data_analysis/README.md`](src/data_analysis/README.md).
+The heat-exchange and kinetic-energy corrections quoted in the manuscript are produced by `estimate_corrections.py` (`data/derived_data/jt_coeffs/corrections_summary.csv`). They are not applied to the data; they enter the uncertainty as uncorrected biases. Details of each step are in [`src/data_analysis/README.md`](src/data_analysis/README.md).
 
 ## Citation
 

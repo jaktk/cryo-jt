@@ -3,7 +3,7 @@
 Derived Joule-Thomson coefficients with uncertainties, one isenthalp per
 file, plus a summary table over all isenthalps and the same content as JSON
 for programmatic use. The directory also holds the Monte Carlo bound on the
-achievable uncertainty, the heat-loss and kinetic-energy correction
+achievable uncertainty, the heat-exchange and kinetic-energy correction
 estimates, and the LaTeX tables generated for the paper.
 
 The full column dictionary is in
@@ -18,8 +18,8 @@ The full column dictionary is in
 | `jt_coefficients_detailed.json` | `calculate_jt_coefficients.py` | The same results in nested JSON form including the per-point arrays. |
 | `Fluid_TK_PMPa_MC_uncertainty.csv` | `monte_carlo_uncertainty.py` | One isenthalp: the Monte Carlo bound on the achievable $\mu_{\rm JT}$ uncertainty given the sensor floor (and, for mixtures, the composition uncertainty), evaluated on the EOS isenthalp through the mean inlet condition. |
 | `mc_uncertainty_summary.csv` | `monte_carlo_uncertainty.py` | One row per isenthalp: mean and maximum Monte Carlo relative expanded uncertainty (and, for mixtures, the composition contribution). Written only by a full run, not with `--isenthalp`. |
-| `corrections_per_point.csv` | `estimate_corrections.py` | Heat-loss (constant 27 mW) and kinetic-energy corrections for every used point, in K/MPa and in % of $\lvert\mu_{\rm JT}\rvert$. |
-| `corrections_summary.csv` | `estimate_corrections.py` | Mean corrections per fluid group (He-N2 split by composition), deviation from the EOS with and without the corrections, and the best-fit heat exchange. Source of `CORRECTIONS_PERC` in `calculate_jt_coefficients.py`. |
+| `corrections_per_point.csv` | `estimate_corrections.py` | Modelled heat gain (`heat_exchange.py`), the resulting local slope bias, and the kinetic-energy correction for every used point, in K/MPa and in % of $\lvert\mu_{\rm JT}\rvert$. |
+| `corrections_summary.csv` | `estimate_corrections.py` | Range of the modelled heat gain and mean corrections per fluid group (He-N2 split by composition). Source of `KINETIC_PERC` in `calculate_jt_coefficients.py`. |
 | `paper_tables.tex` | `generate_paper_tables.py` | LaTeX bodies of the result tables of the paper. |
 | `si_cheb_table.tex` | `extract_fit_coefficients.py` | LaTeX table of the Chebyshev fit coefficients (in the scaled pressure), the pressure range, $\chi^2_\nu$, and the RMS of the fit residuals $s_T$ for the Supporting Information. |
 | `heat_exchange_fit.csv` | `estimate_corrections.py` | Per isenthalp, a fit of the outlet-temperature offsets from the EOS isenthalp as an inlet-thermometer offset plus a constant heat exchange (diagnostic, not used in U). |
@@ -28,6 +28,7 @@ The full column dictionary is in
 | `hene_eos_refit.csv` | `refit_hene_eos.py` | Refit of the He-Ne EOS parameters to the measured $\mu_{\rm JT}$: parameters, AAD, points outside U, and the change of the bubble points and densities. |
 | `degree_validation.csv` | `validate_degree_criterion.py` | Synthetic test, one row per isenthalp and degree rule (`chi2`, `r2`, `ftest`): degrees selected, bias, scatter, and RMS of the relative error of $\mu_{\rm JT}$ against the exact EOS slope, and the coverage of the uncertainty. |
 | `degree_pooled.csv` | `validate_degree_criterion.py` | The synthetic test pooled per fluid group and rule. |
+| `method_uncertainty.csv` | `validate_degree_criterion.py` | Method uncertainty u_m per isenthalp: the pooled value, or the value that reaches 95 % synthetic coverage on the isenthalp if larger. |
 | `degree_sensitivity.csv` | `validate_degree_criterion.py` | The three degree rules applied to the measured data: degree and AAD per isenthalp. |
 | `si_degree_tables.tex` | `validate_degree_criterion.py` | LaTeX tables of the synthetic test and the sensitivity for the Supporting Information. |
 
@@ -66,12 +67,19 @@ All uncertainties in the `*_JT.csv` files are expanded with k = 2 (about
 - `JT_UNC_X/(K/MPa)` is the composition part for mixtures (k = 2):
   2 |∂μ_JT/∂x1| u(x1), with the sensitivity from the EOS at the measured state
   and u(x1) the larger of 0.0005 and the standard deviation of the point
-  compositions of the isenthalp (`u_x1` in the summary); zero for pure fluids.
+  compositions of the isenthalp (`u_x1` in the summary), combined in
+  quadrature with the slope bias if the composition varied along the
+  isenthalp as read (rectangular, |bias|/√3); zero for pure fluids.
+- `JT_UNC_Q/(K/MPa)` is the bias part (k = 2): the local slope bias from the
+  heat gain modelled per point (`heat_exchange.py`) and the kinetic-energy
+  correction (`KINETIC_PERC`), each rectangular, u = δ/√3.
+- `JT_UNC_PUR/(K/MPa)` is the purity part for pure fluids (k = 2): the change
+  of the EOS μ_JT for the in-situ impurity (`purity_per_gas.csv`; contaminant
+  O₂ for nitrogen, N₂ for argon and helium-4), rectangular; zero for mixtures.
 - `JT_UNC/(K/MPa)` combines in quadrature the Monte Carlo standard
-  uncertainty, the composition term, the uncorrected heat-loss and kinetic-energy biases (treated as
-  rectangular, u = δ/√3, with δ from `corrections_summary.csv`), and the
-  long-term stability of the Cernox sensor (6 × 10⁻⁴ of μ_JT / √3), the
-  relative method uncertainty u_m = 0.65 % (k = 1, the fit error from the
+  uncertainty, the composition, bias, and purity parts, the long-term
+  stability of the Cernox sensor (6 × 10⁻⁴ of μ_JT / √3), and the relative
+  method uncertainty u_m (k = 1, `u_m` in the summary, the fit error from the
   synthetic test of `validate_degree_criterion.py`), and expands the result
   with k = 2.
 - `mean_unc_perc` is the mean of 100 `JT_UNC`/|`JT_meas`| over the used

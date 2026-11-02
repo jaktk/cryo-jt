@@ -21,15 +21,15 @@ unpacked Zenodo archive; git is not needed. Run them from any directory as
 | Step | Script | REFPROP | Reads | Writes |
 | --- | --- | --- | --- | --- |
 | 1 | `get_pT_pairs.py` | no | `data/raw_data/*.csv`, `extraction_windows.json` | `p_T_pairs/*.csv` |
-| 2 | `calculate_jt_coefficients.py` | yes | `p_T_pairs/*.csv`, `p_T_pairs/index.json`, Cernox calibration | `jt_coeffs/*_JT.csv`, `jt_coefficients_summary.csv`, `jt_coefficients_detailed.json` |
+| 1b | `analyze_purity.py` | no | `data/metadata/campaigns.csv`, `data/raw_data/*.csv` | `purity/purity_per_day.csv`, `purity/purity_per_gas.csv`, `purity/si_purity_tables.tex` |
+| 2 | `calculate_jt_coefficients.py` | yes | `p_T_pairs/*.csv`, `p_T_pairs/index.json`, Cernox calibration, `capillary_mass_flow/*.csv`, `purity/purity_per_gas.csv`, `jt_coeffs/method_uncertainty.csv` | `jt_coeffs/*_JT.csv`, `jt_coefficients_summary.csv`, `jt_coefficients_detailed.json` |
 | 3 | `monte_carlo_uncertainty.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `jt_coeffs/*_MC_uncertainty.csv`, `mc_uncertainty_summary.csv` |
-| 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv`, `heat_exchange_fit.csv` |
-| 5 | `validate_degree_criterion.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `degree_validation.csv`, `degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`; prints u_m |
-| 6 | `calculate_jt_coefficients.py` again, only if the constants below changed | yes | as step 2 | as step 2 |
+| 4 | `estimate_corrections.py` | yes | `*_JT.csv`, `jt_coefficients_summary.csv`, `p_T_pairs/*.csv`, `capillary_mass_flow/*.csv` | `corrections_per_point.csv`, `corrections_summary.csv`, `heat_exchange_fit.csv` |
+| 5 | `validate_degree_criterion.py` | yes | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv` | `degree_validation.csv`, `degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`, `method_uncertainty.csv`; prints u_m |
+| 6 | `calculate_jt_coefficients.py` again, only if the constants below or `method_uncertainty.csv` changed | yes | as step 2 | as step 2 |
 | 7 | `estimate_method_uncertainty.py` | no | N2 and Ar `*_JT.csv` | prints the cross-check of u_m |
 | 7b | `diagnose_fits.py`, `hysteresis_check.py` | yes / no | `p_T_pairs/*.csv`, `jt_coefficients_summary.csv`, `data/raw_data/2021-03-04.csv` | `fit_diagnostics.csv`, `hysteresis_check.csv` |
 | 8 | `refit_hene_eos.py` | yes | He-Ne `*_JT.csv`, `jt_coefficients_summary.csv` | `hene_eos_refit.csv` |
-| 9 | `analyze_purity.py` | no | `data/metadata/campaigns.csv`, `data/raw_data/*.csv` | `purity/purity_per_day.csv`, `purity/purity_per_gas.csv`, `purity/si_purity_tables.tex` |
 | 10 | `generate_paper_tables.py`, `extract_fit_coefficients.py`, figure scripts | no | `jt_coeffs/`, `p_T_pairs/` | `paper_tables.tex`, `si_cheb_table.tex`, `img/*.pdf` |
 
 Paths in the table are relative to `data/derived_data/` unless given in full.
@@ -39,13 +39,15 @@ write it, so add or remove its entries when the set of isenthalps changes.
 Two constants in `calculate_jt_coefficients.py` are hard-coded from the
 outputs of later steps:
 
-- `CORRECTIONS_PERC`: the mean relative heat-loss and kinetic-energy
-  corrections (δ_Q, δ_k in %) per fluid group, copied from the `dQ/%` and
-  `dk/%` columns of `corrections_summary.csv` (step 4).
-- `U_METHOD_REL` (0.0065): the relative method uncertainty u_m printed by
-  `validate_degree_criterion.py` (step 5), from the synthetic test only.
+- `KINETIC_PERC`: the mean relative kinetic-energy correction δ_k in % per
+  fluid group, copied from the `dk/%` column of `corrections_summary.csv`
+  (step 4).
+- `U_METHOD_REL`: the pooled relative method uncertainty u_m printed by
+  `validate_degree_criterion.py` (step 5), from the synthetic test only. The
+  per-isenthalp values of `method_uncertainty.csv` (step 5) are read directly.
 
-The two constants only affect `JT_UNC/(K/MPa)` and `mean_unc_perc`.
+The two constants and `method_uncertainty.csv` only affect `JT_UNC/(K/MPa)`,
+`JT_UNC_Q/(K/MPa)`, and `mean_unc_perc`.
 `JT_meas`, `JT_eos`, and `JT_UNC_MC`, which steps 3 to 5 read, do not depend
 on them, so step 6 does not require rerunning steps 3 to 5. Step 7 reads
 `JT_UNC`, so it runs after step 6.
@@ -97,10 +99,15 @@ Main script for the Joule-Thomson coefficients.
    for mixtures the composition term `JT_UNC_X` (2 |∂μ_JT/∂x1| u(x1) at k = 2, with the
    sensitivity from the EOS at the measured state; u(x1), `u_x1` in the
    summary, is the larger of 0.0005 and the standard deviation of the point
-   compositions of the isenthalp), the
-   uncorrected heat-loss and kinetic-energy biases (rectangular, u = δ/√3,
-   from `CORRECTIONS_PERC`; He-N2 split at x_He = 0.3), and the method
-   uncertainty u_m = 0.65 % (k = 1), and the long-term stability of the
+   compositions of the isenthalp, combined with the slope bias if the
+   composition varied along the isenthalp as read, |bias|/√3), the bias term
+   `JT_UNC_Q` (the local slope bias from the heat gain modelled in
+   [`heat_exchange.py`](heat_exchange.py) and the kinetic-energy correction
+   from `KINETIC_PERC`, He-N2 split at x_He = 0.3, each rectangular, u = δ/√3),
+   for pure fluids the purity term `JT_UNC_PUR` (change of the EOS μ_JT for
+   the in-situ impurity of `purity_per_gas.csv`, contaminant O₂ for N₂ and N₂
+   for Ar and He, rectangular), the method uncertainty u_m (k = 1, `u_m` in the
+   summary, from `method_uncertainty.csv`), and the long-term stability of the
    Cernox sensor (6 × 10⁻⁴ of μ_JT / √3) are added in quadrature and expanded
    with k = 2. The summary flags `steady` (every point drifts by at most
    10 mK/min and 10 kPa/min before its window) and `well_conditioned`
@@ -134,13 +141,12 @@ with `--isenthalp` the summary is left unchanged.
 
 ### `estimate_corrections.py`
 
-Heat-loss and kinetic-energy corrections for every used point, for a constant
-heat exchange of 27 mW, with the mass flow interpolated from
-`data/derived_data/capillary_mass_flow/`. Writes `corrections_per_point.csv`
-and `corrections_summary.csv`, and prints the deviation from the EOS with and
-without the corrections and the best-fit heat exchange per fluid group. The
-corrections are not applied to the data; they enter `JT_UNC` as uncorrected
-biases. It also fits the offsets of the outlet temperatures from the EOS
+Heat-exchange and kinetic-energy corrections for every used point, with the
+mass flow interpolated from `data/derived_data/capillary_mass_flow/`. The heat
+gain is modelled per point in `heat_exchange.py`, and its effect on μ_JT is
+the local slope bias of the refitted isenthalp. Writes
+`corrections_per_point.csv` and `corrections_summary.csv`. The corrections
+are not applied to the data; they enter `JT_UNC` as uncorrected biases. It also fits the offsets of the outlet temperatures from the EOS
 isenthalp through each point's inlet state as an inlet-thermometer offset plus
 a constant heat exchange (`heat_exchange_fit.csv`); this is a diagnostic and
 is not used in U.
@@ -156,11 +162,14 @@ points with the exact EOS slope. Isenthalps whose EOS curve enters the
 two-phase region (nitrogen 150 K/6 MPa) are left out of u_m and of the pooled
 results. The method uncertainty u_m is the smallest
 value for which 2 √(u_MC² + u_m²) covers the exact slope for 95 % of the
-interior points under the χ² rule; copy it to `U_METHOD_REL`. The measured
+interior points under the χ² rule; copy it to `U_METHOD_REL`. Where the pooled
+value covers less than 95 % of the points of one isenthalp, that isenthalp
+gets the value that reaches 95 % on its own points (`method_uncertainty.csv`). The measured
 deviations from the EOS are not used. The script also applies the three rules
 to the measured data (degree and AAD per isenthalp, for the sensitivity
 statement in the SI). Writes `degree_validation.csv`,
-`degree_sensitivity.csv`, `degree_pooled.csv`, and `si_degree_tables.tex`.
+`degree_sensitivity.csv`, `degree_pooled.csv`, `si_degree_tables.tex`, and
+`method_uncertainty.csv`.
 Takes a few minutes.
 
 ### `diagnose_fits.py`
@@ -251,6 +260,12 @@ points. `plot_toc_graphic.py` writes the table-of-contents graphic
   uncertainties (sensor chain and window statistics). No REFPROP needed.
 - `chebyshev_fit.py`: the weighted Chebyshev fit, its weights, and the χ²
   degree rule, shared by the scripts above. No REFPROP needed.
+- `heat_exchange.py`: the heat gained by the fluid at each point, radiation
+  from the shield (TT009) onto the capillary, treated as bare stainless steel
+  (ε = 0.1, no credit for the multi-layer insulation), plus conduction down
+  the outlet tube from TT010 (4 mm × 3 mm, 1 m, as in the design
+  calculation), and the resulting local slope bias of μ_JT. Used by
+  `calculate_jt_coefficients.py` and `estimate_corrections.py`.
 - `repo_root.py`: defines `REPO_ROOT`, the repository root computed from the
   location of this file.
 

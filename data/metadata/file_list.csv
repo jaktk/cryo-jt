@@ -9,11 +9,12 @@ data/derived_data/jt_coeffs,Fluid_TK_PMPa_MC_uncertainty.csv,one isenthalp: Mont
 data/derived_data/jt_coeffs,jt_coefficients_summary.csv,"one row per isenthalp: fluid, composition, fit metadata, mean relative expanded uncertainty, and mean deviation from the EOS",CC-BY-4.0
 data/derived_data/jt_coeffs,jt_coefficients_detailed.json,nested JSON with the per-point arrays from all isenthalps,CC-BY-4.0
 data/derived_data/jt_coeffs,mc_uncertainty_summary.csv,one row per isenthalp: mean and maximum Monte Carlo relative expanded uncertainty (and composition contribution for mixtures),CC-BY-4.0
-data/derived_data/jt_coeffs,corrections_per_point.csv,"heat-loss and kinetic-energy corrections for every used point, written by estimate_corrections.py",CC-BY-4.0
-data/derived_data/jt_coeffs,corrections_summary.csv,"mean heat-loss and kinetic-energy corrections per fluid group, written by estimate_corrections.py",CC-BY-4.0
+data/derived_data/jt_coeffs,corrections_per_point.csv,"modelled heat gain, heat-exchange bias, and kinetic-energy correction for every used point, written by estimate_corrections.py",CC-BY-4.0
+data/derived_data/jt_coeffs,corrections_summary.csv,"range of the modelled heat gain and mean heat-exchange and kinetic-energy corrections per fluid group, written by estimate_corrections.py",CC-BY-4.0
 data/derived_data/jt_coeffs,paper_tables.tex,"LaTeX bodies of the result tables of the paper, written by generate_paper_tables.py",CC-BY-4.0
 data/derived_data/jt_coeffs,si_cheb_table.tex,"LaTeX table of the Chebyshev fit coefficients, pressure range, reduced chi-square, and residual RMS for the Supporting Information, written by extract_fit_coefficients.py",CC-BY-4.0
 data/derived_data/jt_coeffs,degree_validation.csv,"synthetic test of the polynomial degree rules, one row per isenthalp and rule, written by validate_degree_criterion.py",CC-BY-4.0
+data/derived_data/jt_coeffs,method_uncertainty.csv,"method uncertainty u_m per isenthalp, written by validate_degree_criterion.py",CC-BY-4.0
 data/derived_data/jt_coeffs,degree_pooled.csv,"synthetic test of the polynomial degree rules pooled per fluid group, written by validate_degree_criterion.py",CC-BY-4.0
 data/derived_data/jt_coeffs,degree_sensitivity.csv,"degree and deviation from the EOS of each measured isenthalp under the three degree rules, written by validate_degree_criterion.py",CC-BY-4.0
 data/derived_data/jt_coeffs,si_degree_tables.tex,"LaTeX tables of the synthetic test and the degree sensitivity for the Supporting Information, written by validate_degree_criterion.py",CC-BY-4.0

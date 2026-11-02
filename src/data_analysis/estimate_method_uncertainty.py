@@ -6,7 +6,7 @@ validation in validate_degree_criterion.py, without the measured deviations.
 This script checks it against the N2 and Ar points, whose deviations from their
 reference equations of state (Span et al. 2000; Tegeler et al. 1999) are
 compared with the modelled uncertainty terms. The excess not explained by the
-Monte Carlo, bias, and EOS terms,
+Monte Carlo, bias (heat exchange, kinetic energy, and purity), and EOS terms,
 
     u_excess^2 = RMS(dev)^2 - mean(u_MC^2 + u_sys^2 + u_EOS^2),
 
@@ -25,7 +25,7 @@ import os
 import numpy as np
 import pandas as pd
 from repo_root import REPO_ROOT
-from calculate_jt_coefficients import K_TARGET, U_METHOD_REL, systematic_rel_std_uncertainty
+from calculate_jt_coefficients import K_TARGET, U_METHOD_REL
 
 N_BOOTSTRAP = 4000
 SEED = 20210101
@@ -59,7 +59,7 @@ def main():
                 'isenthalp': os.path.basename(f)[:-len('_JT.csv')],
                 'dev': (mu - mu_eos) / mu_eos,
                 'u_mc': df['JT_UNC_MC/(K/MPa)'].values / K_TARGET / np.abs(mu),
-                'u_sys': systematic_rel_std_uncertainty(fluid),
+                'u_sys': np.hypot(df['JT_UNC_Q/(K/MPa)'].values, df['JT_UNC_PUR/(K/MPa)'].values) / K_TARGET / np.abs(mu),
                 'u_eos': [eos_rel_std_uncertainty(fluid, p) for p in df['p/MPa'].values],
                 'U_rel': df['JT_UNC/(K/MPa)'].values / np.abs(mu),
             }))
@@ -84,7 +84,7 @@ def main():
           f"excess <= 0 in {100 * np.mean(boot <= 0):.0f} % of resamples")
 
     within = np.abs(d['dev']) <= d['U_rel']
-    print(f"u_m used (U_METHOD_REL, k = 1): {100 * U_METHOD_REL:.2f} %")
+    print(f"pooled u_m (U_METHOD_REL, k = 1): {100 * U_METHOD_REL:.2f} %")
     print(f"points within U (k = 2): {within.sum()} of {len(d)}; "
           f"mean U_r {100 * d['U_rel'].mean():.2f} %")
 
