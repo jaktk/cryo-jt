@@ -298,8 +298,8 @@ The `Q008/W` columns are absent where the raw data have no heater power.
 ### Output: `jt_coefficients_summary.csv`
 
 `filename`, `fluid`, `is_mixture`, `x1`, `x2`, `TT101_mean/K`, `n_points`,
-`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `steady`, `well_conditioned`, `birge_ratio`, `u_x1`,
-`mean_rel_abs_err_perc`,
+`polynomial_degree`, `chi2_red`, `chi2_crit`, `chi2_pass`, `s_T/mK`, `steady`, `well_conditioned`, `birge_ratio`, `u_x1`, `u_m`, `Q_min/mW`,
+`Q_max/mW`, `mean_rel_abs_err_perc`,
 `std_rel_abs_err_perc`, `rms_rel_abs_err_perc`, `mean_unc_perc`. The
 deviation statistics and `mean_unc_perc` are taken over the used points.
 
@@ -313,6 +313,8 @@ deviation statistics and `mean_unc_perc` are taken over the used points.
 | `JT_meas/(K/MPa)` | measured μ_JT |
 | `JT_UNC_MC/(K/MPa)` | Monte Carlo part of the uncertainty (k = 2, with the Birge ratio) |
 | `JT_UNC_X/(K/MPa)` | composition part of the uncertainty (k = 2, mixtures) |
+| `JT_UNC_Q/(K/MPa)` | heat-exchange and kinetic-energy bias part of the uncertainty (k = 2) |
+| `JT_UNC_PUR/(K/MPa)` | purity part of the uncertainty (k = 2, pure fluids) |
 | `JT_UNC/(K/MPa)` | combined expanded uncertainty (k = 2) |
 | `JT_eos/(K/MPa)` | μ_JT from the EOS at the same point |
 | `mean_unc_perc` | mean of 100 `JT_UNC`/\|`JT_meas`\| over the used points (same on every row) |
@@ -443,9 +445,10 @@ python src/data_analysis/extract_fit_coefficients.py
 - Helium-neon: 3.1 % to 19 %
 - Helium-nitrogen: 0.7 % to 11 %
 
-The mean relative expanded uncertainty (`mean_unc_perc`) is 1.6 % to 2.5 %
-for nitrogen and argon, 2.0 % for dilute He-N2 (5.0 % for the He-N2
-isenthalp with about 50 % helium), 6.5 % to 9.6 % for He-Ne, and 32 % to 68 %
+The mean relative expanded uncertainty (`mean_unc_perc`) is 1.4 % to 3.5 %
+for nitrogen and argon, 1.5 % to 1.8 % for dilute He-N2 (1.7 % for the He-N2
+isenthalp with about 50 % helium), 1.8 % to 7.8 % for He-Ne, and 9.5 % to 60 %
 for helium-4; the larger values belong to fits that fail the χ² test, whose
-Monte Carlo part is scaled by the Birge ratio. See
+Monte Carlo part is scaled by the Birge ratio, and to isenthalps with a raised
+method uncertainty or, for He-Ne, a composition trend. See
 `jt_coefficients_summary.csv` for the values per isenthalp.
