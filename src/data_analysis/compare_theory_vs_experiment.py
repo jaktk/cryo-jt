@@ -91,6 +91,15 @@ def compute_theoretical_uncertainty_per_point(data):
     return data
 
 
+def place_legend_below(fig, ax, legend, gap=0.02):
+    """ Anchor the legend under the x-axis label; repeated because constrained
+    layout resizes the axes to make room for the legend. """
+    for _ in range(3):
+        fig.canvas.draw()
+        label = ax.xaxis.label.get_window_extent().transformed(ax.transAxes.inverted())
+        legend.set_bbox_to_anchor((0.5, label.y0 - gap), transform=ax.transAxes)
+
+
 def make_figure(data):
     fig, ax = plt.subplots(figsize=(3.1, 3.0))
 
@@ -157,8 +166,9 @@ def make_figure(data):
     ax.text(19.7, 0.053, '0.05', color='0.4', ha='right', va='bottom')
     ax.text(19.7, 0.0215, '0.02', color='0.4', ha='right', va='bottom')
 
-    ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.02), ncol=2, frameon=True,
-              edgecolor='black', facecolor='white', framealpha=1.0)
+    legend = ax.legend(loc='upper center', ncol=2, frameon=True,
+                       edgecolor='black', facecolor='white', framealpha=1.0)
+    place_legend_below(fig, ax, legend)
 
     return fig
 

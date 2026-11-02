@@ -93,6 +93,15 @@ def this_work():
     return pd.concat(frames, ignore_index=True)
 
 
+def place_legend_below(fig, ax, legend, gap=0.02):
+    """ Anchor the legend under the x-axis label; repeated because constrained
+    layout resizes the axes to make room for the legend. """
+    for _ in range(3):
+        fig.canvas.draw()
+        label = ax.xaxis.label.get_window_extent().transformed(ax.transAxes.inverted())
+        legend.set_bbox_to_anchor((0.5, label.y0 - gap), transform=ax.transAxes)
+
+
 def main():
     plt.style.use(STYLE)
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -137,11 +146,12 @@ def main():
                                                  r'$10^0$', r'$10^1$', r'$10^2$', r'$10^3$']))
     ax.set_xlabel(r'$T$/K')
     ax.set_ylabel(r'$(\mu_{\rm JT}^{\rm EOS} - \mu_{\rm JT}^{\rm meas}) / \mu_{\rm JT}^{\rm EOS} \times 100$')
-    ax.legend(handles=legend_handles,
-              loc='lower center', bbox_to_anchor=(0.5, 1.02), ncol=3,
-              frameon=True, edgecolor='black', facecolor='white',
-              framealpha=1.0, handletextpad=0.1,
-              labelspacing=0.1, columnspacing=0.7)
+    legend = ax.legend(handles=legend_handles,
+                       loc='upper center', ncol=3,
+                       frameon=True, edgecolor='black', facecolor='white',
+                       framealpha=1.0, handletextpad=0.1,
+                       labelspacing=0.1, columnspacing=0.7)
+    place_legend_below(fig, ax, legend)
 
     out = os.path.join(OUT_DIR, 'literature_review_plus_this_work.pdf')
     fig.savefig(out)
